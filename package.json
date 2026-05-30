@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "description": "Host-neutral context and memory layer for coding agents",
   "type": "module",
-  "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "cyralis": "./bin/cyralis.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -26,9 +28,15 @@
       "types": "./dist/host-bindings/index.d.ts",
       "import": "./dist/host-bindings/index.js",
       "default": "./dist/host-bindings/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js",
+      "default": "./dist/cli/index.js"
     }
   },
   "files": [
+    "bin",
     "dist",
     "README.md"
   ],
@@ -54,4 +62,3 @@
     "typescript": "^5.7.2"
   }
 }
-

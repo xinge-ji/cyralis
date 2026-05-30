@@ -1,8 +1,8 @@
 # Cyralis Agent Instructions
 
-Cyralis is a pure context and memory project. Do not add UI, TUI, CLI, model
-provider routing, shell runtime, notification, or LSP behavior unless the user
-explicitly changes the product boundary.
+Cyralis is a context and memory project with a thin global installer CLI. Do
+not add UI, TUI, model provider routing, shell runtime, notification, or LSP
+behavior unless the user explicitly changes the product boundary.
 
 ## Architecture
 
@@ -11,6 +11,7 @@ Use this responsibility split:
 ```text
 .cyralis/        host-neutral state and memory
 .codex/.pi       host-discoverable projections
+src/cli          global installer, equivalent to Trellis init/update boundary
 src/core         context assembly and recall lifecycle
 src/memory       memory persistence and retrieval
 src/host-bindings host event adapters
@@ -21,4 +22,3 @@ Adapters may depend on host event shapes, but should convert them into stable
 Cyralis types before calling core runtime APIs.
 
 Keep host-specific files small and generated-template-friendly.
-
