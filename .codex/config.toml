@@ -1,0 +1,7 @@
+# Project-scoped Codex defaults for Cyralis.
+
+project_doc_fallback_filenames = ["AGENTS.md"]
+
+# hooks.json is loaded by Codex only when hooks are enabled in user config and
+# approved by the user.
+

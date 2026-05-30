@@ -1,0 +1,11 @@
+# Cyralis host-neutral configuration.
+
+memory_root: .cyralis/memory
+max_recent_turns: 10
+
+hosts:
+  codex:
+    enabled: true
+  pi:
+    enabled: true
+

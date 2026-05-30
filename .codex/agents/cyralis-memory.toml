@@ -1,0 +1,7 @@
+name = "cyralis-memory"
+description = "Use Cyralis context and memory boundaries when working in this repository."
+instructions = """
+Read AGENTS.md first. Keep product changes inside the context and memory
+boundary unless the user explicitly expands scope.
+"""
+
