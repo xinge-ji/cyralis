@@ -9,7 +9,6 @@ export function collectTemplates(platforms: Platform[]): Map<string, string> {
 }
 
 function addCoreTemplates(files: Map<string, string>): void {
-  files.set("AGENTS.md", agentsMd);
   files.set(".cyralis/config.yaml", cyralisConfig);
   files.set(".cyralis/workflow.md", cyralisWorkflow);
   files.set(".cyralis/.gitignore", cyralisGitignore);
@@ -29,15 +28,6 @@ function addCodexTemplates(files: Map<string, string>): void {
   files.set(".codex/hooks/inject-context-memory.py", codexHook);
   files.set(".codex/agents/cyralis-memory.toml", codexAgent);
 }
-
-const agentsMd = `# Cyralis Agent Instructions
-
-Cyralis is installed in this project as a context and memory layer. It does not
-own UI, TUI, provider routing, shell runtime, notification, or LSP behavior.
-
-Read .cyralis/workflow.md and .cyralis/config.yaml before changing Cyralis
-project memory behavior.
-`;
 
 const cyralisConfig = `# Cyralis host-neutral configuration.
 
@@ -148,8 +138,6 @@ context or memory behavior.
 
 const codexConfig = `# Project-scoped Codex defaults for Cyralis.
 
-project_doc_fallback_filenames = ["AGENTS.md"]
-
 # hooks.json is loaded by Codex only when hooks are enabled in user config and
 # approved by the user.
 `;
@@ -209,8 +197,7 @@ if __name__ == "__main__":
 const codexAgent = `name = "cyralis-memory"
 description = "Use Cyralis context and memory boundaries when working in this repository."
 instructions = """
-Read AGENTS.md first. Keep changes inside the context and memory boundary unless
-the user explicitly expands scope.
+Read .cyralis/workflow.md and .cyralis/config.yaml first. Keep changes inside
+the context and memory boundary unless the user explicitly expands scope.
 """
 `;
-
