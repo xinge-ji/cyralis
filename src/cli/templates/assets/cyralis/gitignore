@@ -1,0 +1,4 @@
+runtime/
+cache/
+memory/**/*.sqlite
+memory/**/*.sqlite-*

@@ -1,0 +1,29 @@
+# Cyralis host-neutral configuration.
+
+memory_root: .cyralis/memory
+max_recent_turns: 10
+
+workflow:
+  guide: .cyralis/workflow.md
+  host_skill_roots:
+    codex: .codex/skills
+    pi: .pi/skills
+  reference_root: .cyralis/reference
+  template_root: .cyralis/templates
+  roots:
+    roadmap: .cyralis/roadmap
+    feature: .cyralis/features
+    issue: .cyralis/issues
+    refactor: .cyralis/refactors
+  statuses:
+    - no_task
+    - design
+    - implement
+    - verify
+    - done
+
+hosts:
+  codex:
+    enabled: true
+  pi:
+    enabled: true
