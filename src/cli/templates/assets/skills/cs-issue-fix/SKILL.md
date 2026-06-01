@@ -121,14 +121,46 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 
 ---
 
+## 独立代码评审 gate
+
+这是对**本次 bug fix diff** 的独立 review，不替代 Debugging Closure、Repair / Retirement Track、fix-note 落档。共享口径看 `.cyralis/reference/shared-conventions.md` 第 4 节。
+
+### 什么时候必须跑
+
+命中任一条就跑：
+
+- bug 本身属于复杂修复，不是单点小补丁
+- confidence 只有 `B`，或虽然通过验证但证据链仍有空洞
+- 修复涉及 canonical owner、fallback、adapter、historical patch、duplicate owner、retirement trigger
+- 修复触碰了 analysis 原声明范围外的文件，或中途更新过 fix boundary
+- 影响面回归涉及多个下游路径，且测试 / 手工验证只能覆盖其中一部分
+
+### review 前要给出的材料
+
+- report + analysis（快速通道至少给根因陈述和修复方案）
+- 本次修复 diff
+- 复现 before / 验证 after / 影响面回归证据
+- canonical owner、compatibility boundary、retirement notes
+
+### findings 怎么处理
+
+- **Critical / Important**：先修，再重跑受影响的验证清单和 Debugging Closure
+- **Minor**：可写进 fix-note 的遗留 / follow-up
+
+review 结论只是 advisory；fix-note、confidence、Repair / Retirement Track 仍由本技能负责闭环。
+
+---
+
 ## 退出条件
 
 - [ ] 所有改动文件已提交或列清单
 - [ ] 修复前 gate 已完成
 - [ ] 验证清单全部勾选
+- [ ] 命中独立代码评审 gate 时已完成评审，Critical / Important 已处理完
 - [ ] Debugging Closure 已写，confidence 至少 `B`；若只有 `C`，已标为 mitigation / partial
 - [ ] Repair Track / Retirement Track 已写（不涉及则明确写"无旧路径 / 无 fallback"）
 - [ ] `{slug}-fix-note.md` 已建并填写完整
+- [ ] 验证结果二选一完成：通过时写 `work.json.artifacts.fix.result="passed"` 并 `transition <issue-dir> done`；失败需回分析时写 `work.json.artifacts.fix.result="failed"` 并 `transition <issue-dir> implement`
 - [ ] 没有未处理的"顺手发现"（都进后续 issue 列表）
 - [ ] 没有范围外改动（或已和用户确认）
 - [ ] 用户明确确认修复完成
@@ -137,7 +169,7 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 
 ## 收尾提交
 
-按 `shared-conventions.md` 第 4 节"scoped-commit"规则执行。本阶段：
+按 `shared-conventions.md` 第 5 节"scoped-commit"规则执行。本阶段：
 
 - **提交范围**：修复代码 + `{slug}-fix-note.md` + 本次一并更新的 report / analysis
 - 修复闭环后告诉用户"修复验证已完成，`{slug}-fix-note.md` 已落盘"，紧接着问是否需要 commit
@@ -170,6 +202,7 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 - 发现影响面回归有问题但写"轻微影响可忽略"——要修到干净
 - 前端改动只 typecheck 就报通过
 - 用户没明确说"修复完成"就结束
+- 涉及 fallback / owner / retirement 风险却没跑独立代码评审
 - 修复未生效继续原假设上反复猜测试错，不切换到日志调试
 - 日志调试结束后没清理临时 log 就提交
 - 收尾时没问用户是否代为 commit

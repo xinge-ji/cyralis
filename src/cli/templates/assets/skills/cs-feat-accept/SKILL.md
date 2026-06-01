@@ -206,17 +206,52 @@ req 是能力愿景层，本节是 draft → current 升级和 backfill 的触�
 
 ---
 
+## 独立代码评审 gate
+
+这是对**已完成代码改动**的独立 review，不替代本技能的验收、归并、req 回写、roadmap 回写。共享口径看 `.cyralis/reference/shared-conventions.md` 第 4 节。
+
+### 什么时候必须跑
+
+命中任一条就跑：
+
+- 跨模块 / 跨目录边界
+- 改了 public API / schema / persistence / permission / compatibility
+- design 第 2.5 已提示 owner mismatch / fallback 增长 / shared util 膨胀等结构风险
+- 实现中触碰方案外文件、引入方案里没有的新抽象，或第 1/2 节核对刚修过偏差
+- 准备 merge，且这次不是小 feature
+
+都没命中时，可不额外跑；不要为了形式增加一轮 review。
+
+### review 前要给出的材料
+
+- 本次 feature 的 review scope
+- `{slug}-design.md`、相关 requirement / architecture / roadmap 文档
+- 本次代码 diff（git diff 范围或等价改动清单）
+- 第 1/2/3 节已拿到的验证证据
+- compatibility boundary
+- 旧路径 / fallback / duplicate owner / retirement notes（若涉及）
+
+### findings 怎么处理
+
+- **Critical / Important**：先修，再回到对应验收节重核；如果修动了接口 / 字段 / 边界 / 架构归并结论，相关节重跑
+- **Minor**：可进第 9 节"遗留"
+
+review 结论只是 advisory，不等于本技能已完成；本技能自己的 9 节报告、checklist、回写动作仍必须走完。
+
+---
+
 ## 退出条件
 
 - [ ] 验收报告 9 节都填完
 - [ ] 第 1/2 节核对全部勾选，无未处理偏差（含挂载点 grep + 拔除沙盘推演）
 - [ ] 第 3 节场景核对全部勾选，前端已浏览器验证
+- [ ] 命中独立代码评审 gate 时已完成评审，Critical / Important 已处理完
 - [ ] 第 4 节术语一致性无遗漏
 - [ ] 第 5 节归并：每条有明确结论，需要更新的 doc 已实际写入
 - [ ] 第 6 节 req 回写有结论：跳过 / 未变 / 已 backfill / draft→current / 已 update
 - [ ] 第 7 节 roadmap 回写有结论：跳过（非 roadmap 起头）/ 已更新（items.yaml + 主文档同步，yaml 通过校验）
 - [ ] checklist 所有 checks 都 `passed`
-- [ ] `work.json.artifacts.acceptance.result="passed"`，并且 `work.json.status="done"`
+- [ ] `work.json.artifacts.acceptance.result="passed"`，并且已执行 `python .cyralis/tools/work.py transition <feature-dir> done`
 - [ ] 用户终审确认
 
 ---
@@ -246,6 +281,7 @@ req 是能力愿景层，本节是 draft → current 升级和 backfill 的触�
 - 接口偏差在报告里写"已知偏差"而不修代码 / 回填方案
 - 挂载点反向核对只看清单不 grep——漏记的挂载点溜进项目，后面拔不干净
 - 第 3 节前端改动只 typecheck 没浏览器跑过
+- 命中高风险条件却省掉独立代码评审
 - 第 5 节归并写"整体不影响架构"一句话带过，没逐条核查
 - 架构 doc 需要更新而只写"建议以后更新"——归并是当下动作不是建议
 - 第 7 节只改 items.yaml 没同步主文档，两份不一致

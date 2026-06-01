@@ -82,6 +82,10 @@ brainstorm 是"讨论层"统一入口。
 
 评估完发现方案确实合理 → "我觉得这个方向 OK 建议直接进 design"，别为凑流程硬发散——当场升级 case 1。
 
+**决策卫生检查（按信号触发）**：如果用户显式要求 first principles / 第一性原理 / Occam / 奥卡姆剃刀，或出现多个方案但选择标准不清、方案继承旧形状、owner / fallback / adapter 风险，读取 `.cyralis/reference/decision-hygiene.md`，先做"五行检查"。
+
+检查结果进入当前对话，不单独落盘；只有它产出的结论会影响 design / roadmap 的非琐碎设计点时，才写进 feature brainstorm / open brainstorm 的"已敲定的点"。
+
 ### 对话节奏
 
 没有固定步骤。三个动作随时可回到上一步：

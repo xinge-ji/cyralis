@@ -1,0 +1,561 @@
+#!/usr/bin/env python3
+"""Cyralis workflow state helper.
+
+This project-local helper owns active-work resolution and gated workflow
+status transitions. Host hooks may read through it, but hooks must not write
+workflow state directly.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+
+CYRALIS_DIR = ".cyralis"
+WORK_JSON = "work.json"
+STATUS_VALUES = {"design", "implement", "verify", "done"}
+WORK_ROOTS = {
+    "roadmap": "roadmap",
+    "feature": "features",
+    "issue": "issues",
+    "refactor": "refactors",
+}
+
+
+def find_root(start: Path) -> Path | None:
+    cur = start.resolve()
+    while cur != cur.parent:
+        if (cur / CYRALIS_DIR).is_dir():
+            return cur
+        cur = cur.parent
+    return None
+
+
+def read_json(path: Path) -> dict[str, Any] | None:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def write_json(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def sanitize_key(raw: str) -> str:
+    value = re.sub(r"[^A-Za-z0-9_.-]+", "-", raw.strip())
+    return value.strip("-._") or "session"
+
+
+def context_key(explicit: str | None) -> str | None:
+    if explicit:
+        return sanitize_key(explicit)
+    for name in (
+        "CYRALIS_CONTEXT_ID",
+        "TRELLIS_CONTEXT_ID",
+        "CODEX_SESSION_ID",
+        "CODEX_CONVERSATION_ID",
+        "PI_SESSION_ID",
+        "CLAUDE_SESSION_ID",
+        "SESSION_ID",
+    ):
+        value = os.environ.get(name)
+        if value:
+            return sanitize_key(value)
+    return None
+
+
+def sessions_dir(root: Path) -> Path:
+    return root / CYRALIS_DIR / "runtime" / "sessions"
+
+
+def session_file(root: Path, key: str) -> Path:
+    return sessions_dir(root) / f"{key}.json"
+
+
+def repo_relative(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def resolve_work_dir(root: Path, ref: str) -> Path | None:
+    candidate = Path(ref)
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    if (candidate / WORK_JSON).is_file():
+        return candidate.resolve()
+
+    for root_name in WORK_ROOTS.values():
+        work_root = root / CYRALIS_DIR / root_name
+        if not work_root.is_dir():
+            continue
+        for work_json in work_root.glob(f"*/{WORK_JSON}"):
+            if work_json.parent.name == ref or work_json.parent.name.endswith(f"-{ref}"):
+                return work_json.parent.resolve()
+    return None
+
+
+def iter_work_items(root: Path) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for mode, root_name in WORK_ROOTS.items():
+        base = root / CYRALIS_DIR / root_name
+        if not base.is_dir():
+            continue
+        for work_json in sorted(base.glob(f"*/{WORK_JSON}")):
+            data = read_json(work_json)
+            if not data:
+                continue
+            items.append({
+                "path": repo_relative(root, work_json.parent),
+                "id": data.get("id") or work_json.parent.name,
+                "mode": data.get("mode") or mode,
+                "status": data.get("status") or "unknown",
+                "title": data.get("title") or "",
+                "slug": data.get("slug") or work_json.parent.name,
+            })
+    return items
+
+
+def current_work_ref(root: Path, key: str | None) -> tuple[str | None, str]:
+    if key:
+        data = read_json(session_file(root, key)) or {}
+        current = data.get("current_work")
+        if isinstance(current, str) and current:
+            return current, "session"
+
+    files = sorted(sessions_dir(root).glob("*.json"))
+    if len(files) == 1:
+        data = read_json(files[0]) or {}
+        current = data.get("current_work")
+        if isinstance(current, str) and current:
+            return current, "single-session-fallback"
+    if not key and len(files) > 1:
+        return None, "ambiguous"
+    return None, "none"
+
+
+def load_current(root: Path, key: str | None) -> tuple[Path | None, dict[str, Any] | None, str]:
+    ref, source = current_work_ref(root, key)
+    if not ref:
+        return None, None, source
+    work_dir = resolve_work_dir(root, ref)
+    if not work_dir:
+        return None, None, "stale"
+    data = read_json(work_dir / WORK_JSON)
+    if not data:
+        return work_dir, None, "invalid"
+    return work_dir, data, source
+
+
+def artifact(work: dict[str, Any], name: str) -> dict[str, Any]:
+    artifacts = work.get("artifacts")
+    if not isinstance(artifacts, dict):
+        return {}
+    value = artifacts.get(name)
+    return value if isinstance(value, dict) else {}
+
+
+def artifact_path(work_dir: Path, work: dict[str, Any], name: str) -> Path | None:
+    value = artifact(work, name).get("path")
+    if not isinstance(value, str) or not value:
+        return None
+    path = Path(value)
+    return path if path.is_absolute() else work_dir / path
+
+
+def artifact_exists(work_dir: Path, work: dict[str, Any], name: str) -> bool:
+    path = artifact_path(work_dir, work, name)
+    return bool(path and path.is_file())
+
+
+def frontmatter_status(path: Path | None) -> str | None:
+    if not path or not path.is_file():
+        return None
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if not text.startswith("---"):
+        return None
+    end = text.find("\n---", 3)
+    if end == -1:
+        return None
+    for line in text[3:end].splitlines():
+        if line.strip().startswith("status:"):
+            return line.partition(":")[2].strip().strip("'\"")
+    return None
+
+
+def artifact_confirmed(work_dir: Path, work: dict[str, Any], name: str) -> bool:
+    info = artifact(work, name)
+    if info.get("confirmed") is True:
+        return True
+    if info.get("approval") == "approved":
+        return True
+    return frontmatter_status(artifact_path(work_dir, work, name)) in {"confirmed", "approved"}
+
+
+def parse_checklist_steps(path: Path | None) -> list[dict[str, str]]:
+    if not path or not path.is_file():
+        return []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+
+    steps: list[dict[str, str]] = []
+    in_steps = False
+    current: dict[str, str] | None = None
+    for raw in lines:
+        stripped = raw.strip()
+        if stripped == "steps:":
+            in_steps = True
+            continue
+        if stripped == "checks:":
+            break
+        if not in_steps:
+            continue
+        if stripped.startswith("- "):
+            if current:
+                steps.append(current)
+            current = {}
+            rest = stripped[2:]
+            if ":" in rest:
+                key, _, value = rest.partition(":")
+                current[key.strip()] = value.strip().strip("'\"")
+            continue
+        if current is not None and ":" in stripped:
+            key, _, value = stripped.partition(":")
+            current[key.strip()] = value.strip().strip("'\"")
+    if current:
+        steps.append(current)
+    return steps
+
+
+def checklist_path(work_dir: Path, work: dict[str, Any]) -> Path | None:
+    return artifact_path(work_dir, work, "checklist")
+
+
+def checklist_all_done(work_dir: Path, work: dict[str, Any]) -> bool:
+    steps = parse_checklist_steps(checklist_path(work_dir, work))
+    return bool(steps) and all(step.get("status") == "done" for step in steps)
+
+
+def next_pending_step(work_dir: Path, work: dict[str, Any]) -> str | None:
+    for step in parse_checklist_steps(checklist_path(work_dir, work)):
+        if step.get("status") != "done":
+            return step.get("action") or step.get("name")
+    return None
+
+
+def transition_blockers(work_dir: Path, work: dict[str, Any], target: str) -> list[str]:
+    mode = work.get("mode")
+    status = work.get("status")
+    blockers: list[str] = []
+
+    if target not in STATUS_VALUES:
+        return [f"unsupported target status: {target}"]
+    if status == target:
+        return []
+
+    if mode == "feature":
+        if status == "design" and target == "implement":
+            if artifact(work, "design").get("approval") != "approved":
+                blockers.append("artifacts.design.approval must be approved")
+            if not artifact_exists(work_dir, work, "checklist"):
+                blockers.append("checklist artifact must exist")
+        elif status == "implement" and target == "verify":
+            if artifact(work, "implementation").get("done") is not True and not checklist_all_done(work_dir, work):
+                blockers.append("implementation.done must be true or checklist steps must all be done")
+        elif status == "verify" and target == "done":
+            if artifact(work, "acceptance").get("result") != "passed":
+                blockers.append("acceptance.result must be passed")
+        elif status == "verify" and target == "implement":
+            if artifact(work, "acceptance").get("result") != "failed":
+                blockers.append("acceptance.result must be failed")
+        else:
+            blockers.append(f"unsupported feature transition: {status} -> {target}")
+
+    elif mode == "issue":
+        if status == "design" and target == "implement":
+            if not artifact_confirmed(work_dir, work, "report"):
+                blockers.append("issue report must be confirmed")
+        elif status == "design" and target == "verify":
+            if not artifact_confirmed(work_dir, work, "report"):
+                blockers.append("issue report must be confirmed")
+            if artifact(work, "fix").get("quick_lane") is not True and artifact(work, "analysis").get("skipped") is not True:
+                blockers.append("quick lane must be approved before skipping analysis")
+        elif status == "implement" and target == "verify":
+            if not artifact_confirmed(work_dir, work, "analysis"):
+                blockers.append("issue analysis must be confirmed")
+        elif status == "verify" and target == "done":
+            if artifact(work, "fix").get("result") != "passed":
+                blockers.append("fix.result must be passed")
+            if not artifact_exists(work_dir, work, "fix"):
+                blockers.append("fix-note artifact must exist")
+        elif status == "verify" and target == "implement":
+            if artifact(work, "fix").get("result") != "failed":
+                blockers.append("fix.result must be failed")
+        else:
+            blockers.append(f"unsupported issue transition: {status} -> {target}")
+
+    elif mode == "refactor":
+        scan_required = artifact(work, "scan").get("required", True) is not False
+        checklist_required = artifact(work, "checklist").get("required", True) is not False
+        if status == "design" and target == "implement":
+            if scan_required and artifact(work, "scan").get("user_reviewed") is not True:
+                blockers.append("scan.user_reviewed must be true")
+            if artifact(work, "design").get("approval") != "approved" and not artifact_confirmed(work_dir, work, "design"):
+                blockers.append("refactor design must be approved")
+            if checklist_required and not artifact_exists(work_dir, work, "checklist"):
+                blockers.append("checklist artifact must exist")
+        elif status == "implement" and target == "verify":
+            if artifact(work, "apply").get("done") is not True and not checklist_all_done(work_dir, work):
+                blockers.append("apply.done must be true or checklist steps must all be done")
+        elif status == "verify" and target == "done":
+            if artifact(work, "verification").get("result") != "passed":
+                blockers.append("verification.result must be passed")
+        elif status == "verify" and target == "implement":
+            if artifact(work, "verification").get("result") != "failed":
+                blockers.append("verification.result must be failed")
+        else:
+            blockers.append(f"unsupported refactor transition: {status} -> {target}")
+
+    else:
+        blockers.append(f"unsupported mode: {mode}")
+
+    return blockers
+
+
+def host_skill(host: str, mode: str, status: str) -> str | None:
+    root = f".{host}/skills"
+    if mode == "feature":
+        skill = {
+            "design": "cs-feat-design",
+            "implement": "cs-feat-impl",
+            "verify": "cs-feat-accept",
+            "done": "cs-feat",
+        }.get(status, "cs-feat")
+    elif mode == "issue":
+        skill = {
+            "design": "cs-issue-report",
+            "implement": "cs-issue-analyze",
+            "verify": "cs-issue-fix",
+            "done": "cs-issue",
+        }.get(status, "cs-issue")
+    elif mode == "refactor":
+        skill = "cs-refactor"
+    elif mode == "roadmap":
+        skill = "cs-roadmap"
+    else:
+        return None
+    return f"{root}/{skill}/SKILL.md"
+
+
+def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
+    work_dir, work, source = load_current(root, key)
+    if not work_dir or not work:
+        return {
+            "status": "no_task",
+            "mode": None,
+            "work_root": None,
+            "host_skill": None,
+            "next": "classify the request and create or activate a work item",
+            "reason": f"active work source={source}",
+            "blockers": [],
+        }
+
+    status = str(work.get("status") or "unknown")
+    mode = str(work.get("mode") or "unknown")
+    pending = next_pending_step(work_dir, work)
+    next_text = {
+        "design": f"continue {mode} design/report planning",
+        "implement": pending or f"continue {mode} implementation/apply work",
+        "verify": f"run {mode} verification/acceptance",
+        "done": "summarize and clear active work when appropriate",
+    }.get(status, "refer to workflow.md")
+
+    return {
+        "status": status,
+        "mode": mode,
+        "work_root": repo_relative(root, work_dir),
+        "id": work.get("id") or work_dir.name,
+        "title": work.get("title") or "",
+        "host_skill": host_skill(host, mode, status),
+        "next": next_text,
+        "reason": f"work.json status={status}; source={source}",
+        "blockers": [],
+    }
+
+
+TAG_RE = re.compile(
+    r"\[workflow-state:([A-Za-z0-9_-]+)\]\s*\n(.*?)\n\s*\[/workflow-state:\1\]",
+    re.DOTALL,
+)
+
+
+def workflow_blocks(root: Path) -> dict[str, str]:
+    path = root / CYRALIS_DIR / "workflow.md"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    return {m.group(1): m.group(2).strip() for m in TAG_RE.finditer(text) if m.group(2).strip()}
+
+
+def build_breadcrumb(root: Path, key: str | None, host: str) -> str:
+    state = resolve_state(root, key, host)
+    status = str(state["status"])
+    body = workflow_blocks(root).get(status, "Refer to .cyralis/workflow.md for current step.")
+    header = f"Status: {status}" if not state.get("work_root") else f"Work: {state['work_root']} ({status})"
+    lines = [
+        "<workflow-state>",
+        header,
+        f"mode: {state.get('mode') or '-'}",
+        f"host_skill: {state.get('host_skill') or '-'}",
+        f"next: {state.get('next')}",
+        body,
+        "</workflow-state>",
+    ]
+    return "\n".join(lines)
+
+
+def cmd_list(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    items = iter_work_items(root)
+    if args.json:
+        print(json.dumps({"items": items}, ensure_ascii=False, indent=2))
+    else:
+        for item in items:
+            print(f"{item['path']} ({item['mode']}/{item['status']})")
+    return 0
+
+
+def cmd_activate(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    key = key or "manual"
+    work_dir = resolve_work_dir(root, args.work)
+    if not work_dir:
+        print(f"Error: work item not found: {args.work}", file=sys.stderr)
+        return 1
+    rel = repo_relative(root, work_dir)
+    write_json(session_file(root, key), {"current_work": rel})
+    print(rel)
+    return 0
+
+
+def cmd_clear(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    key = key or "manual"
+    path = session_file(root, key)
+    if path.is_file():
+        path.unlink()
+    return 0
+
+
+def cmd_current(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    work_dir, work, source = load_current(root, key)
+    data = {
+        "work_root": repo_relative(root, work_dir) if work_dir else None,
+        "source": source,
+        "work": work,
+    }
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+    elif data["work_root"]:
+        print(data["work_root"])
+    return 0 if data["work_root"] else 1
+
+
+def cmd_resolve(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    state = resolve_state(root, key, args.host)
+    if args.json:
+        print(json.dumps(state, ensure_ascii=False, indent=2))
+    else:
+        print(f"{state['status']}: {state['next']}")
+    return 0
+
+
+def cmd_transition(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    work_dir = resolve_work_dir(root, args.work)
+    if not work_dir:
+        print(f"Error: work item not found: {args.work}", file=sys.stderr)
+        return 1
+    path = work_dir / WORK_JSON
+    work = read_json(path)
+    if not work:
+        print(f"Error: invalid work.json: {path}", file=sys.stderr)
+        return 1
+    blockers = transition_blockers(work_dir, work, args.target)
+    if blockers:
+        payload = {"ok": False, "blockers": blockers}
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 2
+    work["status"] = args.target
+    write_json(path, work)
+    print(json.dumps({"ok": True, "status": args.target}, ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_breadcrumb(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    print(build_breadcrumb(root, key, args.host))
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Cyralis workflow state helper")
+    parser.add_argument("--cwd", default=os.getcwd(), help="Repository directory")
+    parser.add_argument("--context-key", help="Session context key")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_list = sub.add_parser("list")
+    p_list.add_argument("--json", action="store_true")
+    p_list.set_defaults(func=cmd_list)
+
+    p_current = sub.add_parser("current")
+    p_current.add_argument("--json", action="store_true")
+    p_current.set_defaults(func=cmd_current)
+
+    p_activate = sub.add_parser("activate")
+    p_activate.add_argument("work")
+    p_activate.set_defaults(func=cmd_activate)
+
+    p_clear = sub.add_parser("clear")
+    p_clear.set_defaults(func=cmd_clear)
+
+    p_resolve = sub.add_parser("resolve")
+    p_resolve.add_argument("--json", action="store_true")
+    p_resolve.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_resolve.set_defaults(func=cmd_resolve)
+
+    p_transition = sub.add_parser("transition")
+    p_transition.add_argument("work")
+    p_transition.add_argument("target")
+    p_transition.set_defaults(func=cmd_transition)
+
+    p_breadcrumb = sub.add_parser("breadcrumb")
+    p_breadcrumb.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_breadcrumb.set_defaults(func=cmd_breadcrumb)
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    root = find_root(Path(args.cwd))
+    if not root:
+        print("Error: .cyralis root not found", file=sys.stderr)
+        return 1
+    key = context_key(args.context_key)
+    return args.func(args, root, key)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

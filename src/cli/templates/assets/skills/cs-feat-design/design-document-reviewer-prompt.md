@@ -38,6 +38,7 @@ Task tool (general-purpose):
     | Section Completeness | Frontmatter, sections 0/1/2/3/4, input baseline alignment, triggered product / architecture checks, and 2.5 structure health are present |
     | Contract Consistency | Interfaces, fields, types, states, examples, orchestration, and acceptance scenarios use the same names and shapes |
     | Roadmap / Architecture Alignment | Roadmap goals, dependencies, shared protocols, owner, contract, and dependency direction are not rewritten in feature design |
+    | Decision Hygiene | Triggered architecture integrity checks include dropped assumptions and falsifiers, not only preferred owner claims |
     | Boundary Closure | Non-goals are not implicitly implemented; each non-goal has an acceptance reverse check; open questions are not disguised as decisions |
     | Verification Readiness | Success criteria, boundary / error paths, and step exit signals are observable and testable |
     | Structure Health | Section 2.5 covers owner mismatch, fallback growth, shared util growth, large-file responsibility growth, and safe refactor boundaries |

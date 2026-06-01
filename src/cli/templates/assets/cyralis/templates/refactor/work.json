@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "YYYY-MM-DD-example-refactor",
+  "mode": "refactor",
+  "status": "design",
+  "title": "Example refactor",
+  "slug": "example-refactor",
+  "root": ".cyralis/refactors/YYYY-MM-DD-example-refactor",
+  "parent": null,
+  "artifacts": {
+    "scan": {
+      "path": "example-refactor-scan.md",
+      "required": true,
+      "user_reviewed": false
+    },
+    "design": {
+      "path": "example-refactor-design.md",
+      "approval": "draft"
+    },
+    "checklist": {
+      "path": "example-refactor-checklist.yaml"
+    },
+    "apply": {
+      "path": "example-refactor-apply-notes.md",
+      "done": false
+    },
+    "verification": {
+      "result": null
+    }
+  }
+}

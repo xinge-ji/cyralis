@@ -89,10 +89,12 @@ Minimality Check:
 - Bug class fixed:
 - New branch/fallback added:
 - Old path retired or scheduled:
-- Verdict: sufficient repair | local patch | needs first-principles review
+- Verdict: sufficient repair | local patch | needs decision-hygiene review
 ```
 
 `local patch` 只能作为 mitigation；除非它本身就在 canonical owner，且写清 retention reason 和 retirement trigger，否则不能当成根因修复。
+
+`needs decision-hygiene review` 表示回到 `cs-issue-analyze`，读取 `.cyralis/reference/decision-hygiene.md`，用五行检查或方案卫生升级重新判断 canonical owner / Repair Track；不触发独立 skill。
 
 修复点落在大文件、大函数、generic helper、fallback / adapter / guard 路径，或 owner fit 不清楚时，再写 Pre-Edit Complexity Check：
 

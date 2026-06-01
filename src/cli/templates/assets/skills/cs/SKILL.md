@@ -85,7 +85,7 @@ CodeStable 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物
 | 一两行的项目注意事项 / 编译特殊设置 / 命令陷阱 / "记到 attention.md" | `cs-note` |
 | 开发者指南 / 用户指南 | `cs-guide` |
 | 库 API 参考 | `cs-libdoc` |
-| 用户在 feature / issue 流程中间问"下一步" | 路由到对应入口（`cs-feat` / `cs-issue`），让该入口判断当前阶段 |
+| 用户在 feature / issue / refactor 流程中间问"下一步" / "continue" / "继续" | 先执行 `python .cyralis/tools/work.py resolve --json`，按 `host_skill` 路由到对应子技能 |
 
 **判不出来 / 太抽象**："听起来像 {猜测}，但你描述里 {缺什么}。是 {选项 A} 还是 {选项 B}？" 让用户选不要硬猜。
 
@@ -111,6 +111,8 @@ CodeStable 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物
 ### 进行中的工作
 
 扫描看到 `features/` 或 `issues/` 下已有相关目录 → 提一句"看到 `features/2026-04-22-xxx/` 已经存在，是接着做这个吗？" 让用户确认续作还是开新的。
+
+用户问"下一步"时不要凭记忆猜；执行 `python .cyralis/tools/work.py resolve --json`。resolver 会按当前 session active work、`work.json.status` 和 artifact 状态给出 `host_skill`、`next`、`blockers`。如果没有 active work，再回到本技能场景路由表。
 
 ### 沉淀类技能的细分
 

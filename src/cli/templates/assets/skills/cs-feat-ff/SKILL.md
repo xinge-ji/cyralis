@@ -175,7 +175,7 @@ tags: [...]
 
 ## 收尾提交
 
-按 `.cyralis/reference/shared-conventions.md` 第 4 节"scoped-commit"规则执行。本通道：
+按 `.cyralis/reference/shared-conventions.md` 第 5 节"scoped-commit"规则执行。本通道：
 
 - **提交范围**：本次代码改动 + `{slug}-ff-note.md`
 - ff-note 落盘后告诉用户"已就绪，是否代为 commit？"，用户明确同意才执行

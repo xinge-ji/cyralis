@@ -105,6 +105,7 @@ issue 的快速通道不是"看起来简单就改"。它必须满足 debugging-g
 
 - `.cyralis/reference/shared-conventions.md` — 目录结构、YAML frontmatter 口径、`{slug}-checklist.yaml` 生命周期、收尾 commit 约定、归档类共享规则
 - `.cyralis/reference/debugging-governance.md` — issue 调试治理口径：诊断层级、Patch-Shape、修复前 gate、Debugging Closure、Repair / Retirement 双轨
+- `.cyralis/reference/decision-hygiene.md` — 方向性选择前的轻量 review 口径：第一原则、owner / 退休、证伪点、最小充分路径；只按信号触发，不是独立 workflow
 - `.cyralis/reference/tools.md` — `search-yaml.py` / `validate-yaml.py` 用法
 - `.cyralis/reference/maintainer-notes.md` — 断点恢复、新增子工作流的登记
 

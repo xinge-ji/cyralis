@@ -41,6 +41,7 @@ Task tool (general-purpose):
     | Feature Slice Readiness | Each item can become an independent feature workflow with a clear outcome and scope |
     | Dependency / Minimal Loop | depends_on is a justified DAG; minimal_loop is unique and truly forms the narrowest end-to-end path |
     | Update Impact | Contract / scope / dependency changes account for planned, in-progress, done, and dropped items |
+    | Decision Hygiene | Triggered owner / contract / falsifier / smallest sufficient path judgments are represented in the roadmap, not only in conversation |
 
     ## Calibration
 

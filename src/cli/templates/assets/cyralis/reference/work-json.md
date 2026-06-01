@@ -72,9 +72,50 @@ design 文档不写 `draft` / `approved`；批准状态只写 `artifacts.design.
 
 ## 4. transition 规则
 
+状态变更统一通过：
+
+```bash
+python .cyralis/tools/work.py transition <work-dir> <target-status>
+```
+
+resolver / hook 只读状态；prompt 不直接手写 `work.json.status`。
+
+### feature
+
 - design -> implement：需要 `artifacts.design.approval=approved`，且 checklist 已生成
-- implement -> verify：需要 `artifacts.implementation.done=true`，且已有实现总结或 checklist steps 全部完成
+- implement -> verify：需要 `artifacts.implementation.done=true`，或 checklist steps 全部完成
 - verify -> done：需要 `artifacts.acceptance.result=passed`
 - verify -> implement：`artifacts.acceptance.result=failed`
+
+### issue
+
+issue mode 使用同一组 workflow status，但语义映射为：
+
+- design = report
+- implement = analyze
+- verify = fix
+
+transition：
+
+- design -> implement：需要 report confirmed
+- design -> verify：快速通道，需要 report confirmed，且 `artifacts.fix.quick_lane=true` 或 `artifacts.analysis.skipped=true`
+- implement -> verify：需要 analysis confirmed
+- verify -> done：需要 `artifacts.fix.result=passed`，且 fix-note 已生成
+- verify -> implement：`artifacts.fix.result=failed`
+
+### refactor
+
+refactor mode 映射：
+
+- design = scan + refactor design
+- implement = apply checklist
+- verify = final verification / review gate
+
+transition：
+
+- design -> implement：需要 scan user-reviewed（fastforward 可标 `artifacts.scan.required=false` 跳过）、design approved、checklist 已生成
+- implement -> verify：需要 `artifacts.apply.done=true` 或 checklist steps 全部完成
+- verify -> done：需要 `artifacts.verification.result=passed`
+- verify -> implement：`artifacts.verification.result=failed`
 
 状态变更应由代码或明确的状态管理 helper 写入，不由 prompt 自己声称完成。

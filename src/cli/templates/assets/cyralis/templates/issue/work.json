@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "YYYY-MM-DD-example-issue",
+  "mode": "issue",
+  "status": "design",
+  "title": "Example issue",
+  "slug": "example-issue",
+  "root": ".cyralis/issues/YYYY-MM-DD-example-issue",
+  "parent": null,
+  "artifacts": {
+    "report": {
+      "path": "example-issue-report.md",
+      "confirmed": false
+    },
+    "analysis": {
+      "path": "example-issue-analysis.md",
+      "confirmed": false,
+      "skipped": false
+    },
+    "fix": {
+      "path": "example-issue-fix-note.md",
+      "result": null,
+      "quick_lane": false
+    }
+  }
+}

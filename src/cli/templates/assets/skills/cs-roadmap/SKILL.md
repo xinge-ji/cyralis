@@ -99,6 +99,14 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 6. **明确不做的边界**——用户脑子里的"权限系统"可能包括审计日志 / 数据脱敏，不打算覆盖就写进"明确不做"
 7. **不替用户决定优先级**——技术依赖之外的排序让用户拍板
 
+**决策卫生检查（按信号触发）**：模块拆分、接口契约、owner 归属、最小闭环任一项出现多种可行方案且选择标准不清时，读取 `.cyralis/reference/decision-hygiene.md`，用"方案卫生升级"检查一次。
+
+检查结论不单独成文；把结果落到 roadmap 对应章节：
+- owner / 退休判断 → 第 3 节模块拆分
+- contract / falsifier → 第 4 节接口契约
+- 最小充分路径 → 第 5 节子 feature 清单和最小闭环
+- blocking gap → 第 7 节观察项或停止落盘
+
 ### Phase 4：Roadmap self-review pass
 
 完整初稿写完、交给用户 review 前，必须切到 reviewer 姿态自审一次。目标不是继续发散，而是确认这份 roadmap 是否已经足够让后续每条 `cs-feat-design` 不再回来重新拆模块、补接口、补依赖。
@@ -113,6 +121,8 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 4. **Feature Slice Readiness**——每条 item 都能独立走 `cs-feat-design → cs-feat-impl → cs-feat-accept`；每条 item 有清晰产物；没有一条装多个独立 feature，也没有一条小到只是内部步骤
 5. **Dependency / Minimal Loop**——depends_on 是 DAG；每条依赖都有具体理由；minimal_loop 只有一条，并且真能形成最窄端到端闭环；技术依赖和产品优先级没有混在一起
 6. **Update Impact**——update 模式改第 4 节接口契约时，列出影响哪些 planned / in-progress / done items；改已启动 item 的边界时提示用户风险；dropped 不删除，保留理由
+
+触发过决策卫生检查时，对应 owner / contract / falsifier / 最小充分路径结论必须已落到主文档相应章节；不能只留在聊天记录里。
 
 输出格式固定：
 

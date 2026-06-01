@@ -34,6 +34,22 @@ no_task -> design -> implement -> verify -> done -> no_task
 
 status 是粗粒度阶段。具体下一步由 resolver 结合 mode、work.json、artifact、依赖关系判断。
 
+active work 是 session-scoped 指针，存放在 `.cyralis/runtime/sessions/<context-key>.json`。项目里可以同时存在多个 `design` / `implement` / `verify` work item，但每个 AI session 只解析自己的 active work；没有 context key 且存在多个 session 时 resolver 不猜。
+
+本地状态 helper：
+
+```bash
+python .cyralis/tools/work.py list --json
+python .cyralis/tools/work.py current --json
+python .cyralis/tools/work.py activate <work-dir>
+python .cyralis/tools/work.py clear
+python .cyralis/tools/work.py resolve --json
+python .cyralis/tools/work.py transition <work-dir> <target-status>
+python .cyralis/tools/work.py breadcrumb --host codex|pi
+```
+
+`activate` / `clear` 没有 context key 时写入 `manual` session；resolver 只有在项目里只有一个 session 指针时才做 fallback，多个 session 时返回 no_task 并标记 ambiguous，不猜当前任务。
+
 ---
 
 ## 1. Skill 路由
@@ -62,6 +78,7 @@ issue mode 采用 `cs-issue` 家族 skill。通用 status 映射到 issue 语义
 
 - .cyralis/reference/shared-conventions.md
 - .cyralis/reference/debugging-governance.md
+- .cyralis/reference/decision-hygiene.md
 - .cyralis/reference/feature-workflow.md
 - .cyralis/reference/work-json.md
 - .cyralis/reference/tools.md
@@ -70,6 +87,8 @@ issue mode 采用 `cs-issue` 家族 skill。通用 status 映射到 issue 语义
 artifact 模板：
 
 - .cyralis/templates/feature/work.json
+- .cyralis/templates/issue/work.json
+- .cyralis/templates/refactor/work.json
 
 ---
 
@@ -81,6 +100,7 @@ artifact 模板：
 - checklist.yaml 只存执行项和检查项，不存 workflow status
 - work.json 是唯一状态源
 - hook 只读状态并注入 context，不改状态
+- workflow status 变更必须调用 `python .cyralis/tools/work.py transition <work-dir> <target-status>`，不由 skill / prompt 直接手写
 
 注意：CodeStable 原文里 checklist `steps[].status` / `checks[].status`、roadmap item `status` 是 artifact 自己的执行字段，保留原写法；它们不是 workflow status。design 的 `draft` / `approved` 在 Cyralis 中写入 `work.json.artifacts.design.approval`。
 

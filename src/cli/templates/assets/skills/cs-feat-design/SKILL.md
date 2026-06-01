@@ -29,7 +29,7 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
 
 1. **和用户快速对齐两件事**——一句话需求概要 + 敲定 slug（小写字母、数字、连字符；`user-auth`、`export-csv` 这种）。日期取当天（frontmatter 用 `currentDate` 即可）。feature 目录命名是 `YYYY-MM-DD-{slug}`。
 2. **创建 `.cyralis/features/{YYYY-MM-DD}-{slug}/` 目录**。
-3. **写入 `work.json`**：`mode: "feature"`，`status: "design"`，`artifacts.intent.path` 指向 `{slug}-intent.md`，`artifacts.design.approval` 写 `draft`。
+3. **写入 `work.json`**：`mode: "feature"`，`status: "design"`，`artifacts.intent.path` 指向 `{slug}-intent.md`，`artifacts.design.approval` 写 `draft`，然后执行 `python .cyralis/tools/work.py activate .cyralis/features/{YYYY-MM-DD}-{slug}` 设为当前 session 的 active work。
 4. **写一份空的 `{slug}-intent.md`** 作为草稿骨架，内容就是下面这段：
 
    ```markdown
@@ -73,7 +73,7 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
    - **必读主文档第 3 节"模块拆分"和第 4 节"接口契约 / 共享协议"**——这是本 feature 的硬约束输入。契约不合理 / 漏了 → 停下来建议回 `cs-roadmap update` 改，**不要在 design 里偷偷绕开**
 2. **slug 从 roadmap 取**，feature 目录 `YYYY-MM-DD-{roadmap 条目 slug}`，不另起
 3. **走"流程"一节**，frontmatter 加 `roadmap` / `roadmap_item` 两字段
-4. **用户确认方案后写 `work.json.artifacts.design.approval: approved`，同时回写 items.yaml**：对应条目 `status: in-progress` + `feature: YYYY-MM-DD-{slug}`，用 `validate-yaml.py` 校验
+4. **用户确认方案后写 `work.json.artifacts.design.approval: approved`，生成 checklist 后执行 `python .cyralis/tools/work.py transition .cyralis/features/{YYYY-MM-DD}-{slug} implement`，同时回写 items.yaml**：对应条目 `status: in-progress` + `feature: YYYY-MM-DD-{slug}`，用 `validate-yaml.py` 校验
 
 完整衔接协议看 `.cyralis/reference/shared-conventions.md` 第 2.5 节。
 
@@ -189,14 +189,16 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 - 不变量：{本 feature 不能破坏什么}
 - canonical owner / contract：{谁负责，边界是什么}
 - 责任重叠：{是否和现有模块 / 旧路径重叠}
+- 该丢的假设：{哪些是历史形状 / 未证偏好 / 旧实现惯性}
 - 更高层承接点：{有没有更合适的上层 API / 协议 / roadmap 契约}
 - 旧路径 / fallback 退休条件：{没有就写"无"}
+- 证伪点：{发现什么证据就要改方案 / 回 roadmap / 回 arch}
 - 结论：{按当前设计推进 / 调整 owner / 回 roadmap 修契约 / 另走 refactor}
 ```
 
 ### 3. 写"现状 → 变化"两段式的名词层和编排层
 
-按 .cyralis/reference/feature-workflow.md 模板写第 2 节四个子节（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略）。重点提示：
+按 `.cyralis/reference/feature-workflow.md` 模板写第 2 节四个子节（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略）。重点提示：
 
 - "现状"必须指向代码位置，不能想当然——读者要靠它判断"变化"是否合理
 - **产品风险检查（按信号触发）**——涉及用户可见行为 / UI workflow / 产品策略 / 多方案价值取舍 / 成功标准仍带判断时，在第 1 节写 `Value / Non-goals / Trade-offs / Decision needed` 四行；纯内部能力或技术性 feature 不写，避免重复需求摘要
@@ -209,7 +211,7 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
   3. **做微重构（重组目录）**——目标目录摊平且能通过纯文件移动 + import 路径更新解决（编译器全程绿灯）
 
   选择 2 / 3 时给出"搬什么 → 搬到哪 → 怎么验证行为不变"的具体方案，落进 checklist 作为**第 1 步且独立验证退出**，再开始 feature 主体
-  Aegis 的 Plan-Time Complexity Check 不单独成节，信号并入这里：owner mismatch、router / manager / handler 继续变胖、shared util 被塞新责任、fallback / adapter 增长、深层嵌套或大块逻辑、文件职责混杂。
+  决策卫生里的复杂度信号并入这里：owner mismatch、router / manager / handler 继续变胖、shared util 被塞新责任、fallback / adapter 增长、深层嵌套或大块逻辑、文件职责混杂。
 - **重组目录时多问一步：是稳定模式还是一次性整理**——稳定模式（如"自定义业务组件统一放 `components/custom/`"，未来其他 feature 也该遵守）就在 2.5 末尾加"建议沉淀的 convention"段，提示用户 implement 跑通后走 `cs-decide` 归档；一次性整理（只是这个目录碰巧挤了）就只搬不归档。**design 阶段不直接归档**——方案还没真跑过，留钩子给 implement 后再决定
 - **design 只做安全的微重构，边界严格守住**："只搬不改行为"——文件级靠 IDE rename / move + 编译器校验，目录级靠纯文件移动 + import 路径更新 + 编译器校验。一旦涉及改函数签名 / 改返回值结构 / 改调用关系语义 / 模块拆合，就**超出 design 范围**：写进第 2.5 节末尾的"超出范围的观察"里提示用户"建议后续走 `cs-refactor` 处理"，**不阻塞本 feature、不作为前置依赖**。是否真去做、什么时候做由用户在 feature 之外决定
 - **第 2.5 节随整稿一起 review，不单独确认**——和功能方案打包给用户一次过，避免拆成两轮把节奏拖长
@@ -261,7 +263,7 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 ### 5. 整体 review
 
-Design self-review Approved 后，发一次整体 review 提示（提示词在 .cyralis/reference/feature-workflow.md 第 5 节）。用户提意见就改；如果修改触及 roadmap 对齐、接口 / 字段 / 状态、边界、验收契约、2.5 微重构结论，必须针对受影响部分重跑 self-review（改动很大就全量重跑）。反复直到放行，把 `work.json.artifacts.design.approval` 从 `draft` 改 `approved`，再把 `work.json.status` 改为 `implement`。
+Design self-review Approved 后，发一次整体 review 提示（提示词在 `.cyralis/reference/feature-workflow.md` 第 5 节）。用户提意见就改；如果修改触及 roadmap 对齐、接口 / 字段 / 状态、边界、验收契约、2.5 微重构结论，必须针对受影响部分重跑 self-review（改动很大就全量重跑）。反复直到放行，把 `work.json.artifacts.design.approval` 从 `draft` 改 `approved`；checklist 生成后用 `python .cyralis/tools/work.py transition <feature-dir> implement` 进入 implement，不手写 `work.json.status`。
 
 ### 6. 生成 {slug}-checklist.yaml
 

@@ -102,7 +102,7 @@ design 的"是什么 / 为什么"——不写实现细节，不写挂载点（�
 - **复杂度档位**：只记偏离默认组合的维度（默认组合在 `.cyralis/reference/code-dimensions.md` 末尾"常用默认组合"表）。格式：`{维度名} = {档位}（偏离默认 {默认档位} 的原因：……）`。全部走默认写一句"走 {场景} 默认档位，无偏离"
 - **关键决策**：选型 / 取舍 / 硬约束 / 被拒方案。每条决策必须能回答"换另一种做法名词层或编排层会怎么不同"——否则不是设计决策，是实现细节
 - **产品风险检查（可选）**：仅在用户可见行为 / UI workflow / 产品策略 / 多方案价值取舍 / 成功标准仍带判断时写。格式固定四行：`Value` / `Non-goals` / `Trade-offs` / `Decision needed`
-- **架构完整性检查（可选）**：仅在新 owner / 新 contract / 跨模块接口 / adapter / fallback / compatibility path / 责任重叠 / 可能存在更高层承接点时写。覆盖不变量、canonical owner / contract、责任重叠、更高层承接点、旧路径 / fallback 退休条件、结论
+- **架构完整性检查（可选）**：仅在新 owner / 新 contract / 跨模块接口 / adapter / fallback / compatibility path / 责任重叠 / 可能存在更高层承接点时写。覆盖不变量、canonical owner / contract、责任重叠、该丢的假设、更高层承接点、旧路径 / fallback 退休条件、证伪点、结论
 - **前置依赖**：仅在 implement 阶段评估出"目标文件结构性问题需要先解决"、回头改 design 时填
 
 ### `## 2. 名词与编排`

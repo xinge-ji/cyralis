@@ -27,6 +27,7 @@ description: issue 流程阶段 1——通过对话把问题落成可复现、�
    - **能一眼确定根因且满足 quick lane 全部准入**（有复现信号、单一 canonical owner、能给出 `{文件}:{行号}`、修复改动小 1-2 处、无跨模块 / contract / fallback / adapter / duplicate owner 风险）→ 告诉用户"我已看到问题所在，可以走快速通道：直接告知根因和修复方案，你确认后我立刻修，修完你验证，只写一份 `{slug}-fix-note.md`"。同意后触发 `cs-issue-fix`（快速通道模式）
    - **不能**（根因有多个候选 / 不确定 / 需要更多复现信息 / 命中 Patch-Shape 或 H-class 风险 / 涉及 shared、core、contract、fallback、adapter、duplicate owner、consumer-side patch）→ 走标准路径做完整问题报告。进入标准路径后默认不再二次改判
 4. **确定 issue 目录名**——跟用户商定 slug，日期前缀用今天（环境信息 `currentDate`）。目录不存在就创建。快速通道也要建 issue 目录，`{slug}-fix-note.md` 放那
+5. **写入 / 激活 `work.json`**——目录新建时按 `.cyralis/templates/issue/work.json` 写 `mode: "issue"`、`status: "design"`、report / analysis / fix 路径，然后执行 `python .cyralis/tools/work.py activate .cyralis/issues/{YYYY-MM-DD}-{slug}`。已有目录则读取现有 `work.json`，不要覆盖。
 
 ---
 
@@ -136,12 +137,15 @@ tags: []
 - [ ] 复现步骤可执行（"无法稳定复现"也有说明）
 - [ ] 用户明确说"report 可以了，进下一步"
 - [ ] frontmatter `status: confirmed`
+- [ ] 标准路径 / 快速通道二选一完成：标准路径写 `work.json.artifacts.report.confirmed=true` 并 `transition <issue-dir> implement`；快速通道写 `work.json.artifacts.report.confirmed=true` + `artifacts.fix.quick_lane=true` 并 `transition <issue-dir> verify`
 
 ---
 
 ## 退出后
 
-告诉用户："问题报告已就绪。下一步阶段 2 根因分析，触发 `cs-issue-analyze`。"
+标准路径告诉用户："问题报告已就绪，work.json 已通过 transition 进入 implement。下一步阶段 2 根因分析，触发 `cs-issue-analyze`。"
+
+快速通道告诉用户："快速通道已确认，work.json 已通过 transition 进入 verify。下一步直接修复验证，触发 `cs-issue-fix`。"
 
 别自己顺手开始分析根因——阶段间的人工 checkpoint 是工作流硬约束。
 

@@ -188,13 +188,13 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 - [ ] 第 3 节关键场景每条都有证据 / 测试覆盖（fastforward 对照第 2 节）
 - [ ] 没有"顺手发现"被偷偷修掉（都进 issue 列表）
 - [ ] 没有方案外文件改动（或已同步更新方案 doc）
-- [ ] `work.json.artifacts.implementation.done=true`，并且 `work.json.status="verify"`
+- [ ] `work.json.artifacts.implementation.done=true`，并且已执行 `python .cyralis/tools/work.py transition <feature-dir> verify`
 
 ---
 
 ## 退出后
 
-告诉用户："所有步骤完成，方案 doc 已同步，work.json 已进入 verify。下一步阶段 3 验收闭环，触发 cs-feat-accept。"
+告诉用户："所有步骤完成，方案 doc 已同步，work.json 已通过 transition 进入 verify。下一步阶段 3 验收闭环，触发 cs-feat-accept。"
 
 别自己顺手开始写验收报告——验收需要独立的 checklist 节奏，提前进入会让把关失效。
 

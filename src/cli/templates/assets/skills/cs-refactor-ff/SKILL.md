@@ -11,7 +11,7 @@ description: refactor 流程的超轻量通道——直接识别 1-3 条低风�
 
 用户说"优化一下这个函数"而改动明显很小（单函数变长、组件里抽个 composable、一段重复代码合并）时走完整三阶段太重。fastforward 让 AI 像平时一样直接改但守住底线——行为等价、引用经典方法、跑测试自证。
 
-很轻：没有 scan 清单、没有 design doc、没有 checklist，改完一句话汇报就行。
+很轻：没有 scan 清单、没有 design doc、没有 checklist，但仍要建一个 lightweight `work.json` 让 Cyralis resolver 能追踪状态；改完一句话汇报即可。
 
 ---
 
@@ -53,6 +53,8 @@ fastforward 不读完整方法库，但要守住"**每一处改动都能对应�
 
 确认就下一步。用户说"还有个 X 要改"——评估 X 是否破坏入场 3 条，破坏了就退完整流程。
 
+确认后建 `.cyralis/refactors/{YYYY-MM-DD}-{slug}/work.json`：`mode: "refactor"`、`status: "design"`、`artifacts.scan.required=false`、`artifacts.checklist.required=false`、`artifacts.design.approval="approved"`，执行 `python .cyralis/tools/work.py activate .cyralis/refactors/{YYYY-MM-DD}-{slug}`，再执行 `python .cyralis/tools/work.py transition <refactor-dir> implement`。
+
 ### 2. 改
 
 按经典方法步骤改。不产出 design doc / checklist，代码直接落盘。
@@ -69,15 +71,17 @@ fastforward 不读完整方法库，但要守住"**每一处改动都能对应�
 ✓ 已完成。方法：{方法名}。改动：{文件路径:行号范围}。验证：{跑了什么测试 / 通过情况}。
 ```
 
+汇报前写 `work.json.artifacts.apply.done=true` 后执行 `python .cyralis/tools/work.py transition <refactor-dir> verify`；验证通过写 `work.json.artifacts.verification.result="passed"` 后执行 `python .cyralis/tools/work.py transition <refactor-dir> done`。
+
 有偏离 / apply 过程中发现想再改点别的 → **停下问用户不发挥**。
 
 ---
 
 ## 文件产出
 
-默认**不建 `.cyralis/refactors/` 目录**——fastforward 的价值就在不留存档。
+默认只建 `.cyralis/refactors/{YYYY-MM-DD}-{slug}/work.json`，不写 scan / design / checklist 文档——fastforward 的价值就在少留存档但仍保留 workflow 状态事实。
 
-例外：用户明确"这次要留个记录" → 建 `.cyralis/refactors/{YYYY-MM-DD}-{slug}/{slug}-refactor-note.md`，内容就是上面那句汇报 + 一段"做了什么 / 为什么"。不写 design / checklist。
+例外：用户明确"这次要留个记录" → 再建 `.cyralis/refactors/{YYYY-MM-DD}-{slug}/{slug}-refactor-note.md`，内容就是上面那句汇报 + 一段"做了什么 / 为什么"。不写 design / checklist。
 
 ---
 

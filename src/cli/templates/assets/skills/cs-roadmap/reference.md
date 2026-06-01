@@ -210,6 +210,7 @@ python .cyralis/tools/validate-yaml.py --file .cyralis/roadmap/{slug}/{slug}-ite
 - [ ] 依赖关系讲得清具体理由？"B 需要 A 提供的 {具体产物}"
 - [ ] 最小闭环真是"最窄的端到端路径"？还是只是"最容易的一条"？
 - [ ] 有条目其实应该是 requirement 变化而不是 feature？（"把 XX 能力的边界改一下"）那种转 `cs-req`
+- [ ] 模块拆分 / 接口契约 / owner 归属 / 最小闭环是否出现多种可行方案但选择标准不清？命中时读取 `.cyralis/reference/decision-hygiene.md`，用"方案卫生升级"检查，并把结论落到对应章节
 
 ---
 
@@ -227,6 +228,8 @@ python .cyralis/tools/validate-yaml.py --file .cyralis/roadmap/{slug}/{slug}-ite
 4. **Feature Slice Readiness**：每条 item 都能独立走 `cs-feat-design → cs-feat-impl → cs-feat-accept`；每条 item 有清晰产物；没有一条装多个独立 feature，也没有一条小到只是内部步骤
 5. **Dependency / Minimal Loop**：depends_on 是 DAG；每条依赖都有具体理由；minimal_loop 只有一条，并且真能形成最窄端到端闭环；技术依赖和产品优先级没有混在一起
 6. **Update Impact**：update 模式改第 4 节接口契约时，列出影响哪些 planned / in-progress / done items；改已启动 item 的边界时提示用户风险；dropped 不删除，保留理由
+
+触发过决策卫生检查时，对应 owner / contract / falsifier / 最小充分路径结论必须已落到主文档相应章节；不能只留在聊天记录里。
 
 输出格式：
 

@@ -30,6 +30,7 @@ issue 工作流在"看到问题"和"动手改代码"之间塞缓冲：
 
 ```
 .cyralis/issues/{YYYY-MM-DD}-{slug}/
+├── work.json                 ← Cyralis workflow 状态源（mode/status/artifacts）
 ├── {slug}-report.md           ← 阶段 1 问题报告
 ├── {slug}-analysis.md         ← 阶段 2 根因分析
 └── {slug}-fix-note.md         ← 阶段 3 修复记录（必出产物）
@@ -55,6 +56,8 @@ issue 工作流在"看到问题"和"动手改代码"之间塞缓冲：
 
 阶段间有人工 checkpoint——让用户在每阶段结束有一次明确把关，防止 AI 一口气从问题跑到代码跑出来才发现走偏。
 
+Cyralis workflow status 映射：`design` = report，`implement` = analyze，`verify` = fix，`done` = 闭环完成。阶段切换必须用 `python .cyralis/tools/work.py transition <issue-dir> <status>`，不手写 `work.json.status`。
+
 ### 快速通道（问题简单、根因一眼确定）
 
 下面**同时满足**才进：
@@ -64,6 +67,8 @@ issue 工作流在"看到问题"和"动手改代码"之间塞缓冲：
 3. 无跨模块影响风险
 
 流程压缩成：AI 读代码 → 直接告知根因 + 修复方案 → 用户确认 → AI 修复 → 用户验证通过 → AI 写 `{slug}-fix-note.md`。只产出一份 `fix-note.md`，省掉 report 和 analysis。
+
+快速通道仍要写 issue 目录和 `work.json`，把 `artifacts.fix.quick_lane=true` 或 `artifacts.analysis.skipped=true` 后，通过 `python .cyralis/tools/work.py transition <issue-dir> verify` 进入 fix。
 
 **判定口径**：是否进快速通道由 `cs-issue-report` 的启动检查做唯一正式判定。一旦进标准路径默认不再二次改判——避免三个阶段对路径各说各话。
 
