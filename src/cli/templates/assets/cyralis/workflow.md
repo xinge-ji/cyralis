@@ -48,9 +48,20 @@ feature mode 采用 `cs-feat` 家族 skill，并在 Cyralis 中只改状态事�
 | verify | .codex/skills/cs-feat-accept/SKILL.md | .pi/skills/cs-feat-accept/SKILL.md |
 | done | .codex/skills/cs-feat/SKILL.md | .pi/skills/cs-feat/SKILL.md |
 
+issue mode 采用 `cs-issue` 家族 skill。通用 status 映射到 issue 语义：`design` = report，`implement` = analyze，`verify` = fix。调试治理不改变 status，只约束 analyze / fix 的证据和完成口径：
+
+| Workflow status | Codex projection | Pi projection |
+| --- | --- | --- |
+| no_task | .codex/skills/cs-issue/SKILL.md | .pi/skills/cs-issue/SKILL.md |
+| design | .codex/skills/cs-issue-report/SKILL.md | .pi/skills/cs-issue-report/SKILL.md |
+| implement | .codex/skills/cs-issue-analyze/SKILL.md | .pi/skills/cs-issue-analyze/SKILL.md |
+| verify | .codex/skills/cs-issue-fix/SKILL.md | .pi/skills/cs-issue-fix/SKILL.md |
+| done | .codex/skills/cs-issue/SKILL.md | .pi/skills/cs-issue/SKILL.md |
+
 通用参考：
 
 - .cyralis/reference/shared-conventions.md
+- .cyralis/reference/debugging-governance.md
 - .cyralis/reference/feature-workflow.md
 - .cyralis/reference/work-json.md
 - .cyralis/reference/tools.md
@@ -90,24 +101,38 @@ feature 里发现行为不变的结构优化，不要顺手重构；另走 refac
 
 ---
 
+## 4. Issue 边界
+
+issue 表示已有行为坏了。它可以修 bug、异常行为、文档错误、测试失败或性能退化，但不偷偷加入新能力。修复中发现必须新增产品能力才能真正解决时，先完成 issue 的 report / analysis 记录，再视情况另开 feature。
+
+issue 调试治理由 `.cyralis/reference/debugging-governance.md` 提供。它只回答"根因是否证据化、owner 是否正确、能否动手、能否宣告修复"，不写 workflow status，也不替代 `.cyralis/issues/<issue>/work.json`。
+
+快速通道只跳过 analysis 文档，不跳过调试证据：必须有复现信号、单一 canonical owner、明确 fix boundary 和验证路径。命中 shared / core / contract / fallback / adapter / duplicate owner 风险时走标准路径。
+
+---
+
 [workflow-state:no_task]
 没有 active work。先判断用户诉求属于 roadmap / feature / issue / refactor。
 如果是 feature，读取当前 host 投影中的 `cs-feat/SKILL.md`，创建或激活 feature work item 后进入 design。
+如果是 issue，读取当前 host 投影中的 `cs-issue/SKILL.md`，创建或激活 issue work item 后进入 report（workflow status `design`）。
 [/workflow-state:no_task]
 
 [workflow-state:design]
 active work 处于 design。feature mode 读取当前 host 投影中的 `cs-feat-design/SKILL.md`。
-没有 approved design 或明确的轻量跳过确认，不允许进入 implement。
+issue mode 读取当前 host 投影中的 `cs-issue-report/SKILL.md`，只记录现象并判定快速 / 标准路径。
+feature mode 没有 approved design 或明确的轻量跳过确认，不允许进入 implement。issue mode 没有 confirmed report 或 quick lane 用户确认，不允许进入 implement / verify。
 [/workflow-state:design]
 
 [workflow-state:implement]
 active work 处于 implement。feature mode 读取当前 host 投影中的 `cs-feat-impl/SKILL.md`。
-按 approved design 实现，范围不要扩散。
+issue mode 读取当前 host 投影中的 `cs-issue-analyze/SKILL.md`，按 debugging-governance 找 root cause 和 canonical owner。
+feature mode 按 approved design 实现；issue mode 不改代码，只产出 confirmed analysis。范围不要扩散。
 [/workflow-state:implement]
 
 [workflow-state:verify]
 active work 处于 verify。feature mode 读取当前 host 投影中的 `cs-feat-accept/SKILL.md`。
-对照 design 和 checklist 验收；acceptance 通过后才能进入 done。
+issue mode 读取当前 host 投影中的 `cs-issue-fix/SKILL.md`，执行修复前 gate、验证和 Debugging Closure。
+feature mode 对照 design 和 checklist 验收；issue mode 对照 report / analysis / debugging-governance 验证。验收或修复闭环通过后才能进入 done。
 [/workflow-state:verify]
 
 [workflow-state:done]

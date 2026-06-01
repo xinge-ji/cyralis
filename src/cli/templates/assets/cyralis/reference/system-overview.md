@@ -16,7 +16,7 @@ CodeStable 把这几类场景各配一套子技能，产物放进统一的目录
 **做事**——从一段模糊想法走到上线的功能、或者从一份错误报告走到修好的 bug:
 
 - `cs-feat` — 新功能,design → implement → acceptance（想法还模糊时先走讨论层 `cs-brainstorm` 做分诊，不属于 feature 流程内部）
-- `cs-issue` — 修 bug,report → analyze → fix
+- `cs-issue` — 修 bug,report → analyze → fix；内部使用 `.cyralis/reference/debugging-governance.md` 的调试治理口径，先证据化根因和 canonical owner，再动手修
 - `cs-refactor` — 代码优化(行为不变、结构/性能/可读性变),scan → design → apply
 
 两类都不直接让 AI 写代码,而是先产出 spec(功能方案 / 问题分析),用户 review 后再动手,代码和 doc 一起交付。针对的是术语冲突、范围失控、改完不留存档这三种 AI 默认会出的问题。
@@ -98,10 +98,13 @@ AI 最常见的问题是一口气铺几百行代码才让人看——等发现�
 
 例外两种:issue 根因一眼确定时走快速通道,跳过 analyze 直接 fix;feature 范围小时走 `cs-feat-ff`,写完 spec 直接进实现。
 
+issue 的快速通道不是"看起来简单就改"。它必须满足 debugging-governance 的 quick lane 准入：复现信号清楚、单一 canonical owner、无 shared / core / contract / fallback / adapter / duplicate owner 风险、验证路径明确。否则走标准 report → analyze → fix。
+
 
 ## 进一步参考
 
 - `.cyralis/reference/shared-conventions.md` — 目录结构、YAML frontmatter 口径、`{slug}-checklist.yaml` 生命周期、收尾 commit 约定、归档类共享规则
+- `.cyralis/reference/debugging-governance.md` — issue 调试治理口径：诊断层级、Patch-Shape、修复前 gate、Debugging Closure、Repair / Retirement 双轨
 - `.cyralis/reference/tools.md` — `search-yaml.py` / `validate-yaml.py` 用法
 - `.cyralis/reference/maintainer-notes.md` — 断点恢复、新增子工作流的登记
 

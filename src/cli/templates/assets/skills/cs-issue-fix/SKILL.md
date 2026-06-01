@@ -9,6 +9,8 @@ description: issue 流程阶段 3——按已确认根因和方案定点修复�
 
 开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
 
+同时读取 `.cyralis/reference/debugging-governance.md`。fix 阶段执行它的修复前 gate、完成前 gate、Repair Track / Retirement Track 和 confidence 口径；不要把局部补丁包装成根因修复。
+
 根因和方案已经确定（标准路径在 analysis、快速通道在 report 阶段口头确认过），你的活是按方案改代码、验证效果、写下修复记录。
 
 fix 阶段最容易出问题的不是改代码本身，而是**改的过程中冒出的"顺手"冲动**——顺手优化、顺手重构、顺手加抽象。每项单独看说得通，但合在一个 PR 里让别人分不清"这次到底为了修 bug 改了什么"。
@@ -22,20 +24,34 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 ### 标准路径（有 analysis）
 
 1. **方案已确认**——读 analysis，确认 `doc_type=issue-analysis` 且 `status=confirmed`，第 5 节用户选定了哪个方案
-2. **上下文读全**：analysis 全文 + report 全文 + analysis 第 1 节定位的所有代码 + `.cyralis/attention.md` + 沉淀目录搜索：
+2. **调试治理已就绪**——analysis 里应有复现信号、诊断停止层、canonical owner、Patch-Shape / Minimality 检查、confidence。confidence 低于 `B` 时只能进入 mitigation，不要宣称根因修复
+3. **上下文读全**：analysis 全文 + report 全文 + analysis 第 1 节定位的所有代码 + `.cyralis/attention.md` + `.cyralis/reference/debugging-governance.md` + 沉淀目录搜索：
    - `python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=trick --filter status=active --query "{关键词}"`——确认修复方式不违背已有库用法 / 模式
    - 同样命令换 `--filter doc_type=explore`——确认修复点和已有证据不冲突
-3. **确认起点**——告诉用户"我将按方案 X 修改 {文件列表}，开始修复"，等用户确认才动手
+4. **确认起点**——告诉用户"我将按方案 X 修改 {文件列表}，开始修复"，等用户确认才动手
 
 ### 快速通道（无 analysis，从 report 直接触发）
 
-进入这个入口时 AI 在 report 阶段已读过代码并对根因有把握。
+进入这个入口时 AI 在 report 阶段已读过代码并对根因有把握，且满足 `debugging-governance.md` 第 3 节 quick lane 准入。
 
 1. **明确陈述根因**："`{文件}:{行号}` 的 {具体代码} 存在 {问题描述}"，让用户确认根因判断准确
 2. **给修复方案**——改哪里、怎么改（一两句话，不写完整分析文档）
 3. **等用户明确说"对，就这样改"才动手**——不允许"我觉得对，直接改了"
 4. 读 `.cyralis/attention.md`
-5. **补搜沉淀目录**——快速通道也要查一遍 `compound/`（trick + explore），避免误把已知边界条件当新问题
+5. 读 `.cyralis/reference/debugging-governance.md`
+6. **补搜沉淀目录**——快速通道也要查一遍 `compound/`（trick + explore），避免误把已知边界条件当新问题
+
+---
+
+## 修复前 gate
+
+动手前对照 `debugging-governance.md` 第 5 节逐项确认：
+
+- [ ] 有 failing test、可重复命令、可执行复现步骤，或写清为什么只能人工验证
+- [ ] root cause 和 canonical owner 已明确
+- [ ] Patch-Shape / Minimality / Pre-Edit Complexity 已按风险触发
+- [ ] 选定方案的 Fix Boundary 和 non-edits 已明确
+- [ ] 如果真正 canonical owner 超出 analysis 声明范围，先回 `cs-issue-analyze` 更新分析，不在 fix 阶段偷偷扩范围
 
 ---
 
@@ -44,6 +60,8 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 ### 只改 analysis 里声明的文件
 
 修复范围来自 analysis 第 5 节"推荐方案"的"影响面"。超出范围的文件——哪怕顺眼——**不动**。
+
+如果修复中发现 analysis 选错了 canonical owner，或必须修改未声明文件才能在正确 owner 上修根因，停下来更新 analysis / 让用户重新确认方案。不要用"只是多改一个文件"绕过 fix boundary。
 
 发现范围外值得改的记一条"顺手发现"不改代码：
 
@@ -80,6 +98,8 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 - [ ] **影响面回归**——analysis 第 4 节"潜在受害模块"每个走一遍最基本的冒烟路径
 - [ ] **前端改动浏览器验证**（如涉及）——按 `.cyralis/attention.md` 的硬要求执行，不能只 typecheck
 - [ ] **相关测试通过**——有测试覆盖到修复区域就跑一遍
+- [ ] **Debugging Closure**——按 `debugging-governance.md` 第 6 节写 reproduction before / verification after / canonical owner / H-class signals / confidence
+- [ ] **Repair / Retirement 双轨**——涉及旧 owner / fallback / adapter / historical patch 时，说明删除或保留理由与 retirement trigger
 
 ---
 
@@ -89,20 +109,25 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 
 为什么切换：反复试错本质是猜测在原假设下还有什么可能性，但如果原假设就错了再猜也是绕圈。日志强制看实际运行时数据，往往一眼看出原假设哪里偏了。
 
+如果修复后仍有任何残留症状，按 `debugging-governance.md` 重新做一次差异诊断：残留症状和已修症状是同一根因未修透、修错深度、复合根因，还是完全独立根因。连续 3 次修复尝试失败时停止继续补丁，回到分析阶段讨论架构 / contract / spec gap。
+
 日志调试步骤、用户取日志提示词、循环限制见同目录 `reference.md`。
 
 ---
 
 ## 写 {slug}-fix-note.md
 
-验证通过后在 issue 目录建 `{slug}-fix-note.md`（位置见 `cs-issue` 的"文件放哪儿"），记录完整闭环。标准路径模板和快速通道模板都在同目录 `reference.md`。
+验证通过后在 issue 目录建 `{slug}-fix-note.md`（位置见 `cs-issue` 的"文件放哪儿"），记录完整闭环。fix-note 必须包含 Debugging Closure、Repair Track / Retirement Track、confidence。标准路径模板和快速通道模板都在同目录 `reference.md`。
 
 ---
 
 ## 退出条件
 
 - [ ] 所有改动文件已提交或列清单
+- [ ] 修复前 gate 已完成
 - [ ] 验证清单全部勾选
+- [ ] Debugging Closure 已写，confidence 至少 `B`；若只有 `C`，已标为 mitigation / partial
+- [ ] Repair Track / Retirement Track 已写（不涉及则明确写"无旧路径 / 无 fallback"）
 - [ ] `{slug}-fix-note.md` 已建并填写完整
 - [ ] 没有未处理的"顺手发现"（都进后续 issue 列表）
 - [ ] 没有范围外改动（或已和用户确认）

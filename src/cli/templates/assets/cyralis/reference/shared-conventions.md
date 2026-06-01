@@ -1,9 +1,5 @@
 # CodeStable 共享口径
 
-由 `cyralis init` 复制到项目的 `.cyralis/reference/shared-conventions.md`。所有 CodeStable 子技能用项目相对路径 `.cyralis/reference/shared-conventions.md` 引用本文件——跨子技能共享但不适合堆在单个技能里的规范的唯一权威版本。
-
-skill 本身不共享文件系统（每个 skill 是独立安装单元），共享口径不能放在某个 skill 内部被别的 skill 引用。放在"工作项目"里对所有 skill 都可达。
-
 ## 0. 目录结构与路径命名
 
 初始化完成后骨架（`cyralis init` 负责搭建）：
@@ -49,6 +45,8 @@ skill 本身不共享文件系统（每个 skill 是独立安装单元），共�
 │                          验完不强制清理，结论回写到对应 brainstorm note
 ├── tools/                 跨工作流共享脚本（由 Cyralis installer 释放）
 └── reference/             共享参考文档（由 Cyralis installer 释放）
+    └── debugging-governance.md
+                          issue 调试治理口径
 ```
 
 ### 命名规则
@@ -83,6 +81,8 @@ skill 本身不共享文件系统（每个 skill 是独立安装单元），共�
 **feature spec**：brainstorm / intent / design / acceptance 共用 `doc_type` / `feature` / `summary` / `tags`。子技能只补特有字段。feature 的 workflow status 不写进 markdown frontmatter，统一写在同目录 `work.json.status`，取值只允许 `design` / `implement` / `verify` / `done`；没有 active work 时由 session resolver 输出 `no_task`。design 的草稿 / 批准状态写在 `work.json.artifacts.design.approval`，取值 `draft` / `approved`。
 
 **issue spec**：report / analysis / fix-note 共用 `doc_type` / `issue` / `status` / `tags`。`severity` / `root_cause_type` / `path` 由对应阶段按需补。
+
+issue 标准路径和快速通道都要遵守 `.cyralis/reference/debugging-governance.md`。analysis / fix-note 正文承载调试治理字段，不强制把 `diagnostic_layer`、`canonical_owner`、`confidence` 等字段塞进 frontmatter，避免 frontmatter 变成第二份分析文档。
 
 **归档类（compound）**：
 
@@ -249,3 +249,17 @@ feature-design / issue-analyze / issue-fix 动手前到 `.cyralis/compound/` 搜
 **停下来之后**：反射检查只把问题提出来，结论用户定。停下来想清楚的动作（拆 / 新建 / 重命名 / 抽共用）会让改动超出现有 steps 范围 → 跟用户对齐再决定（纳入当前推进 / 记顺手发现留后续）。
 
 不许偷偷拆完继续写，也不许忽略信号硬冲。默认动作是停、问、再继续。
+
+---
+
+## 8. issue 调试治理入口
+
+issue 工作流使用 `.cyralis/reference/debugging-governance.md` 作为调试治理权威口径。它只约束 bug / 测试失败 / 异常行为的诊断和修复，不改变 Cyralis 的 workflow status、目录结构或技能路由。
+
+各阶段职责：
+
+- `cs-issue-report`：只记录现象，但快速通道判定必须按 `debugging-governance.md` 第 3 节准入；命中 shared / core / contract / fallback / adapter / duplicate owner 等信号时走标准路径
+- `cs-issue-analyze`：在 `{slug}-analysis.md` 里写清诊断层级、canonical owner、Patch-Shape / Minimality 信号、同类模式搜索、confidence；confidence 低于 `B` 时不要进入 fix，除非明确是 mitigation
+- `cs-issue-fix`：动手前执行修复前 gate；完成前写 Debugging Closure、Repair Track、Retirement Track，并确认 confidence 至少 `B`
+
+当 `debugging-governance.md` 和某个 issue 子技能的旧文本冲突时，以 `debugging-governance.md` 为准；子技能只补阶段动作和产物模板。

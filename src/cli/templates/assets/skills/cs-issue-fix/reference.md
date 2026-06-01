@@ -21,6 +21,13 @@
 
 ### 复现步骤走一遍
 {按 {slug}-report.md 第 2 节复现步骤走一遍，结果是否符合期望行为?}
+
+### Debugging Closure
+- Reproduction before: {修复前失败信号}
+- Verification after: {修复后验证命令 / 步骤 / 结果}
+- Canonical owner: {真正拥有正确性的模块 / 文件}
+- H-class signals: {无 / 命中的信号 + 处理方式}
+- Confidence: {A / B / C}
 ```
 
 ## 2. 日志调试升级
@@ -34,7 +41,9 @@
 5. 清理日志打点
 6. 以修订后的根因重新进入修复流程
 
-如果经过 2 轮日志调试仍未定位到根因，建议回到 `cs-issue-analyze`。
+如果修复后仍有残留症状，先做差异诊断：同一根因未修透、修错深度、复合根因，还是独立根因。不要在旧假设上继续叠补丁。
+
+如果经过 2 轮日志调试仍未定位到根因，建议回到 `cs-issue-analyze`。如果连续 3 次修复尝试失败，停止继续写代码，回到分析阶段讨论架构 / contract / spec gap。
 
 ### 用户取日志提示词
 
@@ -60,11 +69,34 @@ tags: []
 
 ## 1. 实际采用方案
 
-## 2. 改动文件清单
+## 2. Debugging Closure
 
-## 3. 验证结果
+- **Reproduction before**：
+- **Verification after**：
+- **Canonical owner**：
+- **Same-pattern search**：
+- **H-class signals**：
+- **Confidence**：A | B | C
 
-## 4. 遗留事项
+## 3. Repair Track
+
+- **Root cause**：
+- **Minimum sufficient repair**：
+- **Compatibility / non-goals**：
+- **Verification method**：
+
+## 4. Retirement Track
+
+- **Old owner / fallback / adapter / historical patch**：
+- **Action**：deleted | retained | not applicable
+- **Retention reason**：
+- **Retirement trigger**：
+
+## 5. 改动文件清单
+
+## 6. 验证结果
+
+## 7. 遗留事项
 ```
 
 ## 4. `{slug}-fix-note.md` 快速通道模板
@@ -86,9 +118,22 @@ tags: []
 
 ## 3. 修复方案
 
-## 4. 改动文件清单
+## 4. Debugging Closure
 
-## 5. 验证结果
+- **Reproduction before**：
+- **Verification after**：
+- **Canonical owner**：
+- **H-class signals**：
+- **Confidence**：A | B | C
 
-## 6. 遗留事项
+## 5. Repair / Retirement
+
+- **Repair Track**：
+- **Retirement Track**：
+
+## 6. 改动文件清单
+
+## 7. 验证结果
+
+## 8. 遗留事项
 ```

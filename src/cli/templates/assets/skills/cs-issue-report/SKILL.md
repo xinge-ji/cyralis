@@ -9,6 +9,8 @@ description: issue 流程阶段 1——通过对话把问题落成可复现、�
 
 开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
 
+涉及快速通道判断时，同时读取 `.cyralis/reference/debugging-governance.md` 第 3 节。快速通道不是"感觉简单就直接改"，而是低风险、单 owner、证据明确的 compact debugging lane。
+
 这一阶段做两件事：把用户脑子里的问题落成结构化记录 + 判断走标准路径还是快速通道。
 
 **核心原则：只记现象不记根因**。用户说"我觉得是 XX 组件的问题"——记下"用户怀疑 XX 组件"作为线索，但不顺着聊根因。根因要在阶段 2 通过实际读代码确认，不靠脑子里猜。混进根因猜测的报告会带偏阶段 2，让分析人围着错误线索绕。
@@ -21,9 +23,9 @@ description: issue 流程阶段 1——通过对话把问题落成可复现、�
 
 1. **确认是 bug 不是新功能需求**——描述"想加 X 功能"的告诉他走 `cs-feat`
 2. **看有没有相关 issue 目录**——Glob `.cyralis/issues/`，有同类问题先和用户确认是新建还是更新
-3. **快速通道判断（唯一正式判定点）**——按用户线索**读一下相关代码**（Grep / Read 定位）：
-   - **能一眼确定根因**（能给出 `{文件}:{行号}`、修复改动小 1-2 处、无跨模块影响风险）→ 告诉用户"我已看到问题所在，可以走快速通道：直接告知根因和修复方案，你确认后我立刻修，修完你验证，只写一份 `{slug}-fix-note.md`"。同意后触发 `cs-issue-fix`（快速通道模式）
-   - **不能**（根因有多个候选 / 不确定 / 需要更多复现信息）→ 走标准路径做完整问题报告。进入标准路径后默认不再二次改判
+3. **快速通道判断（唯一正式判定点）**——按用户线索**读一下相关代码**（Grep / Read 定位），再对照 `debugging-governance.md` 第 3 节：
+   - **能一眼确定根因且满足 quick lane 全部准入**（有复现信号、单一 canonical owner、能给出 `{文件}:{行号}`、修复改动小 1-2 处、无跨模块 / contract / fallback / adapter / duplicate owner 风险）→ 告诉用户"我已看到问题所在，可以走快速通道：直接告知根因和修复方案，你确认后我立刻修，修完你验证，只写一份 `{slug}-fix-note.md`"。同意后触发 `cs-issue-fix`（快速通道模式）
+   - **不能**（根因有多个候选 / 不确定 / 需要更多复现信息 / 命中 Patch-Shape 或 H-class 风险 / 涉及 shared、core、contract、fallback、adapter、duplicate owner、consumer-side patch）→ 走标准路径做完整问题报告。进入标准路径后默认不再二次改判
 4. **确定 issue 目录名**——跟用户商定 slug，日期前缀用今天（环境信息 `currentDate`）。目录不存在就创建。快速通道也要建 issue 目录，`{slug}-fix-note.md` 放那
 
 ---
