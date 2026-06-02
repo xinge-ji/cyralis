@@ -47,12 +47,12 @@ test("context engine builds host-neutral layered context", () => {
   assert.deepEqual([...engine.getRecentRecallMemoryIds()], ["mem_user"]);
 });
 
-test("codex context block is dynamic user context, not system context", () => {
+test("codex context block carries attention through project_context, not system context", () => {
   const engine = new ContextEngine({
     cwd: "/repo",
     systemCore: "[system_core]\nDo not emit this through Codex hooks.",
     memoryRoot: "/repo/.cyralis/memory",
-    projectContext: "Project context",
+    projectContext: [{ path: ".cyralis/attention.md", content: "Project attention rule" }],
   });
   engine.recordTurn({ userMessage: "old", assistantMessage: "old answer" });
 
@@ -60,6 +60,7 @@ test("codex context block is dynamic user context, not system context", () => {
   assert.match(block, /<cyralis-context>/);
   assert.match(block, /\[session_identity\]/);
   assert.match(block, /\[project_context\]/);
+  assert.match(block, /--- \.cyralis\/attention\.md ---\nProject attention rule/);
   assert.doesNotMatch(block, /\[system_core\]/);
   assert.doesNotMatch(block, /\[recent_chat\]/);
   assert.doesNotMatch(block, /\[current_user\]/);
@@ -107,7 +108,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const engine = new ContextEngine({
     cwd: "/repo",
     systemCore: "[system_core]\nPi system",
-    projectContext: "Pi project context",
+    projectContext: [{ path: ".cyralis/attention.md", content: "Pi attention rule" }],
   });
   const recall = {
     observeAssistantText() {},
@@ -120,6 +121,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const start = handlers.get("before_agent_start")();
   assert.match(start.systemPrompt, /\[system_core\]\nPi system/);
   assert.match(start.systemPrompt, /\[project_context\]/);
+  assert.match(start.systemPrompt, /--- \.cyralis\/attention\.md ---\nPi attention rule/);
 
   const recallMessage = await handlers.get("turn_end")();
   assert.equal(recallMessage.customType, "cyralis.recall");

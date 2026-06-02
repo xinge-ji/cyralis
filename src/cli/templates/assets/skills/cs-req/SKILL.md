@@ -7,8 +7,6 @@ description: 维护 `.cyralis/requirements/` 下的能力愿景文档。三种�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 `.cyralis/requirements/` 是项目的"能力清单"——每份描述**一个能力因什么问题而产生、怎么解决、边界在哪**，写成人话非技术读者也能看懂。架构文档讲"怎么搭"，需求文档讲"为什么要有"。
 
 **req 是系统的能力愿景层**——描述"用户需要什么、系统提供什么能力来满足"。三层时间深度用一个 `status` 字段区分：

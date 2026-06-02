@@ -1,6 +1,6 @@
 # Attention
 
-本文件是 CodeStable / Cyralis workflow 启动必读的项目注意事项入口。所有 `cs-*` 子技能开始工作前必须读取它。
+本文件是 Cyralis workflow 启动必读的项目注意事项入口。
 
 ## 项目碎片知识
 

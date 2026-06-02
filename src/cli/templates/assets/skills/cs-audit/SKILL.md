@@ -7,8 +7,6 @@ description: 系统审计——从代码中主动发现 bug 隐患、安全漏�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 `cs-issue` 等你报 bug，`cs-refactor` 等你指优化点，`cs-explore` 等你提问题——但"我也不知道哪有问题，你先扫一遍看看"这个诉求没人接。`cs-audit` 补上这块：**在用户限定的范围内主动扫描，产出一份按严重度 × 性质交叉分类的发现清单**。
 
 本技能只发现、不定修。修是 `cs-issue` / `cs-refactor` 的事。

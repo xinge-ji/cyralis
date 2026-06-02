@@ -7,8 +7,6 @@ description: 维护 `.cyralis/architecture/` 这份只记现状的系统地图�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 `.cyralis/architecture/` 是项目"地图"——design 写方案前读它定位、issue-analyze 做根因时读它理解模块边界、新人读它知道系统大致长什么样。本技能是"起草 / 刷新 / 体检"三件事的统一入口。
 
 **architecture 是累积的、自给自足的系统地图**，不是某次 feature 的详细方案，而是所有已落地 feature 沉淀下来的"系统现在长什么样"总图。读者打开应能看懂整体结构而不需要跳回历史 design。design 是临时增量稿，acceptance 把稳定下来的名词 / 编排 / 约束提炼回这里；design 文件归档，只在追究具体决策细节时翻。

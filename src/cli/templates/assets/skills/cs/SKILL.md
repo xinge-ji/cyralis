@@ -7,8 +7,6 @@ description: CodeStable 工作流根入口，介绍体系全貌并把诉求路�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 `cs` 是 CodeStable 工作流家族的统一入口。用户开口大概率不会指名某个具体 `cs-*` 子技能——可能只说"我想加个权限校验"、"这个地方有 bug"、"介绍下 codestable"，甚至只发一个 `cs`。本技能负责接住开放式输入，弄清意图，路由到对的子技能。
 
 **两件事，仅此两件**：

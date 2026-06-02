@@ -7,8 +7,6 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 这一阶段的产出是一份方案文件 `{slug}-design.md`，加上从中抽出的行动清单 `{slug}-checklist.yaml`。这两份东西后面会被两个阶段消费——implement 照着推进、acceptance 照着核对，所以这里写错或写漏，下游就跟着错。
 
 > 共享路径和命名约定看 `.cyralis/reference/shared-conventions.md`。本阶段一般 feature 目录已经由 brainstorm 创建好了；没有的话在这一步建。

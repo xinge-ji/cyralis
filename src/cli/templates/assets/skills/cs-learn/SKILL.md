@@ -7,8 +7,6 @@ description: 把踩过的坑或好做法沉淀成可检索的 learning 文档，
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 每次做 feature 或修 issue 都会留下 spec 文件。但 spec 记录的是"做了什么"和"怎么做的"，**不会记录"踩了什么坑"和"发现了什么更好的做法"**。没有沉淀的团队总在重复解决同一个问题。
 
 两条轨道：

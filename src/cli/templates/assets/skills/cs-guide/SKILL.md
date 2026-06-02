@@ -7,8 +7,6 @@ description: 写或更新对外指南文档——开发者指南（dev-guide）�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 代码解决问题，文档让别人能用它解决问题。spec 记录"做了什么、为什么这么做"，但下游开发者和终端用户不需要、也不应该读 spec——他们需要面向自己角色的、可发布的指南。guidedoc 就是从 spec 和代码出发写成读者真正能用的指南。
 
 ---

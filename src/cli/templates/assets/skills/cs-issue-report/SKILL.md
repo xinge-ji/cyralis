@@ -7,8 +7,6 @@ description: issue 流程阶段 1——通过对话把问题落成可复现、�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 涉及快速通道判断时，同时读取 `.cyralis/reference/debugging-governance.md` 第 3 节。快速通道不是"感觉简单就直接改"，而是低风险、单 owner、证据明确的 compact debugging lane。
 
 这一阶段做两件事：把用户脑子里的问题落成结构化记录 + 判断走标准路径还是快速通道。

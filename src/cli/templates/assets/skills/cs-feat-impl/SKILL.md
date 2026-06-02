@@ -7,8 +7,6 @@ description: feature 流程阶段 2——按 {slug}-checklist.yaml 里 design �
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 到这一步用户已经在方案上签过字了，你的活是把方案变成代码。容易出问题的不是写代码本身，而是**实现路上发现方案没覆盖到的情况时怎么办**——硬冲下去就把方案当摆设了。下面整套规则就是为了让"停下来"成为默认动作。
 
 > 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节。

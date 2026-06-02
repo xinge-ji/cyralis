@@ -7,8 +7,6 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 同时读取 `.cyralis/reference/debugging-governance.md`，不只要找到 file:line，还要说明诊断停在哪一层、canonical owner 是谁、有没有 Patch-Shape 风险、能不能以至少 `B` 置信度进入修复。
 
 用户已把问题描述清楚，你的活是**通过实际读代码找根因**——不是脑子里推断、不是在报告基础上猜。读代码是核心动作，跳过它写出来的分析没价值。

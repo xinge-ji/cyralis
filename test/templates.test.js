@@ -227,6 +227,17 @@ test("host feature skills are full prompt projections", () => {
   assert.doesNotMatch(piDesign, /Cyralis 投影说明/);
 });
 
+test("host skill projections do not repeat the attention preload instruction", () => {
+  const templates = collectTemplates(["codex", "pi"]);
+  const repeatedPrelude = "开始任何判断或动作前，先读取 `.cyralis/attention.md`。";
+
+  for (const [path, body] of templates) {
+    if (!/^\.(codex|pi)\/skills\/.+\/SKILL\.md$/.test(path)) continue;
+    if (path.endsWith("/cs-note/SKILL.md")) continue;
+    assert.ok(!body.includes(repeatedPrelude), `expected ${path} to rely on injected project_context`);
+  }
+});
+
 test("referenced CodeStable skills are projected for hosts", () => {
   const templates = collectTemplates(["codex", "pi"]);
   const featureSkills = [

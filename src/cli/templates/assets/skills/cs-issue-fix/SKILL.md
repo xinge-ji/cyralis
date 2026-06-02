@@ -7,8 +7,6 @@ description: issue 流程阶段 3——按已确认根因和方案定点修复�
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 同时读取 `.cyralis/reference/debugging-governance.md`。fix 阶段执行它的修复前 gate、完成前 gate、Repair Track / Retirement Track 和 confidence 口径；不要把局部补丁包装成根因修复。
 
 根因和方案已经确定（标准路径在 analysis、快速通道在 report 阶段口头确认过），你的活是按方案改代码、验证效果、写下修复记录。

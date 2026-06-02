@@ -7,8 +7,6 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 
 ## 启动必读
 
-开始任何判断或动作前，先读取 `.cyralis/attention.md`；缺失则视为骨架不完整，提示先补齐 `.cyralis/attention.md` 或重新执行 `cyralis init`，不要回退到外部 AI 入口文件。
-
 代码已经写完，但流程没结束。本阶段做四件事，缺一不可：
 
 1. **核对实现有没有偏离方案**——逐层对照 `{slug}-design.md`，发现偏差当场修，**不是在报告里"记一下"**就过去
