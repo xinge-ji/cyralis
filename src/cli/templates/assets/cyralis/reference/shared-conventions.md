@@ -93,6 +93,13 @@ issue 标准路径和快速通道都要遵守 `.cyralis/reference/debugging-gove
 - 各子技能只认自己的 `doc_type` 不读写别家
 - `status` 等通用字段语义和本文件保持一致
 
+**memory projection**：
+
+- `.cyralis/architecture/` 和 `.cyralis/compound/` 是 source of truth，`.cyralis/memory/projections/` 只是可重建的 recall 入口
+- 写入 / 更新 / supersede / 标 outdated 后，负责落盘的技能必须运行 `cyralis memory sync`，让未来会话能通过 recall hint 找到 source doc
+- compound 单文件落盘后优先运行 `cyralis memory sync --kind compound --source {path}`；architecture 可能同步索引 / 搬迁同类文件，落盘后运行 `cyralis memory sync --kind architecture`
+- projection stub 只放标题、摘要、tag、source 路径和短 excerpt；不要把全文复制进默认 `[project_context]`
+
 **外部读者文档**（guidedoc / libdoc）：frontmatter 由各自子技能定义。无特殊说明：`draft` = 待 review，`current` = 当前有效，`outdated` = 代码已变更待同步。
 
 **写作约束**：子技能提字段时优先写"额外字段"或"阶段状态变化"，不重复展开整套通用字段。
@@ -281,6 +288,7 @@ feature-design / issue-analyze / issue-fix 动手前到 `.cyralis/compound/` 搜
    - **supersede**：旧文档保留原文，`status: superseded` + `superseded-by: {新文件名}`，正文顶部加 `**[已取代]** 见 {新 slug}`；新文档 frontmatter 带 `supersedes: {旧文件名}`
    - **确实是不同主题**：新建，文末"相关文档"列出已有那条说明区别
 6. **识别用户意图是"改已有"还是"记新的"**——用户说"改 / 更新 / 修订 / 补充 {某条}"、明确指向某条旧文档、或话题高度重合时默认走"更新已有"，不要闷头新建。分不清就问。
+7. **同步 recall projection**——归档 / 更新 / supersede 完成后运行 `cyralis memory sync --kind compound --source {路径}`；如果旧文档被标成 `superseded` / `outdated`，旧路径也要 sync 一次让旧 projection 被清理
 
 各子技能只认自己的 `doc_type`，不读写别家产物。
 

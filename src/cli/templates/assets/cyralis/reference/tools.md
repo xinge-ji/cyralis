@@ -85,7 +85,24 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/guides --filter status=curre
 
 ---
 
-## 2. validate-yaml.py
+## 2. cyralis memory sync
+
+把 `.cyralis/architecture/` 和 `.cyralis/compound/` 的 source doc 同步成 `.cyralis/memory/projections/` 下的轻量 recall 入口。projection 是可重建产物，不替代 source doc。
+
+```bash
+# 同步全部 architecture / compound projection
+cyralis memory sync
+
+# compound 单文件归档 / 更新 / supersede 后
+cyralis memory sync --kind compound --source .cyralis/compound/YYYY-MM-DD-learning-{slug}.md
+
+# architecture backfill / update / feature acceptance 架构归并后
+cyralis memory sync --kind architecture
+```
+
+---
+
+## 3. validate-yaml.py
 
 YAML 语法校验工具。用于验证 frontmatter 语法和必填字段。
 

@@ -1,4 +1,5 @@
 import type { HostBinding, HostBindingOptions } from "./types.js";
+import { renderContextLayers } from "../core/index.js";
 
 interface PiLike {
   on?: (eventName: string, handler: (...args: unknown[]) => unknown) => void;
@@ -17,8 +18,10 @@ export function createPiHostBinding(options: PiHostBindingOptions): HostBinding 
       pi.on("before_agent_start", () => {
         const engine = options.runtime?.engine;
         if (!engine) return undefined;
+        const bundle = engine.buildContextBundle({ includeCurrentUser: false });
+        const dynamicContext = renderContextLayers(bundle.contextLayers);
         return {
-          systemPrompt: engine.buildLayers().find((layer) => layer.name === "system")?.text,
+          systemPrompt: [bundle.systemCore.text, dynamicContext].filter(Boolean).join("\n\n"),
         };
       });
       pi.on("message_update", (event: unknown) => {
@@ -46,4 +49,3 @@ function extractTextDelta(event: unknown): string {
   }
   return "";
 }
-

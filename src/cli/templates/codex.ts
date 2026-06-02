@@ -69,6 +69,54 @@ def context_key(data: dict) -> str | None:
     return None
 
 
+def read_limited(path: Path, max_chars: int) -> str | None:
+    try:
+        text = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars].rstrip() + "\\n[truncated]"
+
+
+def print_project_context(root: Path, skills: Path) -> None:
+    config = root / ".cyralis" / "config.yaml"
+    workflow = root / ".cyralis" / "workflow.md"
+    reference = root / ".cyralis" / "reference"
+    templates = root / ".cyralis" / "templates"
+    roadmap = root / ".cyralis" / "roadmap"
+    features = root / ".cyralis" / "features"
+    issues = root / ".cyralis" / "issues"
+    refactors = root / ".cyralis" / "refactors"
+    memory = root / ".cyralis" / "memory"
+    projections = memory / "projections"
+    attention = root / ".cyralis" / "attention.md"
+    architecture_index = root / ".cyralis" / "architecture" / "ARCHITECTURE.md"
+
+    print("[project_context]")
+    print(f"config: {config}")
+    print(f"workflow: {workflow}")
+    print(f"reference_root: {reference}")
+    print(f"template_root: {templates}")
+    print(f"roadmap_root: {roadmap}")
+    print(f"feature_root: {features}")
+    print(f"issue_root: {issues}")
+    print(f"refactor_root: {refactors}")
+    print(f"memory_projection_root: {projections}")
+    print("Workflow skills are projected into the active host skill directory; .cyralis does not store skill copies.")
+    print("Workflow status is stored in each active work item's work.json.")
+    print("Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.")
+    for label, path, limit in [
+        (".cyralis/attention.md", attention, 12000),
+        (".cyralis/architecture/ARCHITECTURE.md", architecture_index, 10000),
+    ]:
+        content = read_limited(path, limit)
+        if content:
+            print("")
+            print(f"--- {label} ---")
+            print(content)
+
+
 def print_workflow_state(root: Path, key: str | None) -> None:
     helper = root / ".cyralis" / "tools" / "work.py"
     if not helper.is_file():
@@ -105,31 +153,15 @@ def main() -> int:
     root = find_root(Path(cwd) if cwd else Path.cwd())
     if root is None:
         return 0
-    config = root / ".cyralis" / "config.yaml"
-    workflow = root / ".cyralis" / "workflow.md"
     skills = root / ".codex" / "skills"
-    reference = root / ".cyralis" / "reference"
-    templates = root / ".cyralis" / "templates"
-    roadmap = root / ".cyralis" / "roadmap"
-    features = root / ".cyralis" / "features"
-    issues = root / ".cyralis" / "issues"
-    refactors = root / ".cyralis" / "refactors"
     memory = root / ".cyralis" / "memory"
     print("<cyralis-context>")
-    print(f"root: {root}")
-    print(f"config: {config}")
-    print(f"workflow: {workflow}")
+    print("[session_identity]")
+    print(f"cwd: {root}")
     print(f"host_skill_root: {skills}")
-    print(f"reference_root: {reference}")
-    print(f"template_root: {templates}")
-    print(f"roadmap_root: {roadmap}")
-    print(f"feature_root: {features}")
-    print(f"issue_root: {issues}")
-    print(f"refactor_root: {refactors}")
     print(f"memory_root: {memory}")
-    print("Use Cyralis recall hints when the active host binding provides them.")
-    print("Workflow skills are projected into the active host skill directory; .cyralis does not store skill copies.")
-    print("Workflow status is stored in each active work item's work.json.")
+    print("")
+    print_project_context(root, skills)
     print("</cyralis-context>")
     print_workflow_state(root, context_key(data))
     return 0
@@ -146,7 +178,8 @@ Read .cyralis/workflow.md and .cyralis/config.yaml first. For feature work,
 load the matching cs-feat skill from the Codex skill projection. Workflow status is in the active
 work item's work.json; CodeStable-style artifact status fields remain artifact
 metadata. Keep changes inside the context, workflow, and memory boundary unless
-the user explicitly expands scope.
+the user explicitly expands scope. Treat UserPromptSubmit hook output as dynamic
+Cyralis user context, not as higher-priority system instructions.
 """
 `;
 

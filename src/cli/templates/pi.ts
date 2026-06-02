@@ -13,7 +13,7 @@ const piSettings = `{
   ]
 }`;
 
-const piExtension = `import { existsSync, readdirSync, readFileSync } from "node:fs";
+const piExtension = `import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 type PiLike = {
@@ -36,29 +36,24 @@ export default async function cyralisPiExtension(pi: PiLike) {
 
     const context = [
       "<cyralis-context>",
-      "root: " + root,
-      "config: " + join(root, ".cyralis", "config.yaml"),
-      "workflow: " + join(root, ".cyralis", "workflow.md"),
-      "host_skill_root: " + join(root, ".pi", "skills"),
-      "reference_root: " + join(root, ".cyralis", "reference"),
-      "template_root: " + join(root, ".cyralis", "templates"),
-      "roadmap_root: " + join(root, ".cyralis", "roadmap"),
-      "feature_root: " + join(root, ".cyralis", "features"),
-      "issue_root: " + join(root, ".cyralis", "issues"),
-      "refactor_root: " + join(root, ".cyralis", "refactors"),
-      "memory_root: " + join(root, ".cyralis", "memory"),
-      "Use Cyralis recall hints when available. Workflow skills are projected into the active host skill directory; .cyralis stores state, references, templates, and memory. Workflow status is stored in each active work item's work.json.",
-      buildWorkflowState(root, event),
-      "</cyralis-context>",
-    ].join("\\n");
+	      "[session_identity]",
+	      "cwd: " + root,
+	      "host_skill_root: " + join(root, ".pi", "skills"),
+	      "memory_root: " + join(root, ".cyralis", "memory"),
+	      "",
+	      ...buildProjectContext(root),
+	      buildWorkflowState(root, event),
+	      "</cyralis-context>",
+	    ].join("\\n");
 
-    return {
-      systemPrompt: event?.systemPrompt ? event?.systemPrompt + "\\n\\n" + context : context,
-    };
-  };
+	    return {
+	      systemPrompt: event?.systemPrompt ? event?.systemPrompt + "\\n\\n" + context : context,
+	    };
+	  };
 
-  pi.on?.("before_agent_start", inject);
-}
+	  pi.on?.("before_agent_start", inject);
+	  pi.on?.("before_provider_request", dumpProviderRequest);
+	}
 
 function findCyralisRoot(start: string): string | null {
   let cur = resolve(start);
@@ -79,6 +74,71 @@ function contextKey(event?: PiEvent): string | null {
     if (value) return sanitizeKey(value);
   }
   return null;
+}
+
+function readLimited(file: string, maxChars: number): string | null {
+  try {
+    const text = readFileSync(file, "utf8").trim();
+    if (text.length <= maxChars) return text;
+    return text.slice(0, maxChars).trimEnd() + "\\n[truncated]";
+  } catch {
+    return null;
+  }
+}
+
+function buildProjectContext(root: string): string[] {
+  const lines = [
+    "[project_context]",
+    "config: " + join(root, ".cyralis", "config.yaml"),
+    "workflow: " + join(root, ".cyralis", "workflow.md"),
+    "reference_root: " + join(root, ".cyralis", "reference"),
+    "template_root: " + join(root, ".cyralis", "templates"),
+    "roadmap_root: " + join(root, ".cyralis", "roadmap"),
+    "feature_root: " + join(root, ".cyralis", "features"),
+    "issue_root: " + join(root, ".cyralis", "issues"),
+    "refactor_root: " + join(root, ".cyralis", "refactors"),
+    "memory_projection_root: " + join(root, ".cyralis", "memory", "projections"),
+    "Use Cyralis recall hints when available. Workflow skills are projected into the active host skill directory; .cyralis stores state, references, templates, and memory. Workflow status is stored in each active work item's work.json.",
+    "Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.",
+  ];
+  for (const [label, file, maxChars] of [
+    [".cyralis/attention.md", join(root, ".cyralis", "attention.md"), 12000],
+    [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],
+  ] as const) {
+    const content = readLimited(file, maxChars);
+    if (!content) continue;
+    lines.push("", "--- " + label + " ---", content);
+  }
+  return lines;
+}
+
+function dumpProviderRequest(event?: Record<string, unknown>): undefined {
+  const target = process.env.CYRALIS_PI_DUMP_PROVIDER_REQUEST;
+  if (!target) return undefined;
+  const payload = event?.payload ?? event ?? {};
+  const text = safeJson(payload);
+  if (target === "1" || target === "true" || target === "stderr") {
+    console.error(text);
+    return undefined;
+  }
+  if (target === "stdout") {
+    console.log(text);
+    return undefined;
+  }
+  const file = resolve(target);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, text + "\\n", "utf8");
+  return undefined;
+}
+
+function safeJson(value: unknown): string {
+  const seen = new WeakSet<object>();
+  return JSON.stringify(value, (_key, item) => {
+    if (!item || typeof item !== "object") return item;
+    if (seen.has(item)) return "[Circular]";
+    seen.add(item);
+    return item;
+  }, 2);
 }
 
 function readJson(file: string): Record<string, unknown> | null {

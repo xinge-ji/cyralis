@@ -90,6 +90,7 @@ frontmatter / 正文结构 / 各节写法说明和示例见同目录 `reference.
 - 新建：写入 `.cyralis/compound/YYYY-MM-DD-explore-{slug}.md`，frontmatter 带 `doc_type: explore`
 - 更新：写回 Phase 1.5 定位的原文件 + `updated: YYYY-MM-DD`
 - supersede：按 `shared-conventions.md` §6 第 5 条；旧文档 `status: outdated` + `superseded-by`
+- 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `outdated` 时也对旧路径跑一次
 
 ### Phase 5：给出下一步建议
 
@@ -120,6 +121,7 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=e
 - [ ] 关键证据 3-8 条，每条标 file:line 并说明支撑哪个结论
 - [ ] 多模块或 module-overview / spike 类型时速答节有 Mermaid 图
 - [ ] 文档已归档到 `compound/`
+- [ ] 已同步 recall projection
 - [ ] 已给出后续建议
 
 ---

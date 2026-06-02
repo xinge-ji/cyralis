@@ -10,6 +10,7 @@ export class RecallRuntime {
   #memoryStore: MemoryStore;
   #getExcludedIds: () => Iterable<string>;
   #assistantBuffer = "";
+  #turnSeenMemoryIds = new Set<string>();
 
   constructor(options: RecallRuntimeOptions) {
     this.#memoryStore = options.memoryStore;
@@ -17,9 +18,11 @@ export class RecallRuntime {
   }
 
   async recallForUser(text: string): Promise<RecallHint[]> {
-    return this.#memoryStore.recallForUser(text, {
-      excludedIds: [...this.#getExcludedIds()],
+    const hints = await this.#memoryStore.recallForUser(text, {
+      excludedIds: this.#excludedIds(),
     });
+    this.#rememberHints(hints);
+    return hints;
   }
 
   observeAssistantText(text: string): void {
@@ -31,9 +34,27 @@ export class RecallRuntime {
     this.#assistantBuffer = "";
     if (!text.trim()) return [];
     const result = await this.#memoryStore.recallForAssistant(text, {
-      excludedIds: [...this.#getExcludedIds()],
+      excludedIds: this.#excludedIds(),
     });
+    this.#rememberHints(result.hints);
     return result.hints;
   }
-}
 
+  beginTurn(): void {
+    this.#assistantBuffer = "";
+    this.#turnSeenMemoryIds.clear();
+  }
+
+  endTurn(): void {
+    this.#assistantBuffer = "";
+    this.#turnSeenMemoryIds.clear();
+  }
+
+  #excludedIds(): string[] {
+    return [...this.#getExcludedIds(), ...this.#turnSeenMemoryIds];
+  }
+
+  #rememberHints(hints: RecallHint[]): void {
+    for (const hint of hints) this.#turnSeenMemoryIds.add(hint.id);
+  }
+}

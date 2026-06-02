@@ -6,6 +6,7 @@ export const coreTemplates: Array<[string, string]> = [
   [".cyralis/attention.md", readAsset("cyralis/attention.md")],
   [".cyralis/.gitignore", readAsset("cyralis/gitignore")],
   [".cyralis/memory/.gitkeep", ""],
+  [".cyralis/memory/projections/.gitkeep", ""],
   [".cyralis/requirements/.gitkeep", ""],
   [".cyralis/architecture/ARCHITECTURE.md", readAsset("cyralis/architecture/ARCHITECTURE.md")],
   [".cyralis/roadmap/.gitkeep", ""],

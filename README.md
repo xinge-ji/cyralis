@@ -17,6 +17,23 @@ host agent
        -> markdown memory
 ```
 
+Context is assembled as stable host-neutral layers:
+
+```text
+[system_core]      stable Cyralis behavior supplied by the active host projection
+[injections]       explicit external context snippets
+[session_identity] cwd, memory root, and session identity
+[project_context]  .cyralis project facts such as attention and workflow state
+[recent_chat]      rolling Cyralis turn projection
+```
+
+Codex and Pi receive those layers through different delivery channels. Pi can
+receive a runtime `systemPrompt`, so Cyralis renders system core plus dynamic
+context through the Pi extension. Codex project hooks are additive user context,
+so the Codex hook emits only dynamic facts such as session identity, project
+context, workflow state, and recall hints; stable rules live in the generated
+Codex agent/skill projection.
+
 ## Install Model
 
 ```text
@@ -31,7 +48,36 @@ For local development:
 npm install
 npm run build
 node bin/cyralis.mjs init --cwd /path/to/project
+node bin/cyralis.mjs memory sync --cwd /path/to/project
 ```
+
+## Memory Projections
+
+Long-lived project documents stay in their source locations. Architecture docs
+live under `.cyralis/architecture/`; learning, trick, decision, and explore docs
+live under `.cyralis/compound/`. Cyralis can generate lightweight recall stubs
+under `.cyralis/memory/projections/`:
+
+```bash
+cyralis memory sync --kind architecture
+cyralis memory sync --kind compound --source .cyralis/compound/YYYY-MM-DD-learning-example.md
+```
+
+Those stubs are generated recall entry points, not source of truth. Default
+project context includes attention and the architecture index, but not full
+architecture or compound documents; relevant source docs should appear through
+recall hints or explicit search/read.
+
+For Pi debugging, set `CYRALIS_PI_DUMP_PROVIDER_REQUEST` to inspect the final
+provider payload in `before_provider_request`:
+
+```bash
+CYRALIS_PI_DUMP_PROVIDER_REQUEST=stderr pi
+CYRALIS_PI_DUMP_PROVIDER_REQUEST=.cyralis/runtime/debug/provider-payload.json pi
+```
+
+This prints or writes the payload and returns it unchanged; it does not cancel
+the provider request.
 
 ## Layout
 

@@ -153,6 +153,8 @@ Fastforward 方案没有挂载点清单 → 现场 grep 盘点本次改动命中
 
 **判据**：归并完成后，没读过 design 的人打开 architecture 应该能知道"系统里现在有这个能力、它的大致形态、和它交互要遵守什么"。
 
+如果本节实际写入 / 更新了 `.cyralis/architecture/`，归并完成后运行 `cyralis memory sync --kind architecture`，让后续会话能通过 recall hint 找到更新后的架构 source doc。
+
 ## 6. requirement 回写
 
 req 是能力愿景层，本节是 draft → current 升级和 backfill 的触发点。对照方案 frontmatter 的 `requirement` 和第 1 节需求摘要：

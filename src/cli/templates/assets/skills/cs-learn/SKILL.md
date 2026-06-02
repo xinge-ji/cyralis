@@ -90,6 +90,7 @@ AI 一次性起草完整文档（YAML frontmatter + 所有正文节）。一次�
 - 新建：写入 `compound/YYYY-MM-DD-learning-{slug}.md`（日期取**归档当天**），frontmatter 带 `doc_type: learning`
 - 更新：写回 Phase 1.5 定位的原文件 + `updated: YYYY-MM-DD`
 - supersede：按 `shared-conventions.md` §6 第 5 条处理
+- 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
 
 ### Phase 5：可发现性检查
 

@@ -70,11 +70,8 @@ export class MarkdownMemoryStore implements MemoryStore {
 
   async #entries(): Promise<MemoryEntry[]> {
     await mkdir(this.root, { recursive: true });
-    const names = await readdir(this.root);
     const entries: MemoryEntry[] = [];
-    for (const name of names) {
-      if (!name.endsWith(".md")) continue;
-      const path = join(this.root, name);
+    for (const path of await markdownFiles(this.root)) {
       const content = await readFile(path, "utf8");
       const parsed = parseMarkdownMemory(content);
       if (parsed) entries.push({ ...parsed, path });
@@ -84,7 +81,44 @@ export class MarkdownMemoryStore implements MemoryStore {
 }
 
 function tokenize(text: string): string[] {
-  return [...new Set(text.toLowerCase().split(/[^a-z0-9_-]+/).filter(Boolean))];
+  const tokens = new Set<string>();
+  const normalized = text.toLowerCase();
+  for (const match of normalized.matchAll(/[\p{L}\p{N}_-]+/gu)) {
+    const token = match[0];
+    if (!token) continue;
+    tokens.add(token);
+    for (const cjk of token.matchAll(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]+/gu)) {
+      addNgrams(tokens, cjk[0]);
+    }
+  }
+  return [...tokens];
+}
+
+async function markdownFiles(root: string): Promise<string[]> {
+  const entries = await readdir(root, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await markdownFiles(path)));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".md")) files.push(path);
+  }
+  return files.sort();
+}
+
+function addNgrams(tokens: Set<string>, text: string): void {
+  if (text.length <= 1) {
+    tokens.add(text);
+    return;
+  }
+  for (const size of [2, 3]) {
+    if (text.length < size) continue;
+    for (let index = 0; index <= text.length - size; index++) {
+      tokens.add(text.slice(index, index + size));
+    }
+  }
 }
 
 function parseMarkdownMemory(content: string): MemoryEntry | null {
@@ -115,4 +149,3 @@ function parseTags(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw.replace(/^\[/, "").replace(/\]$/, "").split(",").map((tag) => tag.trim()).filter(Boolean);
 }
-

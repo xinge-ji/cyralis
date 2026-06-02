@@ -116,6 +116,8 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 **update**：覆盖已有文件，`last_reviewed` 更新当天；结构性改动大时文末 `变更日志` 节加一条；`ARCHITECTURE.md` 只在 scope/summary 影响索引描述时更新。
 
+**memory projection sync**：backfill / update 实际写入 architecture 后运行 `cyralis memory sync --kind architecture`。如果触发同类聚合搬迁，必须在搬迁和 `ARCHITECTURE.md` 链接更新全部完成后再同步。
+
 **check**：不落盘结束。用户可能基于报告决定触发 backfill/update——那是下一轮的事。
 
 ---
@@ -148,6 +150,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 - [ ] 落盘前已按"分组规则"判断同类 ≥6 份，命中则搬迁清单已 review
 - [ ] **backfill**：`ARCHITECTURE.md` 已加链接（或用户明确决定暂不加）
 - [ ] **update**：结构性改动有 `变更日志` 条目
+- [ ] 已运行 `cyralis memory sync --kind architecture`
 
 **check 额外**：
 - [ ] 已覆盖对应子目标的检查项

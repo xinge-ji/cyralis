@@ -84,6 +84,7 @@ AI 根据对话起草完整文档（YAML frontmatter + 所有正文节）。一�
 - 新建：写入 `.cyralis/compound/YYYY-MM-DD-decision-{slug}.md`，frontmatter 顶部带 `doc_type: decision`
 - 更新：写回 Phase 1.5 定位到的原文件，frontmatter 补 `updated: YYYY-MM-DD`
 - supersede：按 `shared-conventions.md` §6 第 5 条处理；旧文档 `status: superseded` + `superseded-by`
+- 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
 
 ### Phase 5：相关工作流更新提示
 

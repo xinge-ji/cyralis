@@ -14,6 +14,8 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.match(template, /before_agent_start/);
   assert.match(template, /systemPrompt:/);
   assert.match(template, /workflow:/);
+  assert.match(template, /\[session_identity\]/);
+  assert.match(template, /\[project_context\]/);
   assert.match(template, /host_skill_root:/);
   assert.match(template, /reference_root:/);
   assert.match(template, /template_root:/);
@@ -33,6 +35,7 @@ test("core templates install host-neutral workflow assets", () => {
   assert.ok(![...templates.keys()].some((path) => path.startsWith(".cyralis/skills/")), "core install should not duplicate host skill projections");
   assert.ok(templates.get(".cyralis/attention.md"), "expected attention template");
   assert.ok(templates.get(".cyralis/architecture/ARCHITECTURE.md"), "expected architecture template");
+  assert.ok(templates.has(".cyralis/memory/projections/.gitkeep"), "expected memory projection root");
   assert.ok(templates.get(".cyralis/tools/search-yaml.py"), "expected search-yaml tool");
   assert.ok(templates.get(".cyralis/tools/validate-yaml.py"), "expected validate-yaml tool");
   assert.ok(templates.get(".cyralis/tools/work.py"), "expected workflow state helper");
@@ -90,13 +93,21 @@ test("codex hook exposes workflow and skill source paths", () => {
   assert.ok(hook, "expected codex hook template");
   assert.match(hook, /workflow = root \/ "\.cyralis" \/ "workflow\.md"/);
   assert.match(hook, /skills = root \/ "\.codex" \/ "skills"/);
+  assert.match(hook, /\[session_identity\]/);
+  assert.match(hook, /\[project_context\]/);
   assert.match(hook, /host_skill_root:/);
   assert.match(hook, /reference = root \/ "\.cyralis" \/ "reference"/);
   assert.match(hook, /templates = root \/ "\.cyralis" \/ "templates"/);
   assert.match(hook, /features = root \/ "\.cyralis" \/ "features"/);
+  assert.match(hook, /attention = root \/ "\.cyralis" \/ "attention\.md"/);
+  assert.match(hook, /architecture_index = root \/ "\.cyralis" \/ "architecture" \/ "ARCHITECTURE\.md"/);
+  assert.match(hook, /memory_projection_root:/);
   assert.match(hook, /Workflow status is stored in each active work item's work\.json/);
   assert.match(hook, /work\.py/);
   assert.match(hook, /<workflow-state>/);
+  assert.doesNotMatch(hook, /\[system_core\]/);
+  assert.doesNotMatch(hook, /\[recent_chat\]/);
+  assert.doesNotMatch(hook, /\[current_user\]/);
 });
 
 test("pi extension injects dynamic workflow state", () => {
@@ -104,6 +115,13 @@ test("pi extension injects dynamic workflow state", () => {
 
   assert.ok(template, "expected pi extension template");
   assert.match(template, /buildWorkflowState/);
+  assert.match(template, /buildProjectContext/);
+  assert.match(template, /memory_projection_root:/);
+  assert.match(template, /\.cyralis\/attention\.md/);
+  assert.match(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
+  assert.match(template, /before_provider_request/);
+  assert.match(template, /CYRALIS_PI_DUMP_PROVIDER_REQUEST/);
+  assert.match(template, /return undefined/);
   assert.match(template, /currentWorkRef/);
   assert.match(template, /\.pi\/skills/);
   assert.match(template, /<workflow-state>/);
@@ -232,4 +250,22 @@ test("all skill-like references have host skill projections", () => {
     assert.ok(templates.get(`.codex/skills/${skill}/SKILL.md`), `expected codex projection for ${skill}`);
     assert.ok(templates.get(`.pi/skills/${skill}/SKILL.md`), `expected pi projection for ${skill}`);
   }
+});
+
+test("source doc writer skills sync memory projections", () => {
+  const templates = collectTemplates(["codex"]);
+  const shared = templates.get(".cyralis/reference/shared-conventions.md");
+  const tools = templates.get(".cyralis/reference/tools.md");
+  const compoundWriters = ["cs-learn", "cs-trick", "cs-decide", "cs-explore"];
+
+  assert.match(shared, /cyralis memory sync/);
+  assert.match(tools, /cyralis memory sync --kind compound/);
+  for (const skill of compoundWriters) {
+    const body = templates.get(`.codex/skills/${skill}/SKILL.md`);
+    assert.ok(body, `expected ${skill} template`);
+    assert.match(body, /cyralis memory sync --kind compound --source/);
+  }
+
+  assert.match(templates.get(".codex/skills/cs-arch/SKILL.md"), /cyralis memory sync --kind architecture/);
+  assert.match(templates.get(".codex/skills/cs-feat-accept/SKILL.md"), /cyralis memory sync --kind architecture/);
 });
