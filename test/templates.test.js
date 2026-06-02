@@ -127,6 +127,14 @@ test("pi extension injects dynamic workflow state", () => {
   assert.match(template, /<workflow-state>/);
 });
 
+test("pi cyralis-memory skill has required frontmatter", () => {
+  const skill = collectTemplates(["pi"]).get(".pi/skills/cyralis-memory/SKILL.md");
+
+  assert.ok(skill, "expected cyralis-memory Pi skill");
+  assert.match(skill, /^---\nname: cyralis-memory\n/m);
+  assert.match(skill, /^description: Use Cyralis context and memory boundaries/m);
+});
+
 test("work helper resolves session-scoped active work and gated transitions", () => {
   const templates = collectTemplates([]);
   const dir = mkdtempSync(join(tmpdir(), "cyralis-work-"));

@@ -248,7 +248,12 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
 }
 `;
 
-const piSkill = `# Cyralis Memory
+const piSkill = `---
+name: cyralis-memory
+description: Use Cyralis context and memory boundaries when working in this repository.
+---
+
+# Cyralis Memory
 
 Use this skill when working with Cyralis project memory.
 
