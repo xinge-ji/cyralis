@@ -112,6 +112,7 @@ test("codex hook exposes workflow and skill source paths", () => {
 
 test("pi extension injects dynamic workflow state", () => {
   const template = collectTemplates(["pi"]).get(".pi/extensions/cyralis/index.ts");
+  const templates = collectTemplates(["pi"]);
 
   assert.ok(template, "expected pi extension template");
   assert.match(template, /buildWorkflowState/);
@@ -125,14 +126,7 @@ test("pi extension injects dynamic workflow state", () => {
   assert.match(template, /currentWorkRef/);
   assert.match(template, /\.pi\/skills/);
   assert.match(template, /<workflow-state>/);
-});
-
-test("pi cyralis-memory skill has required frontmatter", () => {
-  const skill = collectTemplates(["pi"]).get(".pi/skills/cyralis-memory/SKILL.md");
-
-  assert.ok(skill, "expected cyralis-memory Pi skill");
-  assert.match(skill, /^---\nname: cyralis-memory\n/m);
-  assert.match(skill, /^description: Use Cyralis context and memory boundaries/m);
+  assert.ok(!templates.get(".pi/skills/cyralis-memory/SKILL.md"), "memory is injected by Pi hooks, not a standalone skill");
 });
 
 test("work helper resolves session-scoped active work and gated transitions", () => {

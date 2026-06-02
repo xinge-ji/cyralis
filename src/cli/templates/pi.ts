@@ -248,27 +248,6 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
 }
 `;
 
-const piSkill = `---
-name: cyralis-memory
-description: Use Cyralis context and memory boundaries when working in this repository.
----
-
-# Cyralis Memory
-
-Use this skill when working with Cyralis project memory.
-
-- .cyralis is the host-neutral state layer.
-- .pi is the Pi projection.
-- .codex is the Codex projection.
-- Memory bodies should stay in Markdown under .cyralis/memory.
-- Workflow rules live in .cyralis/workflow.md.
-- Workflow skills are full host projections under .pi/skills and .codex/skills.
-- .cyralis does not store skill prompt copies.
-- Reference docs live in .cyralis/reference.
-- Artifact templates live in .cyralis/templates.
-- Active workflow status lives in the current work item's work.json.
-`;
-
 const piPrompt = `# Cyralis Context
 
 Inspect .cyralis/config.yaml and .cyralis/workflow.md before changing project
@@ -281,7 +260,6 @@ work.json.
 export const piTemplates: Array<[string, string]> = [
   [".pi/settings.json", piSettings],
   [".pi/extensions/cyralis/index.ts", piExtension],
-  [".pi/skills/cyralis-memory/SKILL.md", piSkill],
   [".pi/prompts/cyralis-context.md", piPrompt],
   ...hostSkillTemplates(".pi/skills"),
 ];
