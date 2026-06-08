@@ -68,6 +68,12 @@ project context includes attention and the architecture index, but not full
 architecture or compound documents; relevant source docs should appear through
 recall hints or explicit search/read.
 
+Host projections use those stubs for lightweight per-turn recall. When a user
+prompt overlaps an architecture or compound projection, Cyralis injects a compact
+`[recall]` hint with the projection id, name, description, and source document
+path. The full source markdown is still opened explicitly only when the task
+needs the details.
+
 For Pi debugging, set `CYRALIS_PI_DUMP_PROVIDER_REQUEST` to inspect the final
 provider payload in `before_provider_request`:
 

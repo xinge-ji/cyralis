@@ -154,7 +154,6 @@ function buildProjection(source: SourceDocument): ProjectionDocument {
   const name = projectionName(source.kind, docType, sourceTitle, slug, source.metadata);
   const description = projectionDescription(source.kind, source.metadata, source.body, slug);
   const tags = projectionTags(source.kind, docType, source.metadata, slug);
-  const excerpt = compactExcerpt(source.body, 1200);
 
   const content = [
     "---",
@@ -170,10 +169,6 @@ function buildProjection(source: SourceDocument): ProjectionDocument {
     `source: ${source.sourceRelPath}`,
     `kind: ${source.kind}`,
     source.kind === "compound" ? `doc_type: ${docType}` : "",
-    "",
-    "Open the source document for full context, evidence, code anchors, and related decisions.",
-    "",
-    excerpt ? ["Search excerpt:", excerpt].join("\n") : "",
     "",
   ].filter((line) => line !== "").join("\n");
 
@@ -378,15 +373,6 @@ function firstParagraph(body: string): string {
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#") && !line.startsWith("```") && !line.startsWith("---"));
   return lines[0] ?? "";
-}
-
-function compactExcerpt(body: string, maxLength: number): string {
-  const excerpt = body
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/^#+\s+/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return truncate(excerpt, maxLength);
 }
 
 function truncate(text: string, maxLength: number): string {

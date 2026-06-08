@@ -155,7 +155,9 @@ export function formatRecallHints(hints: RecallHint[] = []): string {
   const lines = ["[recall]"];
   for (const hint of hints) {
     const score = Number.isFinite(hint.score) ? ` | score=${hint.score?.toFixed(2)}` : "";
-    lines.push(`- ${hint.id}${score} | ${hint.name} | ${hint.description}`);
+    const source = hint.source ? ` | source=${hint.source}` : "";
+    lines.push(`- ${hint.id}${score} | ${hint.name} | ${hint.description}${source}`);
+    if (hint.excerpt) lines.push(`  excerpt: ${hint.excerpt}`);
   }
   return lines.join("\n");
 }

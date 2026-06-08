@@ -398,25 +398,9 @@ def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
     }
 
 
-TAG_RE = re.compile(
-    r"\[workflow-state:([A-Za-z0-9_-]+)\]\s*\n(.*?)\n\s*\[/workflow-state:\1\]",
-    re.DOTALL,
-)
-
-
-def workflow_blocks(root: Path) -> dict[str, str]:
-    path = root / CYRALIS_DIR / "workflow.md"
-    try:
-        text = path.read_text(encoding="utf-8")
-    except OSError:
-        return {}
-    return {m.group(1): m.group(2).strip() for m in TAG_RE.finditer(text) if m.group(2).strip()}
-
-
 def build_breadcrumb(root: Path, key: str | None, host: str) -> str:
     state = resolve_state(root, key, host)
     status = str(state["status"])
-    body = workflow_blocks(root).get(status, "Refer to .cyralis/workflow.md for current step.")
     header = f"Status: {status}" if not state.get("work_root") else f"Work: {state['work_root']} ({status})"
     lines = [
         "<workflow-state>",
@@ -424,7 +408,7 @@ def build_breadcrumb(root: Path, key: str | None, host: str) -> str:
         f"mode: {state.get('mode') or '-'}",
         f"host_skill: {state.get('host_skill') or '-'}",
         f"next: {state.get('next')}",
-        body,
+        "workflow: .cyralis/workflow.md",
         "</workflow-state>",
     ]
     return "\n".join(lines)

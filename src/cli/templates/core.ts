@@ -20,6 +20,7 @@ export const coreTemplates: Array<[string, string]> = [
   [".cyralis/tools/work.py", readAsset("cyralis/tools/work.py")],
   [".cyralis/reference/shared-conventions.md", readAsset("cyralis/reference/shared-conventions.md")],
   [".cyralis/reference/decision-hygiene.md", readAsset("cyralis/reference/decision-hygiene.md")],
+  [".cyralis/reference/debugging-governance.md", readAsset("cyralis/reference/debugging-governance.md")],
   [".cyralis/reference/feature-workflow.md", readAsset("cyralis/reference/feature-workflow.md")],
   [".cyralis/reference/work-json.md", readAsset("cyralis/reference/work-json.md")],
   [".cyralis/reference/code-dimensions.md", readAsset("cyralis/reference/code-dimensions.md")],

@@ -65,6 +65,8 @@ export class MarkdownMemoryStore implements MemoryStore {
       name: entry.name,
       description: entry.description,
       score,
+      source: entry.source,
+      excerpt: compactExcerpt(entry.body),
     }));
   }
 
@@ -142,10 +144,27 @@ function parseMarkdownMemory(content: string): MemoryEntry | null {
     description,
     tags: parseTags(fields.get("tags")),
     body,
+    source: fields.get("source"),
   };
 }
 
 function parseTags(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw.replace(/^\[/, "").replace(/\]$/, "").split(",").map((tag) => tag.trim()).filter(Boolean);
+}
+
+function compactExcerpt(body: string, maxChars = 360): string | undefined {
+  const marker = "Search excerpt:";
+  const markerIndex = body.indexOf(marker);
+  const raw = markerIndex >= 0 ? body.slice(markerIndex + marker.length) : body;
+  const text = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("source:") && !line.startsWith("kind:") && !line.startsWith("doc_type:"))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text) return undefined;
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars).trimEnd()}...`;
 }

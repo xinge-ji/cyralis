@@ -1,6 +1,6 @@
-# CodeStable 工具用法参考
+# 工具用法参考
 
-本文件由 `cyralis init` 复制到项目的 `.cyralis/reference/tools.md`，所有 CodeStable 子技能用项目相对路径 `.cyralis/reference/tools.md` 引用。
+本文件由 `cyralis init` 复制到项目的 `.cyralis/reference/tools.md`，所有 cyralis 子技能用项目相对路径 `.cyralis/reference/tools.md` 引用。
 
 `.cyralis/tools/` 下共享脚本的完整用法参考。子技能里只写本技能特有的 1-2 行典型查询；完整语法和示例看这里。
 

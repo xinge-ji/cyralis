@@ -15,6 +15,8 @@ export interface RecallHint {
   name: string;
   description: string;
   score?: number;
+  source?: string;
+  excerpt?: string;
 }
 
 export interface TurnRecord {

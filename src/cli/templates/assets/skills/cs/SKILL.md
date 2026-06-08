@@ -1,13 +1,13 @@
 ---
 name: cs
-description: CodeStable 工作流根入口，介绍体系全貌并把诉求路由到对应 cs-* 子技能。触发：用户只输入 `cs`、说"介绍一下 codestable"、"该用哪个技能"、"不知道用哪个"，或诉求还很开放未收敛。本技能只做路由不做事。
+description: cyralis 工作流根入口，介绍体系全貌并把诉求路由到对应 cs-* 子技能。触发：用户只输入 `cs`、说"介绍一下 cyralis"、"该用哪个技能"、"不知道用哪个"，或诉求还很开放未收敛。本技能只做路由不做事。
 ---
 
 # cs
 
 ## 启动必读
 
-`cs` 是 CodeStable 工作流家族的统一入口。用户开口大概率不会指名某个具体 `cs-*` 子技能——可能只说"我想加个权限校验"、"这个地方有 bug"、"介绍下 codestable"，甚至只发一个 `cs`。本技能负责接住开放式输入，弄清意图，路由到对的子技能。
+`cs` 是 cyralis 工作流家族的统一入口。用户开口大概率不会指名某个具体 `cs-*` 子技能——可能只说"我想加个权限校验"、"这个地方有 bug"、"介绍下 cyralis"，甚至只发一个 `cs`。本技能负责接住开放式输入，弄清意图，路由到对的子技能。
 
 **两件事，仅此两件**：
 
@@ -22,7 +22,7 @@ description: CodeStable 工作流根入口，介绍体系全貌并把诉求路�
 
 回应前每次都做（几个 tool 调用就够）：
 
-1. **看仓库有没有接入 CodeStable**——`Glob .cyralis/` 看顶层目录
+1. **看仓库有没有接入 cyralis**——`Glob .cyralis/` 看顶层目录
 2. **存在**——必须先 `Read .cyralis/attention.md`（如果缺失提示骨架不完整，先补齐或重新执行 `cyralis init`）；再 `Read .cyralis/reference/system-overview.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
 3. **不存在**——后面提示用户先执行 `cyralis init`
 4. **看用户原话**——开放式还是带具体诉求？带诉求匹配路由表，没诉求给体系介绍
@@ -33,7 +33,7 @@ description: CodeStable 工作流根入口，介绍体系全貌并把诉求路�
 
 ## 体系一图速读（用户没具体诉求 / 让你介绍时讲这个）
 
-CodeStable 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚在 `.cyralis/`：
+cyralis 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚在 `.cyralis/`：
 
 ```
 .cyralis/
@@ -120,7 +120,7 @@ CodeStable 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物
 - 处方"以后做 X 就这样做" → `cs-trick`
 - 规定"全项目今后都按 X 来" → `cs-decide`
 - 调查"X 现在是什么样" → `cs-explore`
-- 一两行常驻提示"CodeStable 技能每次启动都得知道 X" → `cs-note`（写到 `.cyralis/attention.md`）
+- 一两行常驻提示"cyralis 技能每次启动都得知道 X" → `cs-note`（写到 `.cyralis/attention.md`）
 
 判不出问用户："这个你想记成 {踩坑回顾 / 复用处方 / 长期规约 / 调研存档 / 常驻提示} 哪一种？"
 
@@ -130,12 +130,12 @@ CodeStable 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物
 
 按这个顺序讲，**不一次倒出全部**：
 
-1. 一句话：CodeStable 是面向严肃工程的 AI 编码工作流，编排软件生命周期而不是 Agent
+1. 一句话：cyralis 是面向严肃工程的 AI 编码工作流，编排软件生命周期而不是 Agent
 2. 6 实体 + 3 流程的速读图
 3. 问用户"你现在最想从哪儿开始？"，给三个引子：
    - "我有个新功能想做" → cs-feat
    - "代码里有个 bug" → cs-issue
-   - "项目还没接入 CodeStable" → cyralis init
+   - "项目还没接入 cyralis" → cyralis init
 
 收住，别把所有子技能细节讲一遍。用户问到具体的再展开。
 

@@ -108,7 +108,7 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 
 ## 相关文档
 
-- `.cyralis/reference/system-overview.md` — CodeStable 体系总览
+- `.cyralis/reference/system-overview.md` — cyralis 体系总览
 - `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径、目录结构、checklist 生命周期
-- `.cyralis/attention.md` — CodeStable 启动注意事项和项目硬约束
+- `.cyralis/attention.md` — cyralis 启动注意事项和项目硬约束
 - 项目架构总入口 — 方案设计阶段需要查

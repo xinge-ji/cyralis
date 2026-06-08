@@ -1,4 +1,4 @@
-# CodeStable 共享口径
+# 共享口径
 
 ## 0. 目录结构与路径命名
 
@@ -6,7 +6,7 @@
 
 ```
 .cyralis/
-├── attention.md           CodeStable 技能启动必读的项目注意事项
+├── attention.md           技能启动必读的项目注意事项
 ├── requirements/          能力愿景层（"用户需要什么、系统提供什么能力来满足"，过去/现在/未来）
 │   ├── VISION.md           中心索引（按 status 分组，每条带 pitch 一句话）
 │   └── {slug}.md           一个能力一份，扁平（cs-req 产出）
@@ -56,7 +56,7 @@
 - feature / issue / refactor 目录：带日期前缀 `YYYY-MM-DD-{slug}`
 - 沉淀类：`compound/YYYY-MM-DD-{doc_type}-{slug}.md`，日期用**归档当天**
 - 架构 doc：`architecture/{type}-{slug}.md`（长效，不带日期前缀）；总入口固定 `ARCHITECTURE.md`
-- 项目注意事项入口固定为 `.cyralis/attention.md`，所有 CodeStable 子技能启动前必须读取；不再兼容 `AGENTS.md` / `CLAUDE.md` 等外部入口
+- 项目注意事项入口固定为 `.cyralis/attention.md`，所有子技能启动前必须读取；不再兼容 `AGENTS.md` / `CLAUDE.md` 等外部入口
 
 ### 架构 doc 分组规则（同类聚合）
 

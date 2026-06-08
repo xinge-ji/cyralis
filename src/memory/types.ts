@@ -7,6 +7,7 @@ export interface MemoryEntry {
   tags: string[];
   body: string;
   path?: string;
+  source?: string;
 }
 
 export interface RecallOptions {
@@ -24,4 +25,3 @@ export interface MemoryStore {
   open(id: string): Promise<MemoryEntry | null>;
   save(entry: Omit<MemoryEntry, "id"> & { id?: string }): Promise<MemoryEntry>;
 }
-

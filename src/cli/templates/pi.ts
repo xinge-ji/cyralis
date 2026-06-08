@@ -52,7 +52,7 @@ export default async function cyralisPiExtension(pi: PiLike) {
 	  };
 
 	  pi.on?.("before_agent_start", inject);
-	  pi.on?.("before_provider_request", dumpProviderRequest);
+	  pi.on?.("before_provider_request", handleProviderRequest);
 	}
 
 function findCyralisRoot(start: string): string | null {
@@ -112,10 +112,17 @@ function buildProjectContext(root: string): string[] {
   return lines;
 }
 
-function dumpProviderRequest(event?: Record<string, unknown>): undefined {
+function handleProviderRequest(event?: Record<string, unknown>): unknown {
+  const payload = event?.payload ?? event ?? {};
+  const root = findCyralisRoot(process.cwd());
+  const nextPayload = root ? appendRecallToPayload(payload, root) : payload;
+  dumpProviderPayload(nextPayload);
+  return nextPayload === payload ? undefined : nextPayload;
+}
+
+function dumpProviderPayload(payload: unknown): undefined {
   const target = process.env.CYRALIS_PI_DUMP_PROVIDER_REQUEST;
   if (!target) return undefined;
-  const payload = event?.payload ?? event ?? {};
   const text = safeJson(payload);
   if (target === "1" || target === "true" || target === "stderr") {
     console.error(text);
@@ -129,6 +136,240 @@ function dumpProviderRequest(event?: Record<string, unknown>): undefined {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, text + "\\n", "utf8");
   return undefined;
+}
+
+function appendRecallToPayload(payload: unknown, root: string): unknown {
+  if (containsRecallMarker(payload)) return payload;
+  const query = extractLastUserText(payload);
+  const recall = buildRecallBlock(root, query);
+  if (!recall) return payload;
+  return appendUserMessage(payload, recall);
+}
+
+function appendUserMessage(payload: unknown, content: string): unknown {
+  if (!isRecord(payload)) return payload;
+  const body = payload.body;
+  if (isRecord(body)) {
+    const nextBody = appendUserMessage(body, content);
+    return nextBody === body ? payload : { ...payload, body: nextBody };
+  }
+  if (typeof body === "string") {
+    try {
+      const parsed = JSON.parse(body);
+      const nextBody = appendUserMessage(parsed, content);
+      return nextBody === parsed ? payload : { ...payload, body: JSON.stringify(nextBody) };
+    } catch {
+      return payload;
+    }
+  }
+  if (Array.isArray(payload.messages)) {
+    return { ...payload, messages: [...payload.messages, { role: "user", content }] };
+  }
+  if (Array.isArray(payload.input)) {
+    return { ...payload, input: [...payload.input, { role: "user", content: [{ type: "input_text", text: content }] }] };
+  }
+  if (Array.isArray(payload.contents)) {
+    return { ...payload, contents: [...payload.contents, { role: "user", parts: [{ text: content }] }] };
+  }
+  return payload;
+}
+
+function extractLastUserText(payload: unknown): string {
+  const unwrapped = unwrapBody(payload);
+  if (!isRecord(unwrapped)) return textFromContent(unwrapped).slice(0, 12000);
+  if (Array.isArray(unwrapped.messages)) {
+    for (let index = unwrapped.messages.length - 1; index >= 0; index--) {
+      const message = unwrapped.messages[index];
+      if (isRecord(message) && message.role === "user") {
+        const text = textFromContent(message.content);
+        if (text) return text.slice(0, 12000);
+      }
+    }
+  }
+  if (Array.isArray(unwrapped.input)) {
+    for (let index = unwrapped.input.length - 1; index >= 0; index--) {
+      const item = unwrapped.input[index];
+      if (isRecord(item) && item.role === "user") {
+        const text = textFromContent(item.content);
+        if (text) return text.slice(0, 12000);
+      }
+    }
+  }
+  if (Array.isArray(unwrapped.contents)) {
+    for (let index = unwrapped.contents.length - 1; index >= 0; index--) {
+      const item = unwrapped.contents[index];
+      if (isRecord(item) && (item.role === "user" || item.role === "USER")) {
+        const text = textFromContent(item.parts ?? item.content);
+        if (text) return text.slice(0, 12000);
+      }
+    }
+  }
+  return textFromContent(unwrapped).slice(0, 12000);
+}
+
+function unwrapBody(payload: unknown): unknown {
+  if (!isRecord(payload)) return payload;
+  if (isRecord(payload.body)) return unwrapBody(payload.body);
+  if (typeof payload.body === "string") {
+    try {
+      return unwrapBody(JSON.parse(payload.body));
+    } catch {
+      return payload;
+    }
+  }
+  return payload;
+}
+
+function textFromContent(value: unknown, depth = 0): string {
+  if (depth > 5 || value == null) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map((item) => textFromContent(item, depth + 1)).filter(Boolean).join("\\n");
+  if (!isRecord(value)) return "";
+  if (typeof value.text === "string") return value.text;
+  if (typeof value.input_text === "string") return value.input_text;
+  if ("content" in value) {
+    const text = textFromContent(value.content, depth + 1);
+    if (text) return text;
+  }
+  if ("parts" in value) {
+    const text = textFromContent(value.parts, depth + 1);
+    if (text) return text;
+  }
+  return Object.entries(value)
+    .filter(([key]) => !["role", "type", "name", "id"].includes(key))
+    .map(([, item]) => textFromContent(item, depth + 1))
+    .filter(Boolean)
+    .join("\\n");
+}
+
+function buildRecallBlock(root: string, query: string): string | null {
+  const hints = recallProjectionHints(root, query);
+  if (hints.length === 0) return null;
+  const lines = ["<cyralis-recall>", "[recall]"];
+  for (const hint of hints) {
+    const source = hint.source ? " | source=" + hint.source : "";
+    lines.push("- " + hint.id + " | score=" + hint.score.toFixed(2) + " | " + hint.name + " | " + hint.description + source);
+    if (hint.excerpt) lines.push("  excerpt: " + hint.excerpt);
+  }
+  lines.push("</cyralis-recall>");
+  return lines.join("\\n");
+}
+
+type RecallProjectionHint = {
+  id: string;
+  name: string;
+  description: string;
+  source: string;
+  tags: string[];
+  body: string;
+  score: number;
+  excerpt: string;
+};
+
+function recallProjectionHints(root: string, query: string, limit = 3): RecallProjectionHint[] {
+  const queryTokens = tokenize(query);
+  if (queryTokens.length === 0) return [];
+  const scored: RecallProjectionHint[] = [];
+  for (const file of projectionFiles(join(root, ".cyralis", "memory", "projections"))) {
+    const parsed = readProjection(file);
+    if (!parsed) continue;
+    const haystack = new Set(tokenize([parsed.name, parsed.description, parsed.tags.join(" "), parsed.body].join(" ")));
+    if (haystack.size === 0) continue;
+    const score = queryTokens.filter((token) => haystack.has(token)).length / queryTokens.length;
+    if (score <= 0) continue;
+    scored.push({ ...parsed, score, excerpt: compactExcerpt(parsed.body) });
+  }
+  return scored.sort((left, right) => right.score - left.score).slice(0, limit);
+}
+
+function projectionFiles(root: string): string[] {
+  try {
+    const files: string[] = [];
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      const path = join(root, entry.name);
+      if (entry.isDirectory()) files.push(...projectionFiles(path));
+      if (entry.isFile() && entry.name.endsWith(".md")) files.push(path);
+    }
+    return files.sort();
+  } catch {
+    return [];
+  }
+}
+
+function readProjection(file: string): Omit<RecallProjectionHint, "score" | "excerpt"> | null {
+  try {
+    const text = readFileSync(file, "utf8");
+    if (!text.startsWith("---\\n")) return null;
+    const end = text.indexOf("\\n---", 4);
+    if (end === -1) return null;
+    const fields: Record<string, string> = {};
+    for (const line of text.slice(4, end).split(/\\r?\\n/)) {
+      const idx = line.indexOf(":");
+      if (idx === -1) continue;
+      fields[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    }
+    if (fields.projection !== "true") return null;
+    if (!fields.id || !fields.name || !fields.description) return null;
+    return {
+      id: fields.id,
+      name: fields.name,
+      description: fields.description,
+      source: fields.source ?? "",
+      tags: parseTags(fields.tags),
+      body: text.slice(end + 4).trim(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseTags(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw.replace(/^\\[/, "").replace(/\\]$/, "").split(",").map((tag) => tag.trim()).filter(Boolean);
+}
+
+function compactExcerpt(body: string, maxChars = 420): string {
+  const marker = "Search excerpt:";
+  const raw = body.includes(marker) ? body.split(marker, 2)[1] : body;
+  const text = raw.split(/\\r?\\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("source:") && !line.startsWith("kind:") && !line.startsWith("doc_type:"))
+    .join(" ")
+    .replace(/\\s+/g, " ")
+    .trim();
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).trimEnd() + "...";
+}
+
+function tokenize(text: string): string[] {
+  const tokens = new Set<string>();
+  for (const match of String(text ?? "").toLowerCase().matchAll(/[\\p{L}\\p{N}_-]+/gu)) {
+    const token = match[0];
+    if (!token) continue;
+    tokens.add(token);
+    const cjk = [...token].filter(isCjk).join("");
+    for (const size of [2, 3]) {
+      if (cjk.length < size) continue;
+      for (let index = 0; index <= cjk.length - size; index++) tokens.add(cjk.slice(index, index + size));
+    }
+  }
+  return [...tokens];
+}
+
+function isCjk(ch: string): boolean {
+  return /[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}]/u.test(ch);
+}
+
+function containsRecallMarker(value: unknown, depth = 0): boolean {
+  if (depth > 6 || value == null) return false;
+  if (typeof value === "string") return value.includes("<cyralis-recall>");
+  if (Array.isArray(value)) return value.some((item) => containsRecallMarker(item, depth + 1));
+  if (!isRecord(value)) return false;
+  return Object.values(value).some((item) => containsRecallMarker(item, depth + 1));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 function safeJson(value: unknown): string {
@@ -190,17 +431,12 @@ function resolveWorkDir(root: string, ref: string): string | null {
   return null;
 }
 
-function workflowBody(root: string, status: string): string {
-  try {
-    const text = readFileSync(join(root, ".cyralis", "workflow.md"), "utf8");
-    const pattern = /\\[workflow-state:([A-Za-z0-9_-]+)\\]\\s*\\n([\\s\\S]*?)\\n\\s*\\[\\/workflow-state:\\1\\]/g;
-    for (const match of text.matchAll(pattern)) {
-      if (match[1] === status) return match[2].trim();
-    }
-  } catch {
-    // Fall through to visible degraded breadcrumb.
-  }
-  return "Refer to .cyralis/workflow.md for current step.";
+function workflowNext(status: string, mode: string): string {
+  if (status === "design") return "continue " + mode + " design/report planning";
+  if (status === "implement") return "continue " + mode + " implementation/apply work";
+  if (status === "verify") return "run " + mode + " verification/acceptance";
+  if (status === "done") return "summarize and clear active work when appropriate";
+  return "classify the request and create or activate a work item";
 }
 
 function piSkill(mode: string, status: string): string {
@@ -229,7 +465,8 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
     return [
       "<workflow-state>",
       "Status: no_task",
-      workflowBody(root, "no_task"),
+      "next: " + workflowNext("no_task", "-"),
+      "workflow: .cyralis/workflow.md",
       "</workflow-state>",
     ].join("\\n");
   }
@@ -242,7 +479,8 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
     workDir ? "Work: " + repoRelative(root, workDir) + " (" + status + ")" : "Status: " + status,
     "mode: " + mode,
     "host_skill: " + piSkill(mode, status),
-    workflowBody(root, status),
+    "next: " + workflowNext(status, mode),
+    "workflow: .cyralis/workflow.md",
     "</workflow-state>",
   ].join("\\n");
 }

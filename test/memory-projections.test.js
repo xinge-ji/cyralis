@@ -7,6 +7,7 @@ import test from "node:test";
 
 import {
   MarkdownMemoryStore,
+  formatRecallHints,
   syncMemoryProjections,
 } from "../dist/index.js";
 
@@ -70,12 +71,19 @@ test("syncMemoryProjections creates recall stubs for architecture and compound d
   const projectionRoot = join(dir, ".cyralis", "memory", "projections");
   const compoundProjection = findOneMarkdown(join(projectionRoot, "compound", "learning"));
   const architectureProjection = findOneMarkdown(join(projectionRoot, "architecture"));
-  assert.match(readFileSync(compoundProjection, "utf8"), /source: \.cyralis\/compound\/2026-06-02-learning-vite-proxy\.md/);
+  const compoundProjectionText = readFileSync(compoundProjection, "utf8");
+  assert.match(compoundProjectionText, /source: \.cyralis\/compound\/2026-06-02-learning-vite-proxy\.md/);
+  assert.doesNotMatch(compoundProjectionText, /Search excerpt:/);
+  assert.doesNotMatch(compoundProjectionText, /Open the source document/);
   assert.match(readFileSync(architectureProjection, "utf8"), /source: \.cyralis\/architecture\/cli-entry\.md/);
 
   const store = new MarkdownMemoryStore({ root: join(dir, ".cyralis", "memory") });
-  const chineseHints = await store.recallForUser("代理端口错误", { limit: 5 });
-  assert.ok(chineseHints.some((hint) => hint.id.includes("learning_vite-proxy")), "expected Chinese recall to find the learning projection");
+  const chineseHints = await store.recallForUser("vite proxy", { limit: 5 });
+  const learningHint = chineseHints.find((hint) => hint.id.includes("learning_vite-proxy"));
+  assert.ok(learningHint, "expected metadata recall to find the learning projection");
+  assert.equal(learningHint.source, ".cyralis/compound/2026-06-02-learning-vite-proxy.md");
+  assert.match(formatRecallHints([learningHint]), /source=\.cyralis\/compound\/2026-06-02-learning-vite-proxy\.md/);
+  assert.doesNotMatch(formatRecallHints([learningHint]), /excerpt:/);
   const architectureHints = await store.recallForUser("CLI command parsing", { limit: 5 });
   assert.ok(architectureHints.some((hint) => hint.id.includes("arch_cli-entry")), "expected recall to find the architecture projection");
 

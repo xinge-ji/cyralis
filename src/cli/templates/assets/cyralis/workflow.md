@@ -102,8 +102,6 @@ artifact 模板：
 - hook 只读状态并注入 context，不改状态
 - workflow status 变更必须调用 `python .cyralis/tools/work.py transition <work-dir> <target-status>`，不由 skill / prompt 直接手写
 
-注意：CodeStable 原文里 checklist `steps[].status` / `checks[].status`、roadmap item `status` 是 artifact 自己的执行字段，保留原写法；它们不是 workflow status。design 的 `draft` / `approved` 在 Cyralis 中写入 `work.json.artifacts.design.approval`。
-
 ---
 
 ## 3. Feature 边界

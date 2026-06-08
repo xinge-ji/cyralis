@@ -96,7 +96,7 @@ AI 一次性起草完整文档（YAML frontmatter + 正文）。示例代码优�
 
 ### Phase 6：可发现性检查
 
-写完若发现一两行"每次 CodeStable 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到 `.cyralis/attention.md`。不要自作主张改 attention，也不要写外部 AI 入口。
+写完若发现一两行"每次 cyralis 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到 `.cyralis/attention.md`。不要自作主张改 attention，也不要写外部 AI 入口。
 
 ---
 

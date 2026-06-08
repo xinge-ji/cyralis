@@ -1,8 +1,4 @@
-# CodeStable 维护者说明
-
-本文件由 `cyralis init` 复制到项目的 `.cyralis/reference/maintainer-notes.md`。维护 CodeStable 技能家族时需要反复查阅、但不适合放在各子技能正文里的说明。
-
----
+# 维护者说明
 
 ## 1. 断点恢复
 
@@ -35,7 +31,7 @@ AI 对话随时可能中断（token 超限、网络断开、用户换设备）�
 
 ### 共享术语表
 
-如果 CodeStable 自己形成了稳定共享术语，应优先沉淀成共享 reference，而不是散落在多个子技能里重复定义。
+如果 cyralis 自己形成了稳定共享术语，应优先沉淀成共享 reference，而不是散落在多个子技能里重复定义。
 
 ### 跨工作流状态一览
 

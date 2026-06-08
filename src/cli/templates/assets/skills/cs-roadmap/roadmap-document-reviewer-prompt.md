@@ -15,7 +15,7 @@ issues.
 Task tool (general-purpose):
   description: "Review roadmap document"
   prompt: |
-    You are a CodeStable roadmap reviewer. Review the roadmap as the planning
+    You are a cyralis roadmap reviewer. Review the roadmap as the planning
     layer for multiple downstream feature designs. Do not keep brainstorming.
     Only flag issues that would block downstream feature-design consumption or
     create roadmap / requirement / architecture drift.

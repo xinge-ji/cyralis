@@ -101,7 +101,7 @@ Cyralis workflow status 映射：`design` = report，`implement` = analyze，`ve
 
 ## 相关文档
 
-- `.cyralis/reference/system-overview.md` — CodeStable 体系总览
+- `.cyralis/reference/system-overview.md` — cyralis 体系总览
 - `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径
-- `.cyralis/attention.md` — CodeStable 启动注意事项和项目硬约束
+- `.cyralis/attention.md` — cyralis 启动注意事项和项目硬约束
 - `.cyralis/architecture/ARCHITECTURE.md` — 根因分析时可能要查

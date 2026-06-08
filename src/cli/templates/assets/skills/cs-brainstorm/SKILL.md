@@ -283,7 +283,7 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 3. **不落盘非 case 2 / case 4 产物**——case 3 不写文件；case 1 默认不写，只有已经产生非琐碎技术决策时允许写 handoff note
 4. **不处理 bug / 重构**
 5. **不在 case 1 / 3 启动 grill 档**——case 1 已清楚硬 grill 反人性，case 3 用户已 ready 拆解不需要 grill
-6. **别自己顺手开始写 design 或 roadmap**——阶段间的人工 checkpoint 是 CodeStable 整套流程的硬约束
+6. **别自己顺手开始写 design 或 roadmap**——阶段间的人工 checkpoint 是 cyralis 整套流程的硬约束
 7. **不伪收敛**——核心问题、边界或成功标准仍然摇摆时，不能为了进入 `cs-feat-design` 而把未定事项包装成已定方向；继续 case 2，或升到 case 4
 
 ---

@@ -1,10 +1,10 @@
-# CodeStable 体系总览
+# 体系总览
 
-本文档介绍 CodeStable 工作流家族整体——有哪些子技能、各管什么场景、产物怎么组织。无论是 AI 在运行时读到这个文件，还是人打开来看，都能对整个体系有个完整印象。
+本文档介绍 cyralis 工作流家族整体——有哪些子技能、各管什么场景、产物怎么组织。无论是 AI 在运行时读到这个文件，还是人打开来看，都能对整个体系有个完整印象。
 
 AI 辅助开发里，有几类场景会反复出现——加新功能、修 bug、遇到值得沉淀的经验、做技术选型、摸新模块的代码、接入新仓库。每种场景如果每次从零处理，都会出各自的典型问题：AI 给功能起的术语跟老代码冲突、bug 改完没人记得当时怎么诊断的、上周刚踩过的坑下周又踩一遍。
 
-CodeStable 把这几类场景各配一套子技能，产物放进统一的目录结构、带统一的 YAML frontmatter,互相之间可以检索引用。
+cyralis 把这几类场景各配一套子技能，产物放进统一的目录结构、带统一的 YAML frontmatter,互相之间可以检索引用。
 
 
 ## 技能分成四部分
@@ -35,7 +35,7 @@ CodeStable 把这几类场景各配一套子技能，产物放进统一的目录
 
 **辅助**——围着前几类转的周边工具:
 
-- `cyralis init` — 把新仓库接入 CodeStable 目录结构
+- `cyralis init` — 把新仓库接入 cyralis 目录结构
 - `cs-req` — 起草或刷新 `.cyralis/requirements/` 下的需求文档——系统的能力愿景层，覆盖过去/现在/未来
 - `cs-arch` — 架构相关一站式:起草新架构文档 / 刷新已有文档 / 做架构体检(含 design 自洽 / design↔代码一致 / architecture 目录多份文档间一致)。architecture 只记现状
 - `cs-roadmap` — 把一块装不进单个 feature 的大需求拆成带依赖和状态的子 feature 清单,作为后续多次 feature 流程的种子和排期依据;独立于需求 / 架构档案
@@ -114,5 +114,5 @@ issue 的快速通道不是"看起来简单就改"。它必须满足 debugging-g
 
 ## 相关
 
-- `.cyralis/attention.md` — CodeStable 技能启动必读的项目注意事项
+- `.cyralis/attention.md` — cyralis 技能启动必读的项目注意事项
 - `.cyralis/architecture/ARCHITECTURE.md` — 项目架构总入口

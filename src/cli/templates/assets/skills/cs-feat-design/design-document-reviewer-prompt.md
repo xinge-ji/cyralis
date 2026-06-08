@@ -14,7 +14,7 @@ self-review has either passed or found repeated blocking issues.
 Task tool (general-purpose):
   description: "Review feature design document"
   prompt: |
-    You are a CodeStable feature design reviewer. Review the design artifact as
+    You are a cyralis feature design reviewer. Review the design artifact as
     the source of truth for implementation. Ignore unstated conversation memory:
     if a decision is not present in the design or cited source documents, treat
     it as missing.

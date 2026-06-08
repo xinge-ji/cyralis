@@ -1,7 +1,5 @@
 # Attention
 
-本文件是 Cyralis workflow 启动必读的项目注意事项入口。
-
 ## 项目碎片知识
 
 <!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->

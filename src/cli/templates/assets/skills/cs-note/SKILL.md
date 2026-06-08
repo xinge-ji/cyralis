@@ -1,6 +1,6 @@
 ---
 name: cs-note
-description: 把"短到不值得起一份文件、但 AI 每次启动 CodeStable 技能都必须知道"的项目碎片知识追加到 `.cyralis/attention.md` 的固定分节里——比如编译特殊 flag、运行前要先起的服务、路径陷阱、命令别名、环境变量约定。触发：用户说"记一笔"、"加到 attention.md"、"项目要 X 才能编译"、"以后每次都得 Y"，或刚踩到一个一句话能讲清的项目特殊设置。
+description: 把"短到不值得起一份文件、但 AI 每次启动 cyralis 技能都必须知道"的项目碎片知识追加到 `.cyralis/attention.md` 的固定分节里——比如编译特殊 flag、运行前要先起的服务、路径陷阱、命令别名、环境变量约定。触发：用户说"记一笔"、"加到 attention.md"、"项目要 X 才能编译"、"以后每次都得 Y"，或刚踩到一个一句话能讲清的项目特殊设置。
 ---
 
 # cs-note
@@ -9,7 +9,7 @@ description: 把"短到不值得起一份文件、但 AI 每次启动 CodeStable
 
 开始任何判断或动作前，先检查 `.cyralis/attention.md`：存在就读取；缺 `.cyralis/` 就提示先执行 `cyralis init`；只有 attention.md 缺失时，本技能可以先创建固定分节骨架再写入。不要回退到外部 AI 入口文件。
 
-cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**被读到；`.cyralis/attention.md` 是 CodeStable 技能启动时的**强制必读**上下文。这两类信息归宿不同——本技能专管后者：把"短、稳、每次都要知道"的碎片追加到 attention 文件里。
+cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**被读到；`.cyralis/attention.md` 是 cyralis 技能启动时的**强制必读**上下文。这两类信息归宿不同——本技能专管后者：把"短、稳、每次都要知道"的碎片追加到 attention 文件里。
 
 不替代沉淀类技能，是补一个之前缺的入口。
 
@@ -51,11 +51,11 @@ cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**�
 
 目标文件固定为 `.cyralis/attention.md`。不再兼容 `AGENTS.md` / `CLAUDE.md` / `.cursorrules` 等外部 AI 工具入口。
 
-- `.cyralis/` 不存在 → 本仓库还没接入 CodeStable，先提示用户执行 `cyralis init`
+- `.cyralis/` 不存在 → 本仓库还没接入 cyralis，先提示用户执行 `cyralis init`
 - `.cyralis/attention.md` 不存在 → 视为骨架缺失，先创建最小骨架再写入
 - `AGENTS.md` / `CLAUDE.md` 即使存在也不读取、不写入、不询问用户偏好
 
-attention.md 是 CodeStable 自己的启动注意事项入口，价值来自所有 CodeStable 技能都明确要求读取它，而不是依赖外部工具的自动注入。
+attention.md 是 cyralis 自己的启动注意事项入口，价值来自所有 cyralis 技能都明确要求读取它，而不是依赖外部工具的自动注入。
 
 ---
 
@@ -153,7 +153,6 @@ attention.md 是 CodeStable 自己的启动注意事项入口，价值来自所�
 ## 容易踩的坑
 
 - 把详细背景 / 多步骤指南塞进 attention.md——超过两行就该走 cs-learn
-- 写到 `AGENTS.md` / `CLAUDE.md`——CodeStable 不再兼容这些外部入口
 - 默默新增分节——分节是写死的，新增要先和用户讨论
 - 看到一条就连带把其他几条也写进去——一次一条
 - 写"短期状态"（本周在做 X / 这个 sprint 的目标）——会过期但没人删，慢慢变误导
