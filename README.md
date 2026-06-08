@@ -37,7 +37,7 @@ Codex agent/skill projection.
 ## Install Model
 
 ```text
-npm install -g github:xinge-ji/cyralis
+npm install -g --install-links=true github:xinge-ji/cyralis
   -> cyralis init --pi --codex --force
   -> writes project-local .cyralis/.pi/.codex files
 ```
