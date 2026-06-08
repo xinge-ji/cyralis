@@ -111,6 +111,7 @@ index.md 末尾给优先级建议：
 | `cs-refactor` | 用户指已知优化点 | audit 发现可优化点后建议开 `cs-refactor` |
 | `cs-explore` | 围绕一个问题查代码 | audit 是批量扫多个维度，不等同于 explore |
 | `cs-arch` | 维护架构文档 | cs-arch 维护文档，cs-audit 检查代码是否偏离文档 |
+| `cs-arch-review` | 找 shallow module / seam / test surface 的 deepening 候选 | 这类架构深化专项不在普通 audit 里展开，转 `cs-arch-review` |
 | 专项安全审查 | 安全审查 | audit 的安全维度是轻量扫描，深度安全审查不在当前 Cyralis 模板内 |
 
 ---

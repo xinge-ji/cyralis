@@ -18,8 +18,9 @@ cyralis 把这几类场景各配一套子技能，产物放进统一的目录结
 - `cs-feat` — 新功能,design → implement → acceptance（想法还模糊时先走讨论层 `cs-brainstorm` 做分诊，不属于 feature 流程内部）
 - `cs-issue` — 修 bug,report → analyze → fix；内部使用 `.cyralis/reference/debugging-governance.md` 的调试治理口径，先证据化根因和 canonical owner，再动手修
 - `cs-refactor` — 代码优化(行为不变、结构/性能/可读性变),scan → design → apply
+- `cs-arch-review` — 架构改进专项审查，寻找 shallow module / seam 泄漏 / test surface 错位等 deepening 候选；只发现和讨论，不执行重构
 
-两类都不直接让 AI 写代码,而是先产出 spec(功能方案 / 问题分析),用户 review 后再动手,代码和 doc 一起交付。针对的是术语冲突、范围失控、改完不留存档这三种 AI 默认会出的问题。
+这些流程都不直接让 AI 一口气写代码，而是先产出 spec / review / 候选清单，用户 review 后再进入后续动作。针对的是术语冲突、范围失控、改完不留存档这三种 AI 默认会出的问题。
 
 **沉淀**——把做事过程产生的知识存下来,下次遇到同类问题直接复用:
 
@@ -53,6 +54,7 @@ cyralis 把这几类场景各配一套子技能，产物放进统一的目录结
 | 新功能 / 新能力 | `cs-feat` |
 | BUG / 异常 / 文档错误 | `cs-issue` |
 | 代码优化 / 重构 / 重写(行为不变) | `cs-refactor` |
+| 架构改进机会 / 模块太浅 / 代码不好测试 / 找 deepening 候选 | `cs-arch-review` |
 | 摸代码、提问调研 | `cs-explore` |
 | 补 / 更新需求文档 | `cs-req` |
 | 补 / 更新 / 检查架构文档 | `cs-arch` |
@@ -109,7 +111,7 @@ issue 的快速通道不是"看起来简单就改"。它必须满足 debugging-g
 - `.cyralis/reference/tools.md` — `search-yaml.py` / `validate-yaml.py` 用法
 - `.cyralis/reference/maintainer-notes.md` — 断点恢复、新增子工作流的登记
 
-目录结构(requirements/、architecture/、roadmap/、features/、issues/、compound/、tools/、reference/)的权威定义在 `shared-conventions.md`。要改目录先改那里——方法是改 `src/cli/templates/assets/cyralis/reference/shared-conventions.md` 这个模板,新项目初始化时会带上新版本。
+目录结构(requirements/、architecture/、roadmap/、features/、issues/、refactors/、audits/、compound/、tools/、reference/)的权威定义在 `shared-conventions.md`。要改目录先改那里——方法是改 `src/cli/templates/assets/cyralis/reference/shared-conventions.md` 这个模板,新项目初始化时会带上新版本。
 
 
 ## 相关

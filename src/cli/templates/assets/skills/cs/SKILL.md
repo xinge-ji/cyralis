@@ -33,7 +33,7 @@ description: cyralis 工作流根入口，介绍体系全貌并把诉求路由�
 
 ## 体系一图速读（用户没具体诉求 / 让你介绍时讲这个）
 
-cyralis 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚在 `.cyralis/`：
+cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚在 `.cyralis/`：
 
 ```
 .cyralis/
@@ -43,7 +43,7 @@ cyralis 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚
 ├── features/        新增能力 spec 聚合根（design / impl / accept）
 ├── issues/          修 bug spec 聚合根（report / analyze / fix）
 ├── refactors/       重构 spec 聚合根（beta）
-├── audits/          审计实体（主动扫描发现清单，不定修）
+├── audits/          审计实体（主动扫描发现清单，不定修；含架构深化专项审查）
 └── compound/        知识沉淀（learning / trick / decision / explore）
 ```
 
@@ -52,6 +52,7 @@ cyralis 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚
 - **新增能力**：`cs-feat-design` → `cs-feat-impl` → `cs-feat-accept`（想法模糊先 `cs-brainstorm` 分诊）
 - **修 bug**：`cs-issue-report` → `cs-issue-analyze` → `cs-issue-fix`
 - **重构**（beta）：`cs-refactor` / `cs-refactor-ff`
+- **架构深化审查**：`cs-arch-review` 找 shallow module / seam / test surface 的 deepening 候选，只发现不执行
 
 **横切**：流程跑完发现"值得记下来" → `cs-learn` / `cs-trick` / `cs-decide` / `cs-explore` 沉淀到 `compound/`。
 
@@ -72,6 +73,7 @@ cyralis 把开发活动建模成 **7 个实体 + 3 个流程**，所有产物聚
 | 新功能 / "加个 X" / "实现 XX" | `cs-feat`（路由 design / ff / impl / accept） |
 | BUG / 异常 / 报错 / "这里不对" / "文档错了" | `cs-issue`（路由 report / analyze / fix） |
 | 代码优化 / 重构 / 重写（行为不变） | `cs-refactor` / `cs-refactor-ff` |
+| 架构改进机会 / "模块太浅" / "代码不好测试" / "找架构重构点" / "让代码更 AI 可导航" | `cs-arch-review` |
 | 摸代码 / "X 是怎么实现的" / 提问调研 | `cs-explore` |
 | 审查系统 / 扫描 bug / 审计代码 / "有哪些问题" / "哪里可以优化" | `cs-audit`（主动扫描发现，只列清单不定修） |
 | 补 / 更新需求文档 | `cs-req` |

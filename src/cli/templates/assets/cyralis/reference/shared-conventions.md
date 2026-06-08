@@ -37,6 +37,10 @@
 │       ├── {slug}-refactor-design.md
 │       ├── {slug}-checklist.yaml
 │       └── {slug}-apply-notes.md
+├── audits/                审计 / 架构审查聚合根（cs-audit / cs-arch-review 产出）
+│   └── YYYY-MM-DD-{slug}/
+│       ├── index.md
+│       └── finding-*.md 或 candidate-*.md
 ├── compound/              沉淀类文档统一目录
 │   └── YYYY-MM-DD-{doc_type}-{slug}.md
 │                          doc_type ∈ {learning, trick, decision, explore}
@@ -53,7 +57,7 @@
 
 - 需求文档：`requirements/{slug}.md`（能力愿景，不带日期前缀，扁平不分组）；中心索引 `requirements/VISION.md`
 - roadmap：`roadmap/{slug}/`（不带日期前缀，平铺不嵌套）
-- feature / issue / refactor 目录：带日期前缀 `YYYY-MM-DD-{slug}`
+- feature / issue / refactor / audit 目录：带日期前缀 `YYYY-MM-DD-{slug}`
 - 沉淀类：`compound/YYYY-MM-DD-{doc_type}-{slug}.md`，日期用**归档当天**
 - 架构 doc：`architecture/{type}-{slug}.md`（长效，不带日期前缀）；总入口固定 `ARCHITECTURE.md`
 - 项目注意事项入口固定为 `.cyralis/attention.md`，所有子技能启动前必须读取；不再兼容 `AGENTS.md` / `CLAUDE.md` 等外部入口

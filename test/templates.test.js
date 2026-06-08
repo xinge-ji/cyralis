@@ -123,6 +123,10 @@ test("core templates install host-neutral workflow assets", () => {
     "expected refactor work json template",
   );
   assert.ok(
+    templates.has(".cyralis/audits/.gitkeep"),
+    "expected audits root",
+  );
+  assert.ok(
     !templates.get(".cyralis/templates/feature/design.md"),
     "feature design markdown template should not be installed",
   );
@@ -168,6 +172,25 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.doesNotMatch(design, /Cyralis 投影说明/);
   assert.doesNotMatch(design, /Cyralis 状态写入点/);
   assert.doesNotMatch(design, /status=approved/);
+});
+
+test("arch review skill is cyralis-native", () => {
+  const templates = collectTemplates(["codex", "pi"]);
+  const codexSkill = templates.get(".codex/skills/cs-arch-review/SKILL.md");
+  const piSkill = templates.get(".pi/skills/cs-arch-review/SKILL.md");
+  const reference = templates.get(".codex/skills/cs-arch-review/reference.md");
+
+  assert.ok(codexSkill, "expected codex arch review skill");
+  assert.ok(piSkill, "expected pi arch review skill");
+  assert.ok(reference, "expected arch review reference");
+  assert.match(codexSkill, /name: cs-arch-review/);
+  assert.match(codexSkill, /\.cyralis\/audits/);
+  assert.match(codexSkill, /cs-refactor/);
+  assert.match(codexSkill, /cs-roadmap/);
+  assert.match(codexSkill, /cs-decide/);
+  assert.doesNotMatch(codexSkill, /Tailwind via CDN/);
+  assert.doesNotMatch(codexSkill, /xdg-open/);
+  assert.doesNotMatch(reference, /docs\/adr/);
 });
 
 test("codex hook exposes workflow and skill source paths", () => {

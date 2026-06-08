@@ -13,6 +13,7 @@ export const coreTemplates: Array<[string, string]> = [
   [".cyralis/features/.gitkeep", ""],
   [".cyralis/issues/.gitkeep", ""],
   [".cyralis/refactors/.gitkeep", ""],
+  [".cyralis/audits/.gitkeep", ""],
   [".cyralis/compound/.gitkeep", ""],
   [".cyralis/brainstorm/.gitkeep", ""],
   [".cyralis/tools/search-yaml.py", readAsset("cyralis/tools/search-yaml.py")],
