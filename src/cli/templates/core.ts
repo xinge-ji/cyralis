@@ -8,32 +8,77 @@ export const coreTemplates: Array<[string, string]> = [
   [".cyralis/memory/.gitkeep", ""],
   [".cyralis/memory/projections/.gitkeep", ""],
   [".cyralis/requirements/.gitkeep", ""],
-  [".cyralis/architecture/ARCHITECTURE.md", readAsset("cyralis/architecture/ARCHITECTURE.md")],
+  [
+    ".cyralis/architecture/ARCHITECTURE.md",
+    readAsset("cyralis/architecture/ARCHITECTURE.md"),
+  ],
   [".cyralis/roadmap/.gitkeep", ""],
   [".cyralis/features/.gitkeep", ""],
   [".cyralis/issues/.gitkeep", ""],
   [".cyralis/refactors/.gitkeep", ""],
   [".cyralis/audits/.gitkeep", ""],
   [".cyralis/compound/.gitkeep", ""],
-  [".cyralis/brainstorm/.gitkeep", ""],
+  [".cyralis/brainstorms/.gitkeep", ""],
   [".cyralis/tools/search-yaml.py", readAsset("cyralis/tools/search-yaml.py")],
-  [".cyralis/tools/validate-yaml.py", readAsset("cyralis/tools/validate-yaml.py")],
+  [
+    ".cyralis/tools/validate-yaml.py",
+    readAsset("cyralis/tools/validate-yaml.py"),
+  ],
   [".cyralis/tools/work.py", readAsset("cyralis/tools/work.py")],
-  [".cyralis/reference/shared-conventions.md", readAsset("cyralis/reference/shared-conventions.md")],
-  [".cyralis/reference/decision-hygiene.md", readAsset("cyralis/reference/decision-hygiene.md")],
-  [".cyralis/reference/debugging-governance.md", readAsset("cyralis/reference/debugging-governance.md")],
-  [".cyralis/reference/feature-workflow.md", readAsset("cyralis/reference/feature-workflow.md")],
-  [".cyralis/reference/work-json.md", readAsset("cyralis/reference/work-json.md")],
-  [".cyralis/reference/code-dimensions.md", readAsset("cyralis/reference/code-dimensions.md")],
-  [".cyralis/reference/maintainer-notes.md", readAsset("cyralis/reference/maintainer-notes.md")],
-  [".cyralis/reference/requirement-example.md", readAsset("cyralis/reference/requirement-example.md")],
-  [".cyralis/reference/system-overview.md", readAsset("cyralis/reference/system-overview.md")],
+  [
+    ".cyralis/reference/shared-conventions.md",
+    readAsset("cyralis/reference/shared-conventions.md"),
+  ],
+  [
+    ".cyralis/reference/decision-hygiene.md",
+    readAsset("cyralis/reference/decision-hygiene.md"),
+  ],
+  [
+    ".cyralis/reference/debugging-governance.md",
+    readAsset("cyralis/reference/debugging-governance.md"),
+  ],
+  [
+    ".cyralis/reference/feature-workflow.md",
+    readAsset("cyralis/reference/feature-workflow.md"),
+  ],
+  [
+    ".cyralis/reference/work-json.md",
+    readAsset("cyralis/reference/work-json.md"),
+  ],
+  [
+    ".cyralis/reference/code-dimensions.md",
+    readAsset("cyralis/reference/code-dimensions.md"),
+  ],
+  [
+    ".cyralis/reference/maintainer-notes.md",
+    readAsset("cyralis/reference/maintainer-notes.md"),
+  ],
+  [
+    ".cyralis/reference/requirement-example.md",
+    readAsset("cyralis/reference/requirement-example.md"),
+  ],
+  [
+    ".cyralis/reference/system-overview.md",
+    readAsset("cyralis/reference/system-overview.md"),
+  ],
   [".cyralis/reference/tools.md", readAsset("cyralis/reference/tools.md")],
-  [".cyralis/templates/feature/work.json", readAsset("cyralis/templates/feature/work.json")],
-  [".cyralis/templates/issue/work.json", readAsset("cyralis/templates/issue/work.json")],
-  [".cyralis/templates/refactor/work.json", readAsset("cyralis/templates/refactor/work.json")],
+  [
+    ".cyralis/templates/feature/work.json",
+    readAsset("cyralis/templates/feature/work.json"),
+  ],
+  [
+    ".cyralis/templates/issue/work.json",
+    readAsset("cyralis/templates/issue/work.json"),
+  ],
+  [
+    ".cyralis/templates/refactor/work.json",
+    readAsset("cyralis/templates/refactor/work.json"),
+  ],
 ];
 
 function readAsset(relativePath: string): string {
-  return readFileSync(new URL(`./assets/${relativePath}`, import.meta.url), "utf8");
+  return readFileSync(
+    new URL(`./assets/${relativePath}`, import.meta.url),
+    "utf8",
+  );
 }
