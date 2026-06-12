@@ -54,6 +54,8 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 - **重构**（beta）：`cs-refactor` / `cs-refactor-ff`
 - **架构深化审查**：`cs-arch-review` 找 shallow module / seam / test surface 的 deepening 候选，只发现不执行
 
+**领域辅助**：`cs-backend` / `cs-ui` 在 feature、issue、refactor 流程中提供后端和 UI 的 owner / contract / validation 口径，不单独接管 workflow
+
 **横切**：流程跑完发现"值得记下来" → `cs-learn` / `cs-trick` / `cs-decide` / `cs-explore` 沉淀到 `compound/`。
 
 **核心理念**：编排的是软件本身的生命周期（需求、架构、特性、bug、决策），不是 Agent。人在环——程序员对整体把控负责，AI 是高效执行体。
@@ -76,6 +78,8 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 | 架构改进机会 / "模块太浅" / "代码不好测试" / "找架构重构点" / "让代码更 AI 可导航" | `cs-arch-review` |
 | 摸代码 / "X 是怎么实现的" / 提问调研 | `cs-explore` |
 | 审查系统 / 扫描 bug / 审计代码 / "有哪些问题" / "哪里可以优化" | `cs-audit`（主动扫描发现，只列清单不定修） |
+| 后端专项 / API / domain / persistence / 权限 / 事务 / 幂等 / server-side 验证 | `cs-backend`（领域辅助；通常由 feature / issue / refactor 流程中按需读取，不替代主流程） |
+| UI 专项 / 页面 / 组件 / 表单 / 状态 / 路由 / 交互 / 浏览器验证 | `cs-ui`（领域辅助；通常由 feature / issue / refactor 流程中按需读取，不替代主流程） |
 | 补 / 更新需求文档 | `cs-req` |
 | 补 / 更新 / 检查架构文档 / "刷新架构 doc" / "做架构体检" | `cs-arch` |
 | 大需求拆解 / "我想要一个 X 系统" / 排期规划 / 模块拆分 + 接口契约 | `cs-roadmap` |

@@ -67,6 +67,8 @@ frontmatter：`doc_type=feature-design` / `feature` 一致 / `summary` 非空 / 
 - 方案 doc 全文（标准 design 重点：第 1 节、2.1/2.2/2.3/2.4、3）
 - `{slug}-checklist.yaml`、需求来源（用户描述 + brainstorm note）、`.cyralis/attention.md`
 - 第 2.1 节接口示例的来源位置 / fastforward 第 1 节改动点提到的代码文件——读相关函数即可
+- 若当前 step 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`
+- 若当前 step 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或需要复制 / 批量修改相似逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`
 
 ### 4. 跟用户确认从哪一步开始
 
@@ -103,6 +105,12 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 ```
 
 顺手改的代码不在方案里，验收对不上；后人 git blame 也分不清是为本次功能还是顺手。
+
+### Search-first 与复用检查
+
+触发 `.cyralis/reference/code-reuse-thinking.md` 的信号时，先 search 再写代码。不要新增第二套 decoder / projection / constant / helper，也不要把重复逻辑塞进 generic util。结论写进完成汇报的"代码质量反射检查自检"。
+
+触发 `.cyralis/reference/cross-layer-thinking.md` 的信号时，先确认 flow、boundary owner 和 validation owner。不要让 display / command / caller 重新解释 raw payload。结论写进完成汇报的"行为场景绑定"或"验收场景自检"。
 
 ### 术语守护
 

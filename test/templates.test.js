@@ -111,6 +111,14 @@ test("core templates install host-neutral workflow assets", () => {
     "expected code dimensions reference",
   );
   assert.ok(
+    templates.get(".cyralis/reference/cross-layer-thinking.md"),
+    "expected cross-layer thinking reference",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/code-reuse-thinking.md"),
+    "expected code reuse thinking reference",
+  );
+  assert.ok(
     templates.get(".cyralis/templates/feature/work.json"),
     "expected feature work json template",
   );
@@ -172,6 +180,30 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.doesNotMatch(design, /Cyralis 投影说明/);
   assert.doesNotMatch(design, /Cyralis 状态写入点/);
   assert.doesNotMatch(design, /status=approved/);
+});
+
+test("backend and ui skills are projected and reference shared thinking guides", () => {
+  const templates = collectTemplates(["codex", "pi"]);
+
+  for (const host of ["codex", "pi"]) {
+    const backend = templates.get(`.${host}/skills/cs-backend/SKILL.md`);
+    const backendReference = templates.get(
+      `.${host}/skills/cs-backend/reference.md`,
+    );
+    const ui = templates.get(`.${host}/skills/cs-ui/SKILL.md`);
+    const uiReference = templates.get(`.${host}/skills/cs-ui/reference.md`);
+
+    assert.ok(backend, `expected ${host} backend skill`);
+    assert.ok(backendReference, `expected ${host} backend reference`);
+    assert.ok(ui, `expected ${host} ui skill`);
+    assert.ok(uiReference, `expected ${host} ui reference`);
+    assert.match(backend, /领域辅助技能/);
+    assert.match(backend, /cross-layer-thinking\.md/);
+    assert.match(backend, /code-reuse-thinking\.md/);
+    assert.match(ui, /领域辅助技能/);
+    assert.match(ui, /cross-layer-thinking\.md/);
+    assert.match(ui, /code-reuse-thinking\.md/);
+  }
 });
 
 test("arch review skill is cyralis-native", () => {

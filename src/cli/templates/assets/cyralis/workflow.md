@@ -84,6 +84,11 @@ issue mode 采用 `cs-issue` 家族 skill。通用 status 映射到 issue 语义
 - .cyralis/reference/tools.md
 - .cyralis/reference/code-dimensions.md
 
+领域辅助 skill：
+
+- `.codex/skills/cs-backend/SKILL.md` / `.pi/skills/cs-backend/SKILL.md`：后端 owner、contract、data boundary、validation 口径；只在当前工作实际触及后端责任时读取，不改变 workflow status
+- `.codex/skills/cs-ui/SKILL.md` / `.pi/skills/cs-ui/SKILL.md`：UI user journey、state model、interaction、browser/manual validation 口径；只在当前工作实际触及 UI 责任时读取，不改变 workflow status
+
 artifact 模板：
 
 - .cyralis/templates/feature/work.json

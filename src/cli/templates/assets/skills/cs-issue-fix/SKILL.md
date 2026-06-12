@@ -26,6 +26,8 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 3. **上下文读全**：analysis 全文 + report 全文 + analysis 第 1 节定位的所有代码 + `.cyralis/attention.md` + `.cyralis/reference/debugging-governance.md` + 沉淀目录搜索：
    - `python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=trick --filter status=active --query "{关键词}"`——确认修复方式不违背已有库用法 / 模式
    - 同样命令换 `--filter doc_type=explore`——确认修复点和已有证据不冲突
+   - 如果修复跨 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`
+   - 如果修复需要新增 helper / utility / adapter / decoder / normalizer / projection / constant，或会复制 / 批量修改相似逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`
 4. **确认起点**——告诉用户"我将按方案 X 修改 {文件列表}，开始修复"，等用户确认才动手
 
 ### 快速通道（无 analysis，从 report 直接触发）
@@ -38,6 +40,7 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 4. 读 `.cyralis/attention.md`
 5. 读 `.cyralis/reference/debugging-governance.md`
 6. **补搜沉淀目录**——快速通道也要查一遍 `compound/`（trick + explore），避免误把已知边界条件当新问题
+7. 按风险读取通用 reference：跨层边界触发时读 `.cyralis/reference/cross-layer-thinking.md`；新增复用点或重复逻辑触发时读 `.cyralis/reference/code-reuse-thinking.md`
 
 ---
 
@@ -74,6 +77,12 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 修复只针对根因，**不引入新抽象、新接口、新模式**。如果发现"要把这个改好得先重构 X"——停下来跟用户确认是否在这个 issue 里做重构，还是拆成独立工作。
 
 为什么：bug 修复天然窄场景，引入新抽象意味着只有这一个使用点支撑——典型过早抽象。
+
+### 跨层与复用守护
+
+如果 bug 来自 contract drift、raw payload 重复解析、caller 侧补丁、duplicate owner、template / runtime parser 漂移，按 `.cyralis/reference/cross-layer-thinking.md` 写短 `Cross-Layer Check`，确认真正 owner 和 downstream consumers。
+
+如果修复需要新增 helper / decoder / projection / constant，或相同修法要改多处，按 `.cyralis/reference/code-reuse-thinking.md` 写短 `Code Reuse Check`。结论是 `stop` 时回 analysis，不在 fix 阶段硬冲。
 
 ### 代码质量反射检查
 

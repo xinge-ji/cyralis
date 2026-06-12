@@ -50,6 +50,14 @@ export const coreTemplates: Array<[string, string]> = [
     readAsset("cyralis/reference/code-dimensions.md"),
   ],
   [
+    ".cyralis/reference/cross-layer-thinking.md",
+    readAsset("cyralis/reference/cross-layer-thinking.md"),
+  ],
+  [
+    ".cyralis/reference/code-reuse-thinking.md",
+    readAsset("cyralis/reference/code-reuse-thinking.md"),
+  ],
+  [
     ".cyralis/reference/maintainer-notes.md",
     readAsset("cyralis/reference/maintainer-notes.md"),
   ],
