@@ -93,7 +93,7 @@ design / implement 的硬约束在 fastforward 的精简版。没 design doc 不
 - 往 `utils.ts` / `helpers.ts` 万能 util 堆东西
 - 新起概念名时先 grep 同名 / 近义命名
 
-完整清单看 `.cyralis/reference/shared-conventions.md` 第 7 节。
+完整清单看 `.cyralis/reference/shared-conventions.md` 第 8 节。
 
 ---
 
@@ -116,7 +116,8 @@ design / implement 的硬约束在 fastforward 的精简版。没 design doc 不
 ```markdown
 ---
 doc_type: feature-ff-note
-feature: {slug}
+feature: {YYYY-MM-DD}-{slug}
+summary: {一句话说明本次小功能做了什么}
 date: YYYY-MM-DD
 requirement: {req-slug 或留空}
 tags: [...]
@@ -146,6 +147,7 @@ tags: [...]
 
 - **不写 design doc / checklist / acceptance**——这就是 fastforward 的意义。要写就去 `cs-feat-design`
 - **不跟用户确认方案**——用户让你做小功能就是不想等你开会
+- **不创建 / 推进 `work.json` 状态**——fastforward 不进入标准 workflow；闭环事实只写 `{slug}-ff-note.md`
 - **不在 `.cyralis/` 里留 `{slug}-ff-note.md` 之外的新文件**——除非发现值得沉淀的坑 / 技巧，另起对话用 `cs-learn` / `cs-trick` 写
 
 ---

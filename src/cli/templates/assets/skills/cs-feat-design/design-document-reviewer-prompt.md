@@ -37,6 +37,7 @@ Task tool (general-purpose):
     | Source Trace | Requirement / intent / brainstorm / roadmap / architecture / compound constraints have design landing points |
     | Section Completeness | Frontmatter, sections 0/1/2/3/4, input baseline alignment, triggered product / architecture checks, and 2.5 structure health are present |
     | Contract Consistency | Interfaces, fields, types, states, examples, orchestration, and acceptance scenarios use the same names and shapes |
+    | Behavior Evaluation | If the design changes user-visible flows, system-observable results, error/fallback paths, or cross-step invariants, each scenario includes a concrete example, observable evidence/oracle, expected result, failure signal, correction path, and invariants when needed |
     | Roadmap / Architecture Alignment | Roadmap goals, dependencies, shared protocols, owner, contract, and dependency direction are not rewritten in feature design |
     | Decision Hygiene | Triggered architecture integrity checks include dropped assumptions and falsifiers, not only preferred owner claims |
     | Boundary Closure | Non-goals are not implicitly implemented; each non-goal has an acceptance reverse check; open questions are not disguised as decisions |
@@ -48,6 +49,12 @@ Task tool (general-purpose):
     Only flag blocking issues that could cause implementation to build the wrong
     thing, acceptance to mismatch the design, roadmap / architecture drift, field
     or interface inconsistency, or scope boundary leakage.
+
+    Treat missing Behavior Evaluation for changed user-visible flows,
+    system-observable results, error/fallback paths, or cross-step invariants as
+    blocking. Also flag fake coverage: scenarios invented only to avoid
+    `technical-only`, or task mappings that cite behavior coverage without a
+    declared scenario.
 
     Do not flag style, wording, formatting, or optional improvement suggestions
     unless they create real implementation risk.

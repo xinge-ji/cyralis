@@ -74,9 +74,10 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 ### Phase 2：读取材料
 
-**共同必读**：`.cyralis/attention.md` + 用户素材 + `roadmap/` 其他 roadmap（防重复）+ `requirements/` 相关 req + `architecture/` 相关 doc。
+**共同必读**：用户素材 + `roadmap/` 其他 roadmap（防重复）+ `requirements/` 相关 req + `architecture/` 相关 doc。
 
 **按情况读**：
+- 相关 brainstorm 记录：优先 `.cyralis/brainstorms/{slug}/brainstorm.md`（case 4）；如有相关 feature brainstorm note 也一起读
 - 相关 compound 沉淀：`python .cyralis/tools/search-yaml.py --dir .cyralis/compound --query "{大需求关键词}"`
 - 已有相关 feature 方案
 

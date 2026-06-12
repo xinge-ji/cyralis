@@ -249,7 +249,6 @@ def print_project_context(root: Path, skills: Path) -> None:
     refactors = root / ".cyralis" / "refactors"
     memory = root / ".cyralis" / "memory"
     projections = memory / "projections"
-    attention = root / ".cyralis" / "attention.md"
     architecture_index = root / ".cyralis" / "architecture" / "ARCHITECTURE.md"
 
     print("[project_context]")
@@ -266,7 +265,6 @@ def print_project_context(root: Path, skills: Path) -> None:
     print("Workflow status is stored in each active work item's work.json.")
     print("Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.")
     for label, path, limit in [
-        (".cyralis/attention.md", attention, 12000),
         (".cyralis/architecture/ARCHITECTURE.md", architecture_index, 10000),
     ]:
         content = read_limited(path, limit)

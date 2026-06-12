@@ -5,7 +5,6 @@ import type { ProjectContextEntry } from "./types.js";
 export interface LoadProjectContextOptions {
   cwd: string;
   cyralisRoot?: string;
-  maxAttentionBytes?: number;
   maxArchitectureIndexBytes?: number;
 }
 
@@ -13,13 +12,6 @@ export async function loadProjectContext(options: LoadProjectContextOptions): Pr
   const cwd = resolve(options.cwd);
   const cyralisRoot = resolve(cwd, options.cyralisRoot ?? ".cyralis");
   const entries: ProjectContextEntry[] = [];
-  const attention = await readLimited(join(cyralisRoot, "attention.md"), options.maxAttentionBytes ?? 12_000);
-  if (attention) {
-    entries.push({
-      path: ".cyralis/attention.md",
-      content: attention,
-    });
-  }
   const architectureIndex = await readLimited(
     join(cyralisRoot, "architecture", "ARCHITECTURE.md"),
     options.maxArchitectureIndexBytes ?? 10_000,

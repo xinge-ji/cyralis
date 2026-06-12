@@ -20,12 +20,10 @@ description: cyralis 工作流根入口，介绍体系全貌并把诉求路由�
 
 ## 收到调用先做的扫描
 
-回应前每次都做（几个 tool 调用就够）：
+回应前每次都做：
 
-1. **看仓库有没有接入 cyralis**——`Glob .cyralis/` 看顶层目录
-2. **存在**——必须先 `Read .cyralis/attention.md`（如果缺失提示骨架不完整，先补齐或重新执行 `cyralis init`）；再 `Read .cyralis/reference/system-overview.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
-3. **不存在**——后面提示用户先执行 `cyralis init`
-4. **看用户原话**——开放式还是带具体诉求？带诉求匹配路由表，没诉求给体系介绍
+1. **存在**——必须先阅读 `.cyralis/reference/shared-conventions.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
+2. **看用户原话**——开放式还是带具体诉求？带诉求匹配路由表，没诉求给体系介绍
 
 扫完才回应。让用户感觉你心里有数。
 
@@ -52,7 +50,8 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 - **新增能力**：`cs-feat-design` → `cs-feat-impl` → `cs-feat-accept`（想法模糊先 `cs-brainstorm` 分诊）
 - **修 bug**：`cs-issue-report` → `cs-issue-analyze` → `cs-issue-fix`
 - **重构**（beta）：`cs-refactor` / `cs-refactor-ff`
-- **架构深化审查**：`cs-arch-review` 找 shallow module / seam / test surface 的 deepening 候选，只发现不执行
+
+**审查**：`cs-audit` 和 `cs-arch-review` 找代码的问题候选，只发现不执行
 
 **领域辅助**：`cs-backend` / `cs-ui` 在 feature、issue、refactor 流程中提供后端和 UI 的 owner / contract / validation 口径，不单独接管 workflow
 
@@ -60,7 +59,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 
 **核心理念**：编排的是软件本身的生命周期（需求、架构、特性、bug、决策），不是 Agent。人在环——程序员对整体把控负责，AI 是高效执行体。
 
-> 项目已初始化的话更详细总览看 `.cyralis/reference/system-overview.md`。
+> 项目已初始化的话更详细约定看 `.cyralis/reference/shared-conventions.md`。
 
 ---
 
@@ -70,7 +69,6 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 
 | 用户说什么 / 想做什么 | 路由到 |
 |---|---|
-| 仓库还没有 `.cyralis/` | **先执行 `cyralis init`**——所有其他 cs-* 都依赖这个目录 |
 | 想法还模糊 / "有想法没想清楚" / "先聊聊" / "不知道是不是新功能" | `cs-brainstorm`（分诊后路由到 design / feature-brainstorm 落盘 / roadmap） |
 | 新功能 / "加个 X" / "实现 XX" | `cs-feat`（路由 design / ff / impl / accept） |
 | BUG / 异常 / 报错 / "这里不对" / "文档错了" | `cs-issue`（路由 report / analyze / fix） |
@@ -86,7 +84,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 | 技术选型 / 长期约束 / 编码规约 | `cs-decide` |
 | 踩坑回顾 / 经验总结 / "值得记下来" | `cs-learn` |
 | 可复用编程模式 / 库用法 / "以后做 X 就该这样" | `cs-trick` |
-| 一两行的项目注意事项 / 编译特殊设置 / 命令陷阱 / "记到 attention.md" | `cs-note` |
+| 一两行的项目注意事项 / 编译特殊设置 / 命令陷阱 | `cs-note` |
 | 开发者指南 / 用户指南 | `cs-guide` |
 | 库 API 参考 | `cs-libdoc` |
 | 用户在 feature / issue / refactor 流程中间问"下一步" / "continue" / "继续" | 先执行 `python .cyralis/tools/work.py resolve --json`，按 `host_skill` 路由到对应子技能 |
@@ -99,7 +97,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 
 ### 仓库还没接入
 
-任何 cs-* 流程但 `.cyralis/` 不存在 → 说明这一点建议**先执行 `cyralis init`**。不要直接路由到 cs-feat / cs-issue——它们的 SKILL.md 都假设 `.cyralis/` 已存在。
+任何 cs-\* 流程但 `.cyralis/` 不存在 → 说明这一点建议**先执行 `cyralis init`**。不要直接路由到 cs-feat / cs-issue——它们的 SKILL.md 都假设 `.cyralis/` 已存在。
 
 ### 大需求被误当成 feature
 
@@ -126,7 +124,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 - 处方"以后做 X 就这样做" → `cs-trick`
 - 规定"全项目今后都按 X 来" → `cs-decide`
 - 调查"X 现在是什么样" → `cs-explore`
-- 一两行常驻提示"cyralis 技能每次启动都得知道 X" → `cs-note`（写到 `.cyralis/attention.md`）
+- 一两行常驻提示"cyralis 技能每次启动都得知道 X" → `cs-note`
 
 判不出问用户："这个你想记成 {踩坑回顾 / 复用处方 / 长期规约 / 调研存档 / 常驻提示} 哪一种？"
 
@@ -139,8 +137,11 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 1. 一句话：cyralis 是面向严肃工程的 AI 编码工作流，编排软件生命周期而不是 Agent
 2. 6 实体 + 3 流程的速读图
 3. 问用户"你现在最想从哪儿开始？"，给三个引子：
+
    - "我有个新功能想做" → cs-feat
+
    - "代码里有个 bug" → cs-issue
+
    - "项目还没接入 cyralis" → cyralis init
 
 收住，别把所有子技能细节讲一遍。用户问到具体的再展开。
@@ -166,5 +167,4 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 - **不读写 `.cyralis/` 下的内容产物**——这些是子技能的事
 - **不替子技能做决策**——不在本技能做 brainstorm 分诊，不判 cs-arch 走哪个模式
 - **不一次推荐多个技能**——每次只指一条路；两个独立诉求分两轮
-- **不重复体系总览细节**——`.cyralis/reference/system-overview.md` 才是权威完整版
-- **不绕过 `cyralis init`**——仓库没接入就先初始化
+- **不重复共享约定细节**——`.cyralis/reference/shared-conventions.md` 才是权威完整版

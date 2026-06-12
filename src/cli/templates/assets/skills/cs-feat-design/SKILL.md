@@ -35,6 +35,7 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
    doc_type: feature-intent
    feature: {YYYY-MM-DD}-{slug}
    summary: {一句话需求，AI 按和用户对齐的结果填}
+   tags: [{按需求提取的关键词}]
    ---
 
    # {slug} intent
@@ -71,7 +72,8 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
    - **必读主文档第 3 节"模块拆分"和第 4 节"接口契约 / 共享协议"**——这是本 feature 的硬约束输入。契约不合理 / 漏了 → 停下来建议回 `cs-roadmap update` 改，**不要在 design 里偷偷绕开**
 2. **slug 从 roadmap 取**，feature 目录 `YYYY-MM-DD-{roadmap 条目 slug}`，不另起
 3. **走"流程"一节**，frontmatter 加 `roadmap` / `roadmap_item` 两字段
-4. **用户确认方案后写 `work.json.artifacts.design.approval: approved`，生成 checklist 后执行 `python .cyralis/tools/work.py transition .cyralis/features/{YYYY-MM-DD}-{slug} implement`，同时回写 items.yaml**：对应条目 `status: in-progress` + `feature: YYYY-MM-DD-{slug}`，用 `validate-yaml.py` 校验
+4. **创建 feature 目录 / 落 draft 时回写 items.yaml**：对应条目 `status: in-progress` + `feature: YYYY-MM-DD-{slug}`，用 `validate-yaml.py` 校验。不要等方案批准后才回写，否则 roadmap 会看不到这条子 feature 已经启动
+5. **用户确认方案后写 `work.json.artifacts.design.approval: approved`，生成 checklist 后执行 `python .cyralis/tools/work.py transition .cyralis/features/{YYYY-MM-DD}-{slug} implement`**
 
 完整衔接协议看 `.cyralis/reference/shared-conventions.md` 第 2.5 节。
 
@@ -165,7 +167,7 @@ design 只管"编排-计算分离"里的编排那一侧：**这次 feature 在�
 - **复用与单一 owner 检查**——feature 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或同类逻辑已有 2 处以上时，读取 `.cyralis/reference/code-reuse-thinking.md`，在第 2.1 / 2.5 节写短 `Code Reuse Check`
 - **grep 找"叫法不同的类似模块"**——直觉"可能已有人做过但命名不同"时，grep 同义词
 
-详细规则看 `.cyralis/reference/shared-conventions.md` 第 5 节。
+归档检索规则看 `.cyralis/reference/shared-conventions.md` 第 6 节；决策卫生看 `.cyralis/reference/decision-hygiene.md`。
 
 ### 2. 想清楚这功能该放在哪儿
 
@@ -198,10 +200,11 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 ### 3. 写"现状 → 变化"两段式的名词层和编排层
 
-按 `.cyralis/reference/feature-workflow.md` 模板写第 2 节四个子节（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略）。重点提示：
+按 `.cyralis/reference/feature-workflow.md` 模板写第 2 节五个子节（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略 / 2.5 结构健康度与微重构）。重点提示：
 
 - "现状"必须指向代码位置，不能想当然——读者要靠它判断"变化"是否合理
 - **产品风险检查（按信号触发）**——涉及用户可见行为 / UI workflow / 产品策略 / 多方案价值取舍 / 成功标准仍带判断时，在第 1 节写 `Value / Non-goals / Trade-offs / Decision needed` 四行；纯内部能力或技术性 feature 不写，避免重复需求摘要
+- **第 3 节写验收契约**——如果 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，必须写具体场景 / 示例 / 可观察证据 / 期望结果 / failure signal / correction path / 必要时的不变量；这些场景随后在 checklist 里抽成 Behavior Coverage。纯技术任务保持 `technical-only`，不要硬造行为场景
 - 编排层开头一张 mermaid 图建 mental model
 - 挂载点按"删了它 feature 是否消失"判据，3-5 条为正常区间
 - 推进策略按 paradigm 维度切片（编排骨架 → 计算节点 → 持久化 → 测试），不下沉到 file:line
@@ -222,7 +225,11 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 整稿成型后先做 design self-review，通过后才交给用户看。**不分批 review**——分批用户只看到局部，发现不了"第 1 节范围跟第 2 节变化对不上"这种跨节问题。
 
-第 3 节"验收契约"提示：每条写成"输入 / 触发 → 期望可观察结果"，覆盖正常 + 边界 + 错误。不写测试代码 / framework / mock。
+第 3 节"验收契约"提示：如果有 Behavior Evaluation，先把场景 / 证据 / failure signal / correction path 写齐，再把可验证结果写成验收场景；Behavior Coverage 只引用已声明的场景或不变量，和它无关的 task 仍然标 `technical-only`。不写测试代码 / framework / mock。
+
+### Behavior Evaluation（按需）
+
+只要 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，就先写这个小节，再写验收契约。场景 / 证据 / failure signal / correction path / 必要时的不变量写齐；这些场景随后在 checklist 里抽成 Behavior Coverage。纯技术任务保持 `technical-only`，不要硬造行为场景。
 
 ### 4.5 Design self-review pass
 

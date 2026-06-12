@@ -92,14 +92,14 @@ resolver / hook 只读状态；prompt 不直接手写 `work.json.status`。
 issue mode 使用同一组 workflow status，但语义映射为：
 
 - design = report
-- implement = analyze
-- verify = fix
+- implement = analyze（标准路径）或 quick-lane fix（快速通道）
+- verify = standard-path fix
 
 transition：
 
 - design -> implement：需要 report confirmed
-- design -> verify：快速通道，需要 report confirmed，且 `artifacts.fix.quick_lane=true` 或 `artifacts.analysis.skipped=true`
 - implement -> verify：需要 analysis confirmed
+- implement -> done：快速通道专用，需要 `artifacts.fix.quick_lane=true`、`artifacts.fix.result=passed`，且 fix-note 已生成
 - verify -> done：需要 `artifacts.fix.result=passed`，且 fix-note 已生成
 - verify -> implement：`artifacts.fix.result=failed`
 

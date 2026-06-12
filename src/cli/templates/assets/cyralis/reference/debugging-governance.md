@@ -119,7 +119,7 @@ Pre-Edit Complexity Check:
 - Patch-Shape / Minimality / Pre-Edit Complexity 已按风险触发
 - 选定方案的改动范围和 non-edits 已明确
 
-如果真正 canonical owner 超出 analysis 声明的文件范围，停下来回 `cs-issue-analyze` 更新分析和方案，不要在 fix 阶段偷偷扩范围。
+如果真正 canonical owner 超出 analysis 或快速通道摘要声明的文件范围，停下来更新分析 / 让用户重新确认边界；快速通道需要改走标准路径时，不要在 fix 阶段偷偷扩范围。
 
 ## 6. 完成前 gate
 

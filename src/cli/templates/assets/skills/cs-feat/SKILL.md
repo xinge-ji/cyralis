@@ -23,12 +23,13 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 
 ```
 .cyralis/features/{feature}/
-├── work.json                 ← Cyralis workflow 状态源（mode/status/artifacts）
+├── work.json                  ← 标准流程的 Cyralis workflow 状态源（mode/status/artifacts）
 ├── {slug}-brainstorm.md       ← 阶段 0 产物（仅 case 2 落盘）
 ├── {slug}-intent.md           ← 阶段 1 可选前置草稿（用户自己写半成品）
 ├── {slug}-design.md           ← 阶段 1 方案文件
 ├── {slug}-checklist.yaml      ← 阶段 1 生成 steps + checks，2/3 阶段更新 status
-└── {slug}-acceptance.md       ← 阶段 3 验收报告
+├── {slug}-acceptance.md       ← 阶段 3 验收报告
+└── {slug}-ff-note.md          ← fastforward 通道唯一产物，不和 work/design/checklist/acceptance 并存
 ```
 
 目录命名 `YYYY-MM-DD-{英文 slug}`，日期取首次创建当天定了不动；slug 小写字母 / 数字 / 连字符。
@@ -54,15 +55,15 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 
 ### Fastforward 模式
 
-需求清楚 + 范围小时走完整四阶段太啰嗦。fastforward 把 design 压成 4 节（需求摘要 / 设计方案 / 验收标准 / 推进步骤），用户一次确认后直接实现。触发："快速模式"、"fastforward"、"直接开干"、"别那么多步骤"，去 `cs-feat-ff`。
+需求清楚 + 范围小时走完整四阶段太啰嗦。fastforward 不写 design / checklist / acceptance，也不进入 `cs-feat-impl` / `cs-feat-accept`；它直接由 `cs-feat-ff` 动手实现，验证后只回写一份 `{slug}-ff-note.md` 作为闭环记录。触发："快速模式"、"fastforward"、"直接开干"、"别那么多步骤"，去 `cs-feat-ff`。
 
-**别走** fastforward：跨多个子系统、有术语冲突风险、推进步骤超过 4 步——这些情况跳过 design 意味着 AI 和用户没共同确认过同一份方案，实现完容易发现彼此理解不一样。
+**别走** fastforward：跨多个子系统、有术语冲突风险、需要多轮 checkpoint 或实现中已经发现范围变大——这些情况跳过 design 意味着 AI 和用户没共同确认过同一份方案，实现完容易发现彼此理解不一样。
 
 ---
 
 ## 路由：用户现在该走哪个子技能
 
-进入本技能先 Glob 一下 `.cyralis/features/` 看已有产物，再读对应 `work.json`。**不要只听用户口头描述**——用户说"设计写完了"不一定真完整，自己读一遍。
+进入本技能先 Glob 一下 `.cyralis/features/` 看已有产物；标准流程读对应 `work.json`，fastforward 目录可能只有 `{slug}-ff-note.md`。**不要只听用户口头描述**——用户说"设计写完了"不一定真完整，自己读一遍。
 
 | 当前状态 / 证据 | 触发哪个子技能 |
 |---|---|
@@ -72,9 +73,9 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 | 用户主动说"先 brainstorm 一下"、"有个想法没想清楚" | `cs-brainstorm` |
 | `{slug}-intent.md` 已填好 | `cs-feat-design`（读 intent 作输入） |
 | 用户说"快速模式 / fastforward" | `cs-feat-ff` |
+| `{slug}-ff-note.md` 已存在 | fastforward 已闭环；追加需求重新从 `cs-feat` 分诊，复杂就进 `cs-feat-design` |
 | `{slug}-brainstorm.md` 已存在，要进设计 | `cs-feat-design` |
 | `work.json.status="implement"` 且 `artifacts.design.approval="approved"`、代码没动 | `cs-feat-impl` |
-| fastforward design 已确认 | `cs-feat-impl` |
 | `work.json.status="verify"` 或实现汇报显示代码已写完要验收 | `cs-feat-accept` |
 | 用户说"我想要一个 X 系统"大需求 | 转 `cs-brainstorm` 分诊（大概率 case 3 → `cs-roadmap`） |
 | roadmap 里某条子 feature 该启动 | `cs-feat-design` 的"从 roadmap 条目起头"入口 |
@@ -108,7 +109,6 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 
 ## 相关文档
 
-- `.cyralis/reference/system-overview.md` — cyralis 体系总览
 - `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径、目录结构、checklist 生命周期
-- `.cyralis/attention.md` — cyralis 启动注意事项和项目硬约束
+- 启动注意事项和项目硬约束
 - 项目架构总入口 — 方案设计阶段需要查

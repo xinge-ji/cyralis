@@ -45,7 +45,7 @@ brainstorm 先查证据，再问用户。
 
 每次都做：
 
-1. **扫一眼仓库**——先读 `.cyralis/attention.md`；Glob `.cyralis/` 发现 architecture / features / roadmap / brainstorms / compound / requirements，读架构总入口、看已有 feature 和 roadmap 和 brainstorm、搜 compound 看有没有相关坑（`--filter doc_type=learning`）；Grep 用户描述里的关键词防术语冲突。缺 attention.md 视为骨架不完整，不回退读外部 AI 入口
+1. **扫一眼仓库**——Glob `.cyralis/` 发现 architecture / features / roadmap / brainstorms / compound / requirements，读架构总入口、看已有 feature 和 roadmap 和 brainstorm、搜 compound 看有没有相关坑（`--filter doc_type=learning`）；Grep 用户描述里的关键词防术语冲突。缺骨架视为不完整，不回退读外部 AI 入口
 2. **是不是接续之前的工作**：
    - `features/` 下有名字相近的 brainstorm？`roadmap/` 下有相近子目录？`brainstorms/` 下有相关创意记录？
    - 没有 → 当新讨论

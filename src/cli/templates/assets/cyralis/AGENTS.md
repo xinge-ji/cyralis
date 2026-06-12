@@ -1,6 +1,8 @@
-# Attention
+# AGENTS
 
 ## 项目碎片知识
+
+开发遵循SOLID和KISS软件工程原则。
 
 <!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->
 

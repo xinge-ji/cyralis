@@ -19,11 +19,11 @@ AI 对话随时可能中断（token 超限、网络断开、用户换设备）�
 
 ### 新增子工作流
 
-新工作流定型后，在 `src/cli/templates/assets/cyralis/reference/system-overview.md` 的"技能分成四部分"和"场景路由"表里加一段索引，并登记新的目录位置。
+新工作流定型后，在相关入口 skill 的场景路由表里加一段索引，并登记新的目录位置。
 
 ### 跨阶段新约束
 
-如果发现某条规则适用于所有阶段（例如所有 spec doc 都必须补某个字段），优先写进共享 reference（`shared-conventions.md` 或 `system-overview.md`），不要只改一个子技能。
+如果发现某条规则适用于所有阶段（例如所有 spec doc 都必须补某个字段），优先写进共享 reference（`shared-conventions.md`），不要只改一个子技能。
 
 ### 新模板 / 新产物类型
 
@@ -41,6 +41,6 @@ AI 对话随时可能中断（token 超限、网络断开、用户换设备）�
 
 ## 3. 维护规则
 
-- 每次扩展都要同步更新 `system-overview.md` 索引和相关子技能
-- 不允许只在某个子技能里加东西而不在 `system-overview.md` 登记
+- 每次扩展都要同步更新相关入口索引和相关子技能
+- 不允许只在某个子技能里加东西而不在入口索引登记
 - 共享说明优先放 `.cyralis/reference/`，不要散落在各子技能里

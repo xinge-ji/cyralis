@@ -14,6 +14,9 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
 
   assert.ok(template, "expected the Pi extension template to exist");
   assert.match(template, /before_agent_start/);
+  assert.match(template, /registerCommand\?\.\("cyralis:work"/);
+  assert.match(template, /work\.py/);
+  assert.match(template, /summary", "--json", "--host", "pi"/);
   assert.match(template, /systemPrompt:/);
   assert.match(template, /workflow:/);
   assert.match(template, /\[session_identity\]/);
@@ -58,8 +61,12 @@ test("core templates install host-neutral workflow assets", () => {
     "core install should not duplicate host skill projections",
   );
   assert.ok(
-    templates.get(".cyralis/attention.md"),
-    "expected attention template",
+    templates.get("AGENTS.md"),
+    "expected AGENTS template",
+  );
+  assert.ok(
+    !templates.get(".cyralis/attention.md"),
+    "legacy attention template should not be installed",
   );
   assert.ok(
     templates.get(".cyralis/architecture/ARCHITECTURE.md"),
@@ -82,9 +89,27 @@ test("core templates install host-neutral workflow assets", () => {
     "expected workflow state helper",
   );
   assert.match(templates.get(".cyralis/tools/work.py"), /next:/);
+  assert.match(templates.get(".cyralis/tools/work.py"), /cmd_summary/);
+  assert.match(templates.get(".cyralis/workflow.md"), /work\.py summary --json/);
   assert.ok(
     templates.get(".cyralis/reference/shared-conventions.md"),
     "expected shared reference",
+  );
+  assert.match(
+    templates.get(".cyralis/reference/shared-conventions.md"),
+    /Behavior Evaluation/,
+  );
+  assert.match(
+    templates.get(".cyralis/reference/shared-conventions.md"),
+    /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这个小节/,
+  );
+  assert.match(
+    templates.get(".cyralis/reference/shared-conventions.md"),
+    /Behavior Coverage/,
+  );
+  assert.match(
+    templates.get(".cyralis/reference/shared-conventions.md"),
+    /technical-only/,
   );
   assert.ok(
     templates.get(".cyralis/reference/decision-hygiene.md"),
@@ -97,6 +122,18 @@ test("core templates install host-neutral workflow assets", () => {
   assert.ok(
     templates.get(".cyralis/reference/feature-workflow.md"),
     "expected feature reference",
+  );
+  assert.match(
+    templates.get(".cyralis/reference/feature-workflow.md"),
+    /Behavior Evaluation（按需）/,
+  );
+  assert.match(
+    templates.get(".cyralis/reference/feature-workflow.md"),
+    /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这里/,
+  );
+  assert.match(
+    templates.get(".cyralis/reference/feature-workflow.md"),
+    /technical-only/,
   );
   assert.ok(
     templates.get(".cyralis/reference/work-json.md"),
@@ -180,6 +217,10 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.doesNotMatch(design, /Cyralis 投影说明/);
   assert.doesNotMatch(design, /Cyralis 状态写入点/);
   assert.doesNotMatch(design, /status=approved/);
+  assert.match(design, /cross-layer-thinking\.md/);
+  assert.match(design, /code-reuse-thinking\.md/);
+  assert.match(implement, /cross-layer-thinking\.md/);
+  assert.match(implement, /code-reuse-thinking\.md/);
 });
 
 test("backend and ui skills are projected and reference shared thinking guides", () => {
@@ -203,6 +244,59 @@ test("backend and ui skills are projected and reference shared thinking guides",
     assert.match(ui, /领域辅助技能/);
     assert.match(ui, /cross-layer-thinking\.md/);
     assert.match(ui, /code-reuse-thinking\.md/);
+  }
+});
+
+test("feature design prompts project behavior evaluation rules into both hosts", () => {
+  const templates = collectTemplates(["codex", "pi"]);
+  const paths = [
+    ".codex/skills/cs-feat-design/SKILL.md",
+    ".pi/skills/cs-feat-design/SKILL.md",
+    ".codex/skills/cs-feat-design/reference.md",
+    ".pi/skills/cs-feat-design/reference.md",
+    ".codex/skills/cs-feat-design/design-document-reviewer-prompt.md",
+    ".pi/skills/cs-feat-design/design-document-reviewer-prompt.md",
+    ".codex/skills/cs-feat-accept/SKILL.md",
+    ".pi/skills/cs-feat-accept/SKILL.md",
+  ];
+
+  for (const path of paths) {
+    assert.ok(templates.get(path), `expected ${path}`);
+  }
+
+  for (const host of ["codex", "pi"]) {
+    const designSkill = templates.get(`.${host}/skills/cs-feat-design/SKILL.md`);
+    const designReference = templates.get(
+      `.${host}/skills/cs-feat-design/reference.md`,
+    );
+    const reviewerPrompt = templates.get(
+      `.${host}/skills/cs-feat-design/design-document-reviewer-prompt.md`,
+    );
+    const acceptSkill = templates.get(`.${host}/skills/cs-feat-accept/SKILL.md`);
+
+    assert.match(designSkill, /Behavior Evaluation（按需）/);
+    assert.match(
+      designSkill,
+      /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就先写这个小节/,
+    );
+    assert.match(designSkill, /Behavior Coverage/);
+    assert.match(designSkill, /technical-only/);
+    assert.match(designReference, /Behavior Evaluation（按需）/);
+    assert.match(
+      designReference,
+      /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这里/,
+    );
+    assert.match(designReference, /Behavior Coverage/);
+    assert.match(designReference, /technical-only/);
+    assert.match(reviewerPrompt, /Behavior Evaluation/);
+    assert.match(reviewerPrompt, /failure signal/);
+    assert.match(reviewerPrompt, /correction path/);
+    assert.match(reviewerPrompt, /fake coverage/);
+    assert.match(acceptSkill, /关键场景清单/);
+    assert.match(acceptSkill, /Behavior Evaluation 逐项核对/);
+    assert.match(acceptSkill, /Failure signal/);
+    assert.match(acceptSkill, /Correction path/);
+    assert.match(acceptSkill, /technical-only/);
   }
 });
 
@@ -239,7 +333,6 @@ test("codex hook exposes workflow and skill source paths", () => {
   assert.match(hook, /reference = root \/ "\.cyralis" \/ "reference"/);
   assert.match(hook, /templates = root \/ "\.cyralis" \/ "templates"/);
   assert.match(hook, /features = root \/ "\.cyralis" \/ "features"/);
-  assert.match(hook, /attention = root \/ "\.cyralis" \/ "attention\.md"/);
   assert.match(
     hook,
     /architecture_index = root \/ "\.cyralis" \/ "architecture" \/ "ARCHITECTURE\.md"/,
@@ -268,7 +361,6 @@ test("pi extension injects dynamic workflow state", () => {
   assert.match(template, /buildWorkflowState/);
   assert.match(template, /buildProjectContext/);
   assert.match(template, /memory_projection_root:/);
-  assert.match(template, /\.cyralis\/attention\.md/);
   assert.match(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
   assert.match(template, /before_provider_request/);
   assert.match(template, /appendRecallToPayload/);
@@ -304,11 +396,6 @@ test("codex hook injects projection recall hints from user prompt", () => {
   writeFileSync(
     hook,
     templates.get(".codex/hooks/inject-context-memory.py"),
-    "utf8",
-  );
-  writeFileSync(
-    join(dir, ".cyralis", "attention.md"),
-    "Project attention",
     "utf8",
   );
   writeFileSync(
@@ -360,10 +447,17 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "2026-06-01-demo-feature",
   );
   const issueDir = join(dir, ".cyralis", "issues", "2026-06-01-demo-issue");
+  const doneIssueDir = join(
+    dir,
+    ".cyralis",
+    "issues",
+    "2026-06-01-done-issue",
+  );
 
   mkdirSync(join(dir, ".cyralis", "tools"), { recursive: true });
   mkdirSync(featureDir, { recursive: true });
   mkdirSync(issueDir, { recursive: true });
+  mkdirSync(doneIssueDir, { recursive: true });
   writeFileSync(helper, templates.get(".cyralis/tools/work.py"), "utf8");
   writeFileSync(workflow, templates.get(".cyralis/workflow.md"), "utf8");
   writeFileSync(
@@ -434,6 +528,25 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     ),
     "utf8",
   );
+  writeFileSync(
+    join(doneIssueDir, "work.json"),
+    JSON.stringify(
+      {
+        schema: 1,
+        id: "done-issue",
+        mode: "issue",
+        status: "done",
+        title: "Done issue",
+        slug: "done-issue",
+        root: ".cyralis/issues/2026-06-01-done-issue",
+        parent: null,
+        artifacts: {},
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
 
   runPython(helper, [
     "--cwd",
@@ -470,6 +583,42 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "--json",
   ]);
   assert.equal(JSON.parse(s2.stdout).mode, "issue");
+
+  const summary = runPython(helper, [
+    "--cwd",
+    dir,
+    "--context-key",
+    "s1",
+    "summary",
+    "--json",
+    "--host",
+    "pi",
+  ]);
+  const summaryData = JSON.parse(summary.stdout);
+  assert.equal(summaryData.counts.total, 3);
+  assert.equal(summaryData.counts.open, 2);
+  assert.equal(summaryData.counts.done, 1);
+  assert.equal(
+    summaryData.current.work_root,
+    ".cyralis/features/2026-06-01-demo-feature",
+  );
+  assert.ok(
+    summaryData.items.find((item) => item.id === "demo-feature")?.active,
+    "active work should be marked in the summary",
+  );
+  assert.ok(
+    !summaryData.items.some((item) => item.id === "done-issue"),
+    "summary should list unfinished work only",
+  );
+  assert.match(
+    summaryData.items.find((item) => item.id === "demo-feature").host_skill,
+    /\.pi\/skills\/cs-feat-design\/SKILL\.md/,
+  );
+
+  const textSummary = runPython(helper, ["--cwd", dir, "summary", "--text"]);
+  assert.match(textSummary.stdout, /Cyralis work summary/);
+  assert.match(textSummary.stdout, /Unfinished work:/);
+  assert.doesNotMatch(textSummary.stdout, /Done issue/);
 
   const ambiguous = runPython(helper, ["--cwd", dir, "resolve", "--json"], {
     allowFailure: true,
@@ -527,10 +676,9 @@ test("host feature skills are full prompt projections", () => {
   assert.doesNotMatch(piDesign, /Cyralis 投影说明/);
 });
 
-test("host skill projections do not repeat the attention preload instruction", () => {
+test("host skill projections do not repeat the AGENTS preload instruction", () => {
   const templates = collectTemplates(["codex", "pi"]);
-  const repeatedPrelude =
-    "开始任何判断或动作前，先读取 `.cyralis/attention.md`。";
+  const repeatedPrelude = "开始任何判断或动作前，先检查 `AGENTS.md`。";
 
   for (const [path, body] of templates) {
     if (!/^\.(codex|pi)\/skills\/.+\/SKILL\.md$/.test(path)) continue;

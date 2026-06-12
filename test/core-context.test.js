@@ -18,7 +18,7 @@ test("context engine builds host-neutral layered context", () => {
     memoryRoot: "/repo/.cyralis/memory",
     systemCore: "[system_core]\nCyralis core rules",
     injections: ["## extension\nExtra rule"],
-    projectContext: [{ path: ".cyralis/attention.md", content: "Project attention" }],
+    projectContext: [{ path: "AGENTS.md", content: "Project attention" }],
     maxRecentTurns: 2,
   });
 
@@ -42,17 +42,17 @@ test("context engine builds host-neutral layered context", () => {
     "recent_chat",
   ]);
   assert.match(layers[0].text, /\[system_core\]/);
-  assert.match(layers[3].text, /\.cyralis\/attention\.md/);
+  assert.match(layers[3].text, /AGENTS\.md/);
   assert.match(layers.at(-1).text, /\[current_user\]\ncurrent/);
   assert.deepEqual([...engine.getRecentRecallMemoryIds()], ["mem_user"]);
 });
 
-test("codex context block carries attention through project_context, not system context", () => {
+test("codex context block carries AGENTS through project_context, not system context", () => {
   const engine = new ContextEngine({
     cwd: "/repo",
     systemCore: "[system_core]\nDo not emit this through Codex hooks.",
     memoryRoot: "/repo/.cyralis/memory",
-    projectContext: [{ path: ".cyralis/attention.md", content: "Project attention rule" }],
+    projectContext: [{ path: "AGENTS.md", content: "Project attention rule" }],
   });
   engine.recordTurn({ userMessage: "old", assistantMessage: "old answer" });
 
@@ -60,7 +60,7 @@ test("codex context block carries attention through project_context, not system 
   assert.match(block, /<cyralis-context>/);
   assert.match(block, /\[session_identity\]/);
   assert.match(block, /\[project_context\]/);
-  assert.match(block, /--- \.cyralis\/attention\.md ---\nProject attention rule/);
+  assert.match(block, /--- AGENTS\.md ---\nProject attention rule/);
   assert.doesNotMatch(block, /\[system_core\]/);
   assert.doesNotMatch(block, /\[recent_chat\]/);
   assert.doesNotMatch(block, /\[current_user\]/);
@@ -108,7 +108,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const engine = new ContextEngine({
     cwd: "/repo",
     systemCore: "[system_core]\nPi system",
-    projectContext: [{ path: ".cyralis/attention.md", content: "Pi attention rule" }],
+    projectContext: [{ path: "AGENTS.md", content: "Pi attention rule" }],
   });
   const recall = {
     observeAssistantText() {},
@@ -121,7 +121,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const start = handlers.get("before_agent_start")();
   assert.match(start.systemPrompt, /\[system_core\]\nPi system/);
   assert.match(start.systemPrompt, /\[project_context\]/);
-  assert.match(start.systemPrompt, /--- \.cyralis\/attention\.md ---\nPi attention rule/);
+  assert.match(start.systemPrompt, /--- AGENTS\.md ---\nPi attention rule/);
 
   const recallMessage = await handlers.get("turn_end")();
   assert.equal(recallMessage.customType, "cyralis.recall");
@@ -129,23 +129,20 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   assert.equal(recallMessage.hints[0].id, "mem_pi");
 });
 
-test("loadProjectContext includes attention and architecture index but not compound docs", async () => {
+test("loadProjectContext includes architecture index but not compound docs", async () => {
   const dir = mkdtempSync(join(tmpdir(), "cyralis-project-context-"));
   mkdirSync(join(dir, ".cyralis", "architecture"), { recursive: true });
   mkdirSync(join(dir, ".cyralis", "compound"), { recursive: true });
-  writeFileSync(join(dir, ".cyralis", "attention.md"), "Project attention rule", "utf8");
   writeFileSync(join(dir, ".cyralis", "architecture", "ARCHITECTURE.md"), "# Project architecture\n\nModule index", "utf8");
   writeFileSync(join(dir, ".cyralis", "compound", "2026-06-02-learning-hidden.md"), "# Hidden learning", "utf8");
 
   const entries = await loadProjectContext({ cwd: dir });
 
   assert.deepEqual(entries.map((entry) => entry.path ?? entry.title), [
-    ".cyralis/attention.md",
     ".cyralis/architecture/ARCHITECTURE.md",
     "Cyralis source roots",
   ]);
   const text = entries.map((entry) => entry.content).join("\n");
-  assert.match(text, /Project attention rule/);
   assert.match(text, /Project architecture/);
   assert.match(text, /memory_projection_root/);
   assert.doesNotMatch(text, /Hidden learning/);

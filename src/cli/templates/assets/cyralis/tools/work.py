@@ -105,8 +105,8 @@ def resolve_work_dir(root: Path, ref: str) -> Path | None:
     return None
 
 
-def iter_work_items(root: Path) -> list[dict[str, Any]]:
-    items: list[dict[str, Any]] = []
+def iter_work_records(root: Path) -> list[tuple[Path, dict[str, Any], str]]:
+    records: list[tuple[Path, dict[str, Any], str]] = []
     for mode, root_name in WORK_ROOTS.items():
         base = root / CYRALIS_DIR / root_name
         if not base.is_dir():
@@ -115,14 +115,39 @@ def iter_work_items(root: Path) -> list[dict[str, Any]]:
             data = read_json(work_json)
             if not data:
                 continue
-            items.append({
-                "path": repo_relative(root, work_json.parent),
-                "id": data.get("id") or work_json.parent.name,
-                "mode": data.get("mode") or mode,
-                "status": data.get("status") or "unknown",
-                "title": data.get("title") or "",
-                "slug": data.get("slug") or work_json.parent.name,
-            })
+            records.append((work_json.parent, data, mode))
+    return records
+
+
+def summarize_work_item(root: Path, work_dir: Path, work: dict[str, Any], mode_hint: str, host: str, active_path: str | None = None) -> dict[str, Any]:
+    path = repo_relative(root, work_dir)
+    status = str(work.get("status") or "unknown")
+    mode = str(work.get("mode") or mode_hint)
+    item = {
+        "path": path,
+        "id": work.get("id") or work_dir.name,
+        "mode": mode,
+        "status": status,
+        "title": work.get("title") or "",
+        "slug": work.get("slug") or work_dir.name,
+        "active": path == active_path,
+        "host_skill": host_skill(host, mode, status, work),
+        "next": workflow_next(work_dir, work),
+    }
+    return item
+
+
+def iter_work_items(root: Path) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for work_dir, data, mode in iter_work_records(root):
+        items.append({
+            "path": repo_relative(root, work_dir),
+            "id": data.get("id") or work_dir.name,
+            "mode": data.get("mode") or mode,
+            "status": data.get("status") or "unknown",
+            "title": data.get("title") or "",
+            "slug": data.get("slug") or work_dir.name,
+        })
     return items
 
 
@@ -203,6 +228,10 @@ def artifact_confirmed(work_dir: Path, work: dict[str, Any], name: str) -> bool:
     if info.get("approval") == "approved":
         return True
     return frontmatter_status(artifact_path(work_dir, work, name)) in {"confirmed", "approved"}
+
+
+def issue_quick_lane(work: dict[str, Any]) -> bool:
+    return work.get("mode") == "issue" and artifact(work, "fix").get("quick_lane") is True
 
 
 def parse_checklist_steps(path: Path | None) -> list[dict[str, str]]:
@@ -287,17 +316,22 @@ def transition_blockers(work_dir: Path, work: dict[str, Any], target: str) -> li
             blockers.append(f"unsupported feature transition: {status} -> {target}")
 
     elif mode == "issue":
+        quick_lane = issue_quick_lane(work)
         if status == "design" and target == "implement":
             if not artifact_confirmed(work_dir, work, "report"):
                 blockers.append("issue report must be confirmed")
-        elif status == "design" and target == "verify":
-            if not artifact_confirmed(work_dir, work, "report"):
-                blockers.append("issue report must be confirmed")
-            if artifact(work, "fix").get("quick_lane") is not True and artifact(work, "analysis").get("skipped") is not True:
-                blockers.append("quick lane must be approved before skipping analysis")
         elif status == "implement" and target == "verify":
-            if not artifact_confirmed(work_dir, work, "analysis"):
+            if quick_lane:
+                blockers.append("quick lane completes from implement -> done; do not transition to verify")
+            elif not artifact_confirmed(work_dir, work, "analysis"):
                 blockers.append("issue analysis must be confirmed")
+        elif status == "implement" and target == "done":
+            if not quick_lane:
+                blockers.append("implement -> done is only supported for issue quick lane")
+            if artifact(work, "fix").get("result") != "passed":
+                blockers.append("fix.result must be passed")
+            if not artifact_exists(work_dir, work, "fix"):
+                blockers.append("fix-note artifact must exist")
         elif status == "verify" and target == "done":
             if artifact(work, "fix").get("result") != "passed":
                 blockers.append("fix.result must be passed")
@@ -337,7 +371,7 @@ def transition_blockers(work_dir: Path, work: dict[str, Any], target: str) -> li
     return blockers
 
 
-def host_skill(host: str, mode: str, status: str) -> str | None:
+def host_skill(host: str, mode: str, status: str, work: dict[str, Any] | None = None) -> str | None:
     root = f".{host}/skills"
     if mode == "feature":
         skill = {
@@ -347,12 +381,15 @@ def host_skill(host: str, mode: str, status: str) -> str | None:
             "done": "cs-feat",
         }.get(status, "cs-feat")
     elif mode == "issue":
-        skill = {
-            "design": "cs-issue-report",
-            "implement": "cs-issue-analyze",
-            "verify": "cs-issue-fix",
-            "done": "cs-issue",
-        }.get(status, "cs-issue")
+        if status == "implement" and work is not None and issue_quick_lane(work):
+            skill = "cs-issue-fix"
+        else:
+            skill = {
+                "design": "cs-issue-report",
+                "implement": "cs-issue-analyze",
+                "verify": "cs-issue-fix",
+                "done": "cs-issue",
+            }.get(status, "cs-issue")
     elif mode == "refactor":
         skill = "cs-refactor"
     elif mode == "roadmap":
@@ -360,6 +397,29 @@ def host_skill(host: str, mode: str, status: str) -> str | None:
     else:
         return None
     return f"{root}/{skill}/SKILL.md"
+
+
+def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
+    status = str(work.get("status") or "unknown")
+    mode = str(work.get("mode") or "unknown")
+    pending = next_pending_step(work_dir, work)
+    if mode == "issue":
+        if status == "design":
+            return "continue issue report planning"
+        if status == "implement" and issue_quick_lane(work):
+            return "run issue quick-lane fix"
+        if status == "implement":
+            return "continue issue root-cause analysis"
+        if status == "verify":
+            return "run issue standard fix verification"
+        if status == "done":
+            return "summarize and clear active work when appropriate"
+    return {
+        "design": f"continue {mode} design/report planning",
+        "implement": pending or f"continue {mode} implementation/apply work",
+        "verify": f"run {mode} verification/acceptance",
+        "done": "summarize and clear active work when appropriate",
+    }.get(status, "refer to workflow.md")
 
 
 def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
@@ -377,13 +437,6 @@ def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
 
     status = str(work.get("status") or "unknown")
     mode = str(work.get("mode") or "unknown")
-    pending = next_pending_step(work_dir, work)
-    next_text = {
-        "design": f"continue {mode} design/report planning",
-        "implement": pending or f"continue {mode} implementation/apply work",
-        "verify": f"run {mode} verification/acceptance",
-        "done": "summarize and clear active work when appropriate",
-    }.get(status, "refer to workflow.md")
 
     return {
         "status": status,
@@ -391,8 +444,8 @@ def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
         "work_root": repo_relative(root, work_dir),
         "id": work.get("id") or work_dir.name,
         "title": work.get("title") or "",
-        "host_skill": host_skill(host, mode, status),
-        "next": next_text,
+        "host_skill": host_skill(host, mode, status, work),
+        "next": workflow_next(work_dir, work),
         "reason": f"work.json status={status}; source={source}",
         "blockers": [],
     }
@@ -421,6 +474,79 @@ def cmd_list(args: argparse.Namespace, root: Path, key: str | None) -> int:
     else:
         for item in items:
             print(f"{item['path']} ({item['mode']}/{item['status']})")
+    return 0
+
+
+def build_summary(root: Path, key: str | None, host: str) -> dict[str, Any]:
+    current = resolve_state(root, key, host)
+    active_path = current.get("work_root") if isinstance(current.get("work_root"), str) else None
+    items: list[dict[str, Any]] = []
+    counts = {
+        "total": 0,
+        "open": 0,
+        "done": 0,
+        "by_mode": {},
+        "by_status": {},
+    }
+
+    for work_dir, work, mode_hint in iter_work_records(root):
+        item = summarize_work_item(root, work_dir, work, mode_hint, host, active_path)
+        mode = str(item["mode"])
+        status = str(item["status"])
+        counts["total"] += 1
+        counts["by_mode"][mode] = counts["by_mode"].get(mode, 0) + 1
+        counts["by_status"][status] = counts["by_status"].get(status, 0) + 1
+        if status == "done":
+            counts["done"] += 1
+            continue
+        counts["open"] += 1
+        items.append(item)
+
+    status_order = {"design": 0, "implement": 1, "verify": 2, "unknown": 3}
+    items.sort(key=lambda item: (not item.get("active"), status_order.get(str(item.get("status")), 4), str(item.get("path"))))
+    return {
+        "current": current if current.get("work_root") else None,
+        "counts": counts,
+        "items": items,
+    }
+
+
+def format_summary(summary: dict[str, Any]) -> str:
+    counts = summary.get("counts") if isinstance(summary.get("counts"), dict) else {}
+    current = summary.get("current") if isinstance(summary.get("current"), dict) else None
+    items = summary.get("items") if isinstance(summary.get("items"), list) else []
+    lines = [
+        "Cyralis work summary",
+        f"Open: {counts.get('open', 0)} / Total: {counts.get('total', 0)} / Done: {counts.get('done', 0)}",
+    ]
+    if current:
+        lines.append(f"Active: {current.get('work_root')} ({current.get('mode')}/{current.get('status')})")
+        if current.get("next"):
+            lines.append(f"Active next: {current.get('next')}")
+    else:
+        lines.append("Active: none")
+    lines.append("")
+
+    if not items:
+        lines.append("No unfinished work items.")
+        return "\n".join(lines)
+
+    lines.append("Unfinished work:")
+    for item in items:
+        prefix = "*" if item.get("active") else "-"
+        title = f" - {item.get('title')}" if item.get("title") else ""
+        lines.append(f"{prefix} {item.get('path')} ({item.get('mode')}/{item.get('status')}){title}")
+        if item.get("next"):
+            lines.append(f"  next: {item.get('next')}")
+    return "\n".join(lines)
+
+
+def cmd_summary(args: argparse.Namespace, root: Path, key: str | None) -> int:
+    summary = build_summary(root, key, args.host)
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+    else:
+        print(format_summary(summary))
     return 0
 
 
@@ -502,6 +628,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_list = sub.add_parser("list")
     p_list.add_argument("--json", action="store_true")
     p_list.set_defaults(func=cmd_list)
+
+    p_summary = sub.add_parser("summary")
+    p_summary.add_argument("--json", action="store_true")
+    p_summary.add_argument("--text", action="store_true", help="Print the human-readable summary; this is the default.")
+    p_summary.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_summary.set_defaults(func=cmd_summary)
 
     p_current = sub.add_parser("current")
     p_current.add_argument("--json", action="store_true")

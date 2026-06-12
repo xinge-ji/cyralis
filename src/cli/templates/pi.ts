@@ -13,11 +13,29 @@ const piSettings = `{
   ]
 }`;
 
-const piExtension = `import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+const piExtension = `import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+
+type PiCommandContext = {
+  cwd?: string;
+  mode?: string;
+  ui?: {
+    notify?: (message: string, type?: "info" | "warning" | "error") => void;
+    custom?: <T>(
+      factory: (tui: unknown, theme: unknown, keybindings: unknown, done: (result: T) => void) => unknown,
+      options?: unknown,
+    ) => Promise<T>;
+  };
+  sessionManager?: {
+    getCwd?: () => string;
+    getSessionId?: () => string;
+  };
+};
 
 type PiLike = {
   on?: (eventName: string, handler: (...args: unknown[]) => unknown) => void;
+  registerCommand?: (name: string, options: { description?: string; handler: (args: string, ctx: PiCommandContext) => Promise<void> }) => void;
 };
 
 type PiEvent = {
@@ -50,6 +68,30 @@ export default async function cyralisPiExtension(pi: PiLike) {
 	      systemPrompt: event?.systemPrompt ? event?.systemPrompt + "\\n\\n" + context : context,
 	    };
 	  };
+
+	  pi.registerCommand?.("cyralis:work", {
+	    description: "Show unfinished Cyralis work items",
+	    handler: async (_args: string, ctx: PiCommandContext) => {
+	      const root = findCyralisRoot(ctx?.cwd || ctx?.sessionManager?.getCwd?.() || process.cwd());
+	      if (!root) {
+	        ctx.ui?.notify?.("Cyralis project root not found", "error");
+	        return;
+	      }
+	      const result = loadWorkSummary(root, ctx);
+	      if (result.error || !result.summary) {
+	        ctx.ui?.notify?.(result.error || "Unable to load Cyralis work summary", "error");
+	        return;
+	      }
+	      const lines = formatWorkSummaryLines(result.summary);
+	      if (ctx.mode !== "tui" || !ctx.ui?.custom) {
+	        ctx.ui?.notify?.(lines.join("\\n"), "info");
+	        return;
+	      }
+	      await ctx.ui.custom<void>((_tui, _theme, _keybindings, done) => {
+	        return new WorkSummaryComponent(lines, () => done(undefined));
+	      }, { overlay: true });
+	    },
+	  });
 
 	  pi.on?.("before_agent_start", inject);
 	  pi.on?.("before_provider_request", handleProviderRequest);
@@ -102,7 +144,6 @@ function buildProjectContext(root: string): string[] {
     "Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.",
   ];
   for (const [label, file, maxChars] of [
-    [".cyralis/attention.md", join(root, ".cyralis", "attention.md"), 12000],
     [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],
   ] as const) {
     const content = readLimited(file, maxChars);
@@ -110,6 +151,102 @@ function buildProjectContext(root: string): string[] {
     lines.push("", "--- " + label + " ---", content);
   }
   return lines;
+}
+
+type WorkSummaryResult = {
+  summary?: Record<string, unknown>;
+  error?: string;
+};
+
+class WorkSummaryComponent {
+  private lines: string[];
+  private onClose: () => void;
+
+  constructor(lines: string[], onClose: () => void) {
+    this.lines = lines;
+    this.onClose = onClose;
+  }
+
+  handleInput(data: string): void {
+    const code = data.charCodeAt(0);
+    if (code === 27 || code === 3 || data === "q") this.onClose();
+  }
+
+  render(width: number): string[] {
+    const limit = Math.max(20, width || 80);
+    return this.lines.map((line) => truncateLine(line, limit));
+  }
+}
+
+function loadWorkSummary(root: string, ctx?: PiCommandContext): WorkSummaryResult {
+  const helper = join(root, ".cyralis", "tools", "work.py");
+  if (!existsSync(helper)) return { error: "Cyralis workflow helper missing: " + helper };
+  const args = ["-X", "utf8", helper, "--cwd", root];
+  const sessionId = ctx?.sessionManager?.getSessionId?.();
+  if (sessionId) args.push("--context-key", sessionId);
+  args.push("summary", "--json", "--host", "pi");
+
+  let result = spawnSync("python3", args, { cwd: root, encoding: "utf8" });
+  if (result.error && (result.error as { code?: string }).code === "ENOENT") {
+    result = spawnSync("python", args, { cwd: root, encoding: "utf8" });
+  }
+  if (result.error) {
+    return { error: result.error.message || String(result.error) };
+  }
+  if (result.status !== 0) {
+    const message = String(result.stderr || result.stdout || "work.py summary failed").trim();
+    return { error: message || "work.py summary failed" };
+  }
+  try {
+    const value = JSON.parse(String(result.stdout || "{}"));
+    return isRecord(value) ? { summary: value } : { error: "work.py summary returned invalid JSON" };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function formatWorkSummaryLines(summary: Record<string, unknown>): string[] {
+  const counts = isRecord(summary["counts"]) ? summary["counts"] : {};
+  const current = isRecord(summary["current"]) ? summary["current"] : null;
+  const items = Array.isArray(summary["items"]) ? summary["items"].filter(isRecord) : [];
+  const lines = [
+    "Cyralis work summary",
+    "Open: " + valueText(counts["open"], "0") + " / Total: " + valueText(counts["total"], "0") + " / Done: " + valueText(counts["done"], "0"),
+  ];
+  if (current) {
+    lines.push("Active: " + valueText(current["work_root"], "-") + " (" + valueText(current["mode"], "-") + "/" + valueText(current["status"], "-") + ")");
+    if (current["next"]) lines.push("Active next: " + valueText(current["next"], ""));
+  } else {
+    lines.push("Active: none");
+  }
+  lines.push("");
+  if (items.length === 0) {
+    lines.push("No unfinished work items.");
+    lines.push("");
+    lines.push("Press Escape or q to close");
+    return lines;
+  }
+  lines.push("Unfinished work:");
+  for (const item of items) {
+    const prefix = item["active"] ? "*" : "-";
+    const title = item["title"] ? " - " + valueText(item["title"], "") : "";
+    lines.push(prefix + " " + valueText(item["path"], "-") + " (" + valueText(item["mode"], "-") + "/" + valueText(item["status"], "-") + ")" + title);
+    if (item["next"]) lines.push("  next: " + valueText(item["next"], ""));
+  }
+  lines.push("");
+  lines.push("Press Escape or q to close");
+  return lines;
+}
+
+function valueText(value: unknown, fallback: string): string {
+  if (value === undefined || value === null || value === "") return fallback;
+  return String(value);
+}
+
+function truncateLine(line: string, width: number): string {
+  if (line.length <= width) return line;
+  if (width <= 3) return line.slice(0, width);
+  return line.slice(0, width - 3) + "...";
 }
 
 function handleProviderRequest(event?: Record<string, unknown>): unknown {
@@ -431,7 +568,25 @@ function resolveWorkDir(root: string, ref: string): string | null {
   return null;
 }
 
-function workflowNext(status: string, mode: string): string {
+function artifact(work: Record<string, unknown> | null, name: string): Record<string, unknown> {
+  const artifacts = work?.artifacts;
+  if (!artifacts || typeof artifacts !== "object" || Array.isArray(artifacts)) return {};
+  const value = (artifacts as Record<string, unknown>)[name];
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function issueQuickLane(work: Record<string, unknown> | null): boolean {
+  return work?.mode === "issue" && artifact(work, "fix").quick_lane === true;
+}
+
+function workflowNext(status: string, mode: string, work: Record<string, unknown> | null = null): string {
+  if (mode === "issue") {
+    if (status === "design") return "continue issue report planning";
+    if (status === "implement" && issueQuickLane(work)) return "run issue quick-lane fix";
+    if (status === "implement") return "continue issue root-cause analysis";
+    if (status === "verify") return "run issue standard fix verification";
+    if (status === "done") return "summarize and clear active work when appropriate";
+  }
   if (status === "design") return "continue " + mode + " design/report planning";
   if (status === "implement") return "continue " + mode + " implementation/apply work";
   if (status === "verify") return "run " + mode + " verification/acceptance";
@@ -439,13 +594,13 @@ function workflowNext(status: string, mode: string): string {
   return "classify the request and create or activate a work item";
 }
 
-function piSkill(mode: string, status: string): string {
+function piSkill(mode: string, status: string, work: Record<string, unknown> | null = null): string {
   if (mode === "feature") {
     const name = status === "design" ? "cs-feat-design" : status === "implement" ? "cs-feat-impl" : status === "verify" ? "cs-feat-accept" : "cs-feat";
     return ".pi/skills/" + name + "/SKILL.md";
   }
   if (mode === "issue") {
-    const name = status === "design" ? "cs-issue-report" : status === "implement" ? "cs-issue-analyze" : status === "verify" ? "cs-issue-fix" : "cs-issue";
+    const name = status === "design" ? "cs-issue-report" : status === "implement" && issueQuickLane(work) ? "cs-issue-fix" : status === "implement" ? "cs-issue-analyze" : status === "verify" ? "cs-issue-fix" : "cs-issue";
     return ".pi/skills/" + name + "/SKILL.md";
   }
   if (mode === "refactor") return ".pi/skills/cs-refactor/SKILL.md";
@@ -465,7 +620,7 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
     return [
       "<workflow-state>",
       "Status: no_task",
-      "next: " + workflowNext("no_task", "-"),
+      "next: " + workflowNext("no_task", "-", null),
       "workflow: .cyralis/workflow.md",
       "</workflow-state>",
     ].join("\\n");
@@ -478,8 +633,8 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
     "<workflow-state>",
     workDir ? "Work: " + repoRelative(root, workDir) + " (" + status + ")" : "Status: " + status,
     "mode: " + mode,
-    "host_skill: " + piSkill(mode, status),
-    "next: " + workflowNext(status, mode),
+    "host_skill: " + piSkill(mode, status, work),
+    "next: " + workflowNext(status, mode, work),
     "workflow: .cyralis/workflow.md",
     "</workflow-state>",
   ].join("\\n");

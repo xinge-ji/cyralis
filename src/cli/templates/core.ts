@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 export const coreTemplates: Array<[string, string]> = [
   [".cyralis/config.yaml", readAsset("cyralis/config.yaml")],
   [".cyralis/workflow.md", readAsset("cyralis/workflow.md")],
-  [".cyralis/attention.md", readAsset("cyralis/attention.md")],
+  ["AGENTS.md", readAsset("cyralis/AGENTS.md")],
   [".cyralis/.gitignore", readAsset("cyralis/gitignore")],
   [".cyralis/memory/.gitkeep", ""],
   [".cyralis/memory/projections/.gitkeep", ""],
@@ -64,10 +64,6 @@ export const coreTemplates: Array<[string, string]> = [
   [
     ".cyralis/reference/requirement-example.md",
     readAsset("cyralis/reference/requirement-example.md"),
-  ],
-  [
-    ".cyralis/reference/system-overview.md",
-    readAsset("cyralis/reference/system-overview.md"),
   ],
   [".cyralis/reference/tools.md", readAsset("cyralis/reference/tools.md")],
   [

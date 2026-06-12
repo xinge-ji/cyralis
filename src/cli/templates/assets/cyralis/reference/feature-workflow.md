@@ -47,7 +47,7 @@ tags: [auth, email, login]
   - `### 2.2 编排层`
   - `### 2.3 挂载点清单`
   - `### 2.4 推进策略`
-  - `### 2.5 结构健康度与微重构` ← 固定节，结论二选一 + 可选"超出范围的观察"
+  - `### 2.5 结构健康度与微重构` ← 固定节，结论三选一 + 可选"超出范围的观察"
 - `## 3. 验收契约`
 - `## 4. 与项目级架构文档的关系`
 
@@ -64,7 +64,7 @@ steps:
 
 checks:
   - item: "{检查项描述}"
-    source: 名词契约 | 编排骨架 | 流程级约束 | 挂载点 | 范围守护 | 验收场景
+    source: 名词契约 | 编排骨架 | 流程级约束 | 挂载点 | 范围守护 | 行为评估场景 | 验收场景
     status: pending
 ```
 
@@ -83,9 +83,12 @@ checks:
 - 编排骨架 / 流程级约束 ← 第 2.2 节主流程关键步骤、流程级约束
 - 挂载点 ← 第 2.3 节每个挂入点（acceptance 反向核对可卸载性）
 - 范围守护 ← 第 1 节"明确不做"每条
+- 行为评估场景 ← 第 3 节 Behavior Evaluation：抽取时保留场景、证据、failure signal、correction path
 - 验收场景 ← 第 3 节"关键场景清单"每条
 
 不允许编造 design 里不存在的条目。
+
+Behavior Coverage 是 checklist 对 Behavior Evaluation 的映射；没有直接连接场景或不变量的 task 仍然标 `technical-only`。
 
 ## 4. 各节写作要求
 
@@ -236,6 +239,18 @@ implement 完成的判据，acceptance 核对的依据。**不写测试代码 / 
 
 - **关键场景清单**：每条"输入 / 触发 → 期望可观察结果"——能被一个测试或一次手工操作验证。覆盖正常路径（对应成功标准）+ 关键边界（边界值、空输入、上下限）+ 关键错误路径（流程级约束的可观察行为）
 - **明确不做的反向核对项**：第 1 节"明确不做"每条 → 写成可被 grep 或测试反向核对的形式（"代码中不应出现对 X API 的调用"、"输出 JSON 不应包含字段 Y"）
+
+#### Behavior Evaluation（按需）
+
+只要 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，就写这里。纯技术任务不写，直接标 `technical-only`，不要硬造场景。
+
+| Scenario | Example | Observable evidence | Expected result | Failure signal | Correction path |
+| --- | --- | --- | --- | --- | --- |
+| Scenario 1 | Concrete example from the spec | What a test or human can observe | How to judge alignment | What proves drift | Return to spec, plan, implementation, or human decision |
+
+- Scenario 必须是具体用户可观察流，不是 task / module / milestone。
+- 证据优先用真实代码、真实工件或真实命令；人工观察要写清观察对象。
+- 如果证据失败，写明要回到 spec / plan / implementation / human decision 的哪一层。
 
 ### `## 4. 与项目级架构文档的关系`
 

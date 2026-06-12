@@ -5,8 +5,8 @@
 初始化完成后骨架（`cyralis init` 负责搭建）：
 
 ```
+AGENTS.md                项目注意事项入口（自动进入上下文）
 .cyralis/
-├── attention.md           技能启动必读的项目注意事项
 ├── requirements/          能力愿景层（"用户需要什么、系统提供什么能力来满足"，过去/现在/未来）
 │   ├── VISION.md           中心索引（按 status 分组，每条带 pitch 一句话）
 │   └── {slug}.md           一个能力一份，扁平（cs-req 产出）
@@ -20,12 +20,12 @@
 │       └── drafts/             可选
 ├── features/              feature spec 聚合根
 │   └── YYYY-MM-DD-{slug}/  每个 feature 一个目录
-│       ├── work.json             （Cyralis workflow status 源）
+│       ├── work.json             （标准流程的 Cyralis workflow status 源）
 │       ├── {slug}-brainstorm.md  （可选，case 2 时产出）
 │       ├── {slug}-design.md      （标准流程）
 │       ├── {slug}-checklist.yaml （标准流程）
 │       ├── {slug}-acceptance.md  （标准流程）
-│       └── {slug}-ff-note.md     （fastforward 通道唯一产物，与上面四份互斥）
+│       └── {slug}-ff-note.md     （fastforward 通道唯一产物，不和 work/design/checklist/acceptance 并存）
 ├── issues/                issue spec 聚合根
 │   └── YYYY-MM-DD-{slug}/
 │       ├── {slug}-report.md
@@ -60,7 +60,7 @@
 - feature / issue / refactor / audit 目录：带日期前缀 `YYYY-MM-DD-{slug}`
 - 沉淀类：`compound/YYYY-MM-DD-{doc_type}-{slug}.md`，日期用**归档当天**
 - 架构 doc：`architecture/{type}-{slug}.md`（长效，不带日期前缀）；总入口固定 `ARCHITECTURE.md`
-- 项目注意事项入口固定为 `.cyralis/attention.md`，所有子技能启动前必须读取；不再兼容 `AGENTS.md` / `CLAUDE.md` 等外部入口
+- 项目注意事项入口固定为 `AGENTS.md`，所有子技能启动前默认已进入上下文；不再兼容 `.cyralis/attention.md` / `CLAUDE.md` 等外部入口
 
 ### 架构 doc 分组规则（同类聚合）
 
@@ -82,11 +82,15 @@
 
 ## 1. 共享元数据口径
 
-**feature spec**：brainstorm / intent / design / acceptance 共用 `doc_type` / `feature` / `summary` / `tags`。子技能只补特有字段。feature 的 workflow status 不写进 markdown frontmatter，统一写在同目录 `work.json.status`，取值只允许 `design` / `implement` / `verify` / `done`；没有 active work 时由 session resolver 输出 `no_task`。design 的草稿 / 批准状态写在 `work.json.artifacts.design.approval`，取值 `draft` / `approved`。
+**feature spec**：brainstorm / intent / design / acceptance 共用 `doc_type` / `feature` / `summary` / `tags`，fastforward 的 ff-note 也使用这组基础字段。子技能只补特有字段。标准流程 feature 的 workflow status 不写进 markdown frontmatter，统一写在同目录 `work.json.status`，取值只允许 `design` / `implement` / `verify` / `done`；没有 active work 时由 session resolver 输出 `no_task`。design 的草稿 / 批准状态写在 `work.json.artifacts.design.approval`，取值 `draft` / `approved`。
 
-**issue spec**：report / analysis / fix-note 共用 `doc_type` / `issue` / `status` / `tags`。`severity` / `root_cause_type` / `path` 由对应阶段按需补。
+**issue spec**：report / analysis / fix-note 共用 `doc_type` / `issue` / `status` / `tags`。report / analysis 的 `status` 使用 `draft` / `confirmed`；fix-note 的 `status` 使用 `fixed` / `mitigated` / `partial`：`fixed` 表示验证证据达到至少 `B` 置信度并可声明修复完成，`mitigated` 表示只做了有边界的缓解不能宣称根因修复，`partial` 表示仍有残留或证据缺口。`severity` / `root_cause_type` / `path` 由对应阶段按需补。
 
-issue 标准路径和快速通道都要遵守 `.cyralis/reference/debugging-governance.md`。analysis / fix-note 正文承载调试治理字段，不强制把 `diagnostic_layer`、`canonical_owner`、`confidence` 等字段塞进 frontmatter，避免 frontmatter 变成第二份分析文档。
+issue 标准路径和快速通道都要遵守 `.cyralis/reference/debugging-governance.md`。快速通道不产出 report / analysis，也不进入 verify 状态；它通过 `work.json.status=implement` + `artifacts.fix.quick_lane=true` 直接路由到 `cs-issue-fix`，完整事实落在 `{slug}-fix-note.md`。analysis / fix-note 正文承载调试治理字段，不强制把 `diagnostic_layer`、`canonical_owner`、`confidence` 等字段塞进 frontmatter，避免 frontmatter 变成第二份分析文档。
+
+**Behavior Evaluation**：只要 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，就写这个小节。它必须写具体场景、可观察证据、期望结果、failure signal、correction path，必要时补 invariant。纯技术任务不写，直接标 `technical-only`。
+
+**Behavior Coverage**：plan / checklist 对 Behavior Evaluation 的映射。只有任务真的对应某个场景或验证证据时才写；没有直接对应关系就写 `technical-only`，不要硬造场景。
 
 **归档类（compound）**：
 
@@ -114,14 +118,14 @@ issue 标准路径和快速通道都要遵守 `.cyralis/reference/debugging-gove
 
 - 是 feature 工作流的唯一执行清单
 - 由 `cs-feat-design` 在 design 确认通过后一次生成 `steps` + `checks`
-- `cs-feat-ff` **不生成** checklist（也不写 design / acceptance），是跳过 spec 流程直接写代码的超轻量通道；唯一留下的痕迹是动手后回写的 `{slug}-ff-note.md`（轻量回顾，参与 scoped-commit、可被 cs-arch / cs-req backfill 检索到）
+- `cs-feat-ff` **不生成** checklist（也不写 design / acceptance，不创建 / 推进 `work.json` 状态），是跳过 spec 流程直接写代码的超轻量通道；唯一留下的痕迹是动手后回写的 `{slug}-ff-note.md`（轻量回顾，参与 scoped-commit、可被 cs-arch / cs-req backfill 检索到）
 
 `steps` 的粒度是 **编排-计算分离维度的切片策略**——按"先编排骨架、后计算节点、最后持久化与测试"写（最简 Workflow 先行 → 逐个节点填充），**不下沉到 file:line / 函数级**。具体改哪个文件由 implement 阶段决定。
 
 **design 的职责**：
 
 - 提取 `steps`（4-8 步，每步独立可验证退出信号）：后端节奏 = 编排骨架 → 计算节点逐个填 → 接通持久化 → 测试覆盖；前端 = 静态结构 → 交互逻辑 → 状态接入 → 联调收尾
-- 提取 `checks`：第 1 节"明确不做"→ 范围守护；第 2.1 接口 → 名词契约；第 2.2 主流程 + 流程级约束 → 编排骨架；第 2.3 挂载点 → 挂载点；第 3 节场景清单 → 验收场景
+- 提取 `checks`：第 1 节"明确不做"→ 范围守护；第 2.1 接口 → 名词契约；第 2.2 主流程 + 流程级约束 → 编排骨架 / 流程级约束；第 2.3 挂载点 → 挂载点；第 3 节 Behavior Evaluation → 行为评估场景；第 3 节关键场景清单 → 验收场景
 
 **implement 的职责**：
 
@@ -185,7 +189,8 @@ planned  → dropped      （cs-roadmap update 模式，用户决定不做时改
 
 1. `cs-learn`：坑点
 2. `cs-decide`：暴露的长期约束
-3. `scoped-commit`
+3. `cs-note`：项目每次启动都该知道的一两行硬约束 / 命令陷阱
+4. `scoped-commit`
 
 **feature-ff** 收尾按顺序判断（比标准 acceptance 短，没有 architecture / req 回写动作）：
 
@@ -286,7 +291,7 @@ feature-design / issue-analyze / issue-fix 动手前到 `.cyralis/compound/` 搜
 1. **只增不删**——已归档除非被明确取代（`status=superseded`）否则不删；理由丢失成本极高
 2. **宁缺毋滥**——用户说不出理由的节直接省略，不要 AI 编造
 3. **不替用户写实质内容**——AI 负责起草结构和串联语言，实质结论必须来自用户或可追溯的代码证据
-4. **attention.md 检查**——写完后若沉淀暴露出"每次启动都该知道"的一两行硬约束，提示用户用 `cs-note` 追加到 `.cyralis/attention.md`；不要直接改外部 AI 入口
+4. **启动 notes 检查**——写完后若沉淀暴露出"每次启动都该知道"的一两行硬约束，提示用户用 `cs-note` 追加到 `AGENTS.md`；不要直接改外部 AI 入口
 5. **起草前先查重叠**——动手写前用 `search-yaml.py --query` 查语义相近的旧文档。命中就把候选列给用户在三条路径里选：
    - **更新已有**（默认优先）：沿用原文件名和原创建日期，**不新建**；frontmatter 补 `updated: YYYY-MM-DD`；超出小修在文末加"YYYY-MM-DD 更新"简述
    - **supersede**：旧文档保留原文，`status: superseded` + `superseded-by: {新文件名}`，正文顶部加 `**[已取代]** 见 {新 slug}`；新文档 frontmatter 带 `supersedes: {旧文件名}`
@@ -326,7 +331,7 @@ issue 工作流使用 `.cyralis/reference/debugging-governance.md` 作为调试�
 
 各阶段职责：
 
-- `cs-issue-report`：只记录现象，但快速通道判定必须按 `debugging-governance.md` 第 3 节准入；命中 shared / core / contract / fallback / adapter / duplicate owner 等信号时走标准路径
+- `cs-issue-report`：只记录现象；命中 shared / core / contract / fallback / adapter / duplicate owner 等信号时走标准路径。快速通道由 `cs-issue` / `cs-issue-report` 按 `debugging-governance.md` 第 3 节准入，确认后直接激活 `status=implement` + `artifacts.fix.quick_lane=true` 的 issue work item，不生成 report / analysis
 - `cs-issue-analyze`：在 `{slug}-analysis.md` 里写清诊断层级、canonical owner、Patch-Shape / Minimality 信号、同类模式搜索、confidence；confidence 低于 `B` 时不要进入 fix，除非明确是 mitigation
 - `cs-issue-fix`：动手前执行修复前 gate；完成前写 Debugging Closure、Repair Track、Retirement Track，并确认 confidence 至少 `B`
 

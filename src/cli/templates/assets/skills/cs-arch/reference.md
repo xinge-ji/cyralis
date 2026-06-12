@@ -62,7 +62,7 @@ implements: []   # 承载的 requirement slug 列表，可空——纯基础设�
 
 ## 6. 已知约束 / 边界情况
 
-本模块"不能动 / 动了要小心"的硬约束 + 来源（attention.md / decision / learning 等）。
+本模块"不能动 / 动了要小心"的硬约束 + 来源（AGENTS.md / decision / learning 等）。
 
 ## 7. 相关文档
 

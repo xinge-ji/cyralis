@@ -89,7 +89,7 @@ AI 根据对话起草完整文档（YAML frontmatter + 所有正文节）。一�
 写完检查两项有则提示用户（**不自作主张改文件**）：
 
 1. `architecture/ARCHITECTURE.md` 的"关键架构决定"节是否应引用——`architecture` 或 `tech-stack` 通常应该
-2. `.cyralis/attention.md` 是否应追加一句启动必读摘要——`constraint` 或 `convention` 通常应该
+2. 是否应追加一句启动必读摘要——`constraint` 或 `convention` 通常应该
 
 ---
 
@@ -120,6 +120,6 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=d
 1. **只归档已拍板的决定**——讨论中的方案不归档
 2. **status=superseded 不等于删除**——被取代的保留原文 + `superseded-by` + 正文顶部 `**[已取代]** 见 {新文档 slug}`
 3. **不替用户写理由**——用户说不出就写"未做系统评估"，不要编造（编造的理由会变成历史"事实"误导后人）
-4. **不主动修改 attention.md 和 ARCHITECTURE.md**——Phase 5 只提示，由用户决定；attention.md 追加交给 `cs-note`
-5. **跨技能一致性**——decision 和 attention.md 描述不同时以 decision 为详细版、attention.md 为摘要版，两者应链接不应矛盾
+4. **不主动修改启动 notes 和 ARCHITECTURE.md**——Phase 5 只提示，由用户决定；启动 notes 追加交给 `cs-note`
+5. **跨技能一致性**——decision 和启动 notes 描述不同时以 decision 为详细版、启动 notes 为摘要版，两者应链接不应矛盾
 6. **只认自己的 doc_type**——只读写 `doc_type: decision`

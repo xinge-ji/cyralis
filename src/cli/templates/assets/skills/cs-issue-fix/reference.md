@@ -20,7 +20,7 @@
 {是 / 否}
 
 ### 复现步骤走一遍
-{按 {slug}-report.md 第 2 节复现步骤走一遍，结果是否符合期望行为?}
+{按 {slug}-report.md 第 2 节复现步骤走一遍；快速通道则按 quick-lane 启动摘要里的复现信号与验证路径执行。结果是否符合期望行为?}
 
 ### Debugging Closure
 - Reproduction before: {修复前失败信号}
@@ -59,6 +59,7 @@
 ---
 doc_type: issue-fix
 issue: {issue 目录名}
+status: fixed | mitigated | partial
 path: standard
 fix_date: YYYY-MM-DD
 related: [{slug-analysis.md 相对路径}]
@@ -105,6 +106,7 @@ tags: []
 ---
 doc_type: issue-fix
 issue: {issue 目录名}
+status: fixed | mitigated | partial
 path: fast-track
 fix_date: YYYY-MM-DD
 tags: []

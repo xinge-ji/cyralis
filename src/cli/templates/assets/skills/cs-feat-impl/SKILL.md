@@ -48,13 +48,13 @@ frontmatter：`doc_type=feature-design` / `feature` 一致 / `summary` 非空 / 
 - 第 2.3 挂载点按"删了它 feature 是否消失"判据，没把内部代码改动误列进来
 - 第 3 节有关键场景清单 + 反向核对项（不含测试代码 / framework 选型）
 
-**Fastforward design**（节 0/1/2/3）：
-- 第 0 含"明确不做"；第 1 有改动点（文件 + 函数/类型名）
-- 第 2 验收标准每条可验证；第 3 推进步骤有退出信号
+第 2.4 推进策略必须有 4-8 个 paradigm 维度切片和退出信号；第 2.5 结构健康度与微重构必须有显式结论（不做 / 微重构（拆文件） / 微重构（重组目录））和评估依据。
 
 任一项不达标 → 退回 `cs-feat-design` 补齐。原因：方案漏的项实现时一定要现场补，等于绕过 checkpoint。
 
 **注意**：标准 design 第 3 节"验收契约"只说"做完后什么应该成立"，不说"具体怎么做"。改动文件清单 / 函数级落点 / 测试代码归 implement 自决，不要因为 design 里没写就退回去要求补。
+
+本技能不处理 fastforward。看到只有 `{slug}-ff-note.md`、没有标准 design/checklist 的目录时，不要补造 design；fastforward 已由 `cs-feat-ff` 闭环。若实现中发现它其实需要标准流程，回 `cs-feat-design`，在 design 里标"已部分实现"。
 
 ### 2. {slug}-checklist.yaml 在不在
 
@@ -64,9 +64,9 @@ frontmatter：`doc_type=feature-design` / `feature` 一致 / `summary` 非空 / 
 
 ### 3. 把上下文读全
 
-- 方案 doc 全文（标准 design 重点：第 1 节、2.1/2.2/2.3/2.4、3）
-- `{slug}-checklist.yaml`、需求来源（用户描述 + brainstorm note）、`.cyralis/attention.md`
-- 第 2.1 节接口示例的来源位置 / fastforward 第 1 节改动点提到的代码文件——读相关函数即可
+- 方案 doc 全文（重点：第 1 节、2.1/2.2/2.3/2.4/2.5、3）
+- `{slug}-checklist.yaml`、需求来源（用户描述 + brainstorm note）
+- 第 2.1 节接口示例的来源位置——读相关函数即可
 - 若当前 step 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`
 - 若当前 step 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或需要复制 / 批量修改相似逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`
 
@@ -98,7 +98,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 不做方案外的改动
 
-发现值得重构的点（参考 `.cyralis/reference/shared-conventions.md` 第 7 节"写代码时的反射检查"），只要**不在本次功能影响面内**就记成后续 issue：
+发现值得重构的点（参考 `.cyralis/reference/shared-conventions.md` 第 8 节"写代码时的反射检查"），只要**不在本次功能影响面内**就记成后续 issue：
 
 ```markdown
 > 顺手发现：{文件:行号} {问题简述}。不在本次范围，记录待后续 issue。
@@ -116,8 +116,6 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 **标准 design**：新写的类型 / 函数 / 变量名都要去方案 doc 第 0 节对照，不允许出现 doc 里没有的新概念。要引入新概念 → 先停下来改第 0 节、grep 防冲突、用户确认。
 
-**Fastforward design**：没有正式术语表，但要新起概念名时也要 grep 一下当前代码防冲突。
-
 代价：术语冲突意味着同概念两个名字 / 同名字两个概念——后者会让搜索完全失效。
 
 ### 出现"补丁分支"的冲动时停下来
@@ -126,7 +124,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 代码质量反射检查
 
-除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/shared-conventions.md` 第 7 节。
+除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/shared-conventions.md` 第 8 节。
 
 核心：**不是"超过 N 行必须拆"，而是"遇到 X 情况就停下来问自己"**。每条对应 AI 默认会走进去的坑（往大文件继续追加、往大类加方法、补丁分支、复制粘贴、第 4+ 个参数、往万能 util 堆东西）。
 
@@ -153,21 +151,23 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 **步骤 N：{步骤名}**
 - file:line  函数名  改动类型（新增 / 修改 / 删除）
 
+### 行为场景绑定
+{对照 steps 逐条列出：这个步骤实现 / 观察 / 修正 / 保持了哪个 Scenario 或 Invariant；没有直接关联就写 `technical-only`}
+
 ### 是否触碰到方案外的文件？
 {是 / 否。是的话说明原因 + 是否已同步更新方案 doc}
 
 ### 是否引入了方案 doc 里没有的新概念 / 抽象？
-{是 / 否。是的话说明已回填方案 doc（标准 design 补第 0 节 + 第 2.1 节；fastforward 补第 1 节）并做过 grep 防冲突}
+{是 / 否。是的话说明已回填方案 doc（补第 0 节 + 第 2.1 节）并做过 grep 防冲突}
 
 ### 代码质量反射检查自检
-{对照 shared-conventions 第 7 节，触发哪些信号 + 怎么处理；都没触发写"无触发"}
+{对照 shared-conventions 第 8 节，触发哪些信号 + 怎么处理；都没触发写"无触发"}
 
 ### 推进顺序退出信号核对
 {对照 steps 逐条列 action + exit_signal + status（应全为 done）}
 
 ### 验收场景自检
-**标准 design**：对照第 3 节关键场景清单，每条靠什么证据满足（类型 / 单测 / 集成 / 手工 / assert）+ 反向核对项是否守住
-**Fastforward design**：对照第 2 节验收标准逐条核对
+对照第 3 节 Behavior Evaluation / 关键场景清单，每条靠什么证据满足（类型 / 单测 / 集成 / 手工 / assert）+ 失败信号 / 校正路径 + 反向核对项是否守住
 ```
 
 汇报后停等 review。
@@ -176,11 +176,11 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ## 测试用例怎么落
 
-标准 design 第 3 节"关键场景清单"每条 = 一个可验证行为约束。你的活是把每条变成可观察证据：单测 / 集成 / 手工操作 / 类型编译期保证。
+标准 design 第 3 节如果有 Behavior Evaluation，先按场景 / 证据 / failure signal / correction path 把验证证据落出来，再把每个 step 对应到哪些场景或不变量写清楚。你的活是把每条变成可观察证据：单测 / 集成 / 手工操作 / 类型编译期保证。
 
 具体怎么测、用什么 framework、mock 怎么搭——design 没规定，自决。但你得在 `steps` 里写清楚"哪一步落哪个测试"，汇报里逐项核对每条场景都有证据。
 
-**测试通过 ≠ 验收场景满足**——前者只说明你写的用例过了，不说明每条场景都有用例覆盖。
+**测试通过 ≠ 验收场景满足**——前者只说明你写的用例过了，不说明每条场景都有用例覆盖，也不说明 failure signal / correction path 已经被证明。
 
 类型系统保证的（如 TypeScript 签名直接排除某种调用），汇报里说"类型签名已落地，编译期保证"。
 
@@ -191,7 +191,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 - [ ] 所有 steps 的 status 都 `done`
 - [ ] 完成汇报已输出，用户 review 通过
 - [ ] 没有未处理的"需要叫停"信号
-- [ ] 第 3 节关键场景每条都有证据 / 测试覆盖（fastforward 对照第 2 节）
+- [ ] 第 3 节关键场景每条都有证据 / 测试覆盖
 - [ ] 没有"顺手发现"被偷偷修掉（都进 issue 列表）
 - [ ] 没有方案外文件改动（或已同步更新方案 doc）
 - [ ] `work.json.artifacts.implementation.done=true`，并且已执行 `python .cyralis/tools/work.py transition <feature-dir> verify`
@@ -204,7 +204,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 别自己顺手开始写验收报告——验收需要独立的 checklist 节奏，提前进入会让把关失效。
 
-**实现过程中如果踩到了项目通用的硬约束 / 命令陷阱 / 环境设置**（"啊原来这个项目要先 X 才能 Y"，一两行能讲清、下个 feature 的 AI 还会再撞一次）→ 在告诉用户去 accept 前**顺便提一句**："这次发现 {具体那条}，是不是要 `cs-note` 一下加到 attention.md，免得下次再踩？"——单条即可，不连写多条；用户说"等 accept 一起处理" 就跳过，accept 第 8 节会兜底盘点。
+**实现过程中如果踩到了项目通用的硬约束 / 命令陷阱 / 环境设置**（"啊原来这个项目要先 X 才能 Y"，一两行能讲清、下个 feature 的 AI 还会再撞一次）→ 在告诉用户去 accept 前**顺便提一句**："这次发现 {具体那条}，是不是要 `cs-note` 一下补进启动 notes，免得下次再踩？"——单条即可，不连写多条；用户说"等 accept 一起处理" 就跳过，accept 第 8 节会兜底盘点。
 
 ---
 

@@ -121,4 +121,3 @@ fastforward 不读完整方法库，但要守住"**每一处改动都能对应�
 
 - `cs-refactor/SKILL.md` — 完整 refactor 流程
 - `cs-refactor/reference/methods.md` — 完整方法库
-- `.cyralis/reference/system-overview.md` — cyralis 体系总览

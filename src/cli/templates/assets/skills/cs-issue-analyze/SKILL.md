@@ -19,12 +19,13 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 ## 启动检查
 
-1. **问题报告存在且已确认**——读 `{slug}-report.md`，确认 `doc_type=issue-report` 且 `status=confirmed`，5 节都有内容。不完整 / 状态不对 → 回 `cs-issue-report`。`cs-issue-report` 已判走标准路径就按标准路径走，不二次改判
-2. **断点恢复**——`{slug}-analysis.md` 已存在则检查 5 节哪些已填：
+1. **确认是标准路径**——先读 issue 目录 `work.json`：必须是 `mode=issue`、`status=implement`，且 `artifacts.fix.quick_lane` 不是 `true`。如果是 quick lane，回 `cs-issue-fix`，不要补 report / analysis
+2. **问题报告存在且已确认**——按 `work.json.artifacts.report.path` 读取 `{slug}-report.md`，确认 `doc_type=issue-report` 且 `status=confirmed`，5 节都有内容。不完整 / 状态不对 → 回 `cs-issue-report`。`cs-issue-report` 已判走标准路径就按标准路径走，不二次改判
+3. **断点恢复**——按 `work.json.artifacts.analysis.path` 读取 `{slug}-analysis.md`；已存在则检查 5 节哪些已填：
    - 全部填满但 `status=draft` → 跳到 checkpoint
    - 部分填写 → 汇报"上次做到第 X 步，从第 Y 步继续"
-3. **把上下文读全**：
-   - 问题报告全文 + `.cyralis/attention.md`
+4. **把上下文读全**：
+   - 问题报告全文
    - `.cyralis/reference/debugging-governance.md`
    - 报告里提到的相关文件（用 Glob / Grep 找别只凭描述）
    - **扫 .cyralis/ 全局**——Glob `.cyralis/` 发现可用输入，按需取用：`architecture/`（涉及跨模块时读 ARCHITECTURE.md）、`compound/`（用 search-yaml.py 搜相关 trick / explore / learning，命中在分析开头标注引用）、`requirements/`（涉及能力边界时读）

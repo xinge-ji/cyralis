@@ -30,11 +30,11 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 
 - 第 0 节：术语约定
 - 第 1 节：决策与约束（需求摘要 / 复杂度档位 / 关键决策 / 前置依赖）
-- 第 2 节：名词与编排（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略）
+- 第 2 节：名词与编排（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略 / 2.5 结构健康度与微重构）
 - 第 3 节：验收契约（关键场景清单 + 反向核对项）
 - 第 4 节：与项目级架构文档的关系
 
-**Fastforward design**：第 0 需求摘要 / 第 1 设计方案 / 第 2 验收标准 / 第 3 推进步骤
+本技能只处理标准 feature 流程。fastforward 不写 design / checklist / acceptance，看到只有 `{slug}-ff-note.md` 的目录时不要补造验收报告；该通道已由 `cs-feat-ff` 闭环。
 
 ---
 
@@ -44,18 +44,8 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 2. **work.json 状态正确**——`status=verify`，`artifacts.design.approval=approved`，`artifacts.implementation.done=true`
 3. **方案 doc 完整**——frontmatter `doc_type=feature-design` / `feature` 一致 / `summary` 非空 / `tags` ≥ 2；标准 design 第 0/1/2/3 节 + 第 4 节已填写
 4. **`{slug}-checklist.yaml`**——存在且 `feature` 一致；`steps` 全 `done`（有 `pending` 退回 implement）；`checks` 非空全 `pending`
-5. **上下文读全**——方案 doc 全文（重点：第 1 节明确不做、2.1 接口示例、2.2 流程级约束、2.3 挂载点、第 3 节场景）+ checklist + 第 4 节提到的所有架构 doc + 本次代码改动（git log / diff）
+5. **上下文读全**——方案 doc 全文（重点：第 1 节明确不做、2.1 接口示例、2.2 流程级约束、2.3 挂载点、2.4 推进策略、2.5 结构健康度、第 3 节场景）+ checklist + 第 4 节提到的所有架构 doc + 本次代码改动（git log / diff）
 6. **断点恢复**——`{slug}-acceptance.md` 已存在且部分填好 → 从下一个未完成节继续，跳过 checks 中已 `passed` 的项；汇报"上次做到第 X 节，从第 Y 节继续"
-
-**Fastforward design 验收报告映射表**：
-
-| 验收报告节 | 标准 design 对照 | Fastforward design 对照 |
-|---|---|---|
-| 1 接口契约核对 | 第 2.1 接口示例 | 第 1 节改动点 |
-| 2 行为与决策核对（含挂载点） | 第 1 节 + 第 2.2 + 第 2.3 | 第 0 节；挂载点现场盘点 |
-| 3 验收场景核对 | 第 3 节场景清单 + 反向核对 | 第 2 节验收标准 |
-| 4 术语一致性 | 第 0 节 + 第 2.1 命名 | 检查代码命名一致性 |
-| 5 架构归并 | 第 4 节 | 通常无；写"无架构维度变更" |
 
 ---
 
@@ -64,6 +54,14 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 逐节填写**别跳节**。报告路径在 feature 目录下（位置看 `shared-conventions.md` 第 0 节）。
 
 ```markdown
+---
+doc_type: feature-acceptance
+feature: {YYYY-MM-DD}-{slug}
+summary: {一句话说明本 feature 做了什么}
+tags: [...]
+design: {slug}-design.md
+---
+
 # {功能名称} 验收报告
 
 > 阶段：阶段 3（验收闭环）
@@ -92,6 +90,17 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 **需求摘要逐项验证**：
 - [ ] 行为 A：{描述 + 实测结果}
 
+**Behavior Evaluation 逐项核对**（对照第 3 节）：
+- [ ] Scenario S1：{场景"输入 / 触发 → 期望可观察结果"} → 证据：{类型 / 命令 / 人工观察} → 结果：{通过 / 未通过}
+  - Failure signal：{什么迹象表示偏离}
+  - Correction path：{回 spec / plan / implementation / human decision}
+  - 不变量：{必要时}
+- [ ] Scenario S2：{场景"输入 / 触发 → 期望可观察结果"} → 证据：{类型 / 命令 / 人工观察} → 结果：{通过 / 未通过}
+  - Failure signal：{什么迹象表示偏离}
+  - Correction path：{回 spec / plan / implementation / human decision}
+  - 不变量：{必要时}
+- [ ] `technical-only` 条目：{任务} 只做技术核对，不伪造成场景
+
 **明确不做逐项核对**（用第 3 节"反向核对项"）：
 - [ ] 范围外事项 X **确实没做**（grep / review 确认）
 
@@ -109,15 +118,21 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 - [ ] **反向核查**（grep）：本 feature 在代码里的所有引用是否都落在清单内？清单外的引用 → 漏记，补进第 2.3 节
 - [ ] **拔除沙盘推演**：按清单逆向操作后是否还有残留？残留 → 写进"遗留"或补挂载点
 
-Fastforward 方案没有挂载点清单 → 现场 grep 盘点本次改动命中的挂入位置作为卸载依据。
+**结构健康度与微重构核对**（对照第 2.5 节）：
+- [ ] 第 2.5 结论已落实：{不做 / 微重构（拆文件） / 微重构（重组目录）} → 实际 diff：{一致 / 偏差}
+- [ ] 若 checklist 第 1 步是微重构：diff 符合"只搬不改行为"（拆文件：对外接口签名零 diff；重组目录：仅文件移动 + import 路径更新，无函数体改动）
+- [ ] "超出范围的观察"没有被偷偷实现；需要处理的已进遗留 / 后续 `cs-refactor`
 
 ## 3. 验收场景核对
 
-对照方案第 3 节关键场景清单，逐条可观察证据验证：
+对照方案第 3 节关键场景清单，逐条按证据 / 结果 / failure signal / correction path 验证：
 
 - [ ] **S1**：{场景"输入 / 触发 → 期望可观察结果"}
   - 证据来源：{类型系统 / 单测 / 集成 / 手工 / 肉眼}
   - 结果：{通过 / 未通过 + 原因 + 补救}
+  - Failure signal：{什么迹象表示偏离}
+  - Correction path：{回 spec / plan / implementation / human decision}
+  - 不变量：{必要时}
 
 **前端改动必须浏览器肉眼验证**（typecheck 通过不代表用户用起来对）：
 - [ ] UI 区域 X：浏览器验证 OK / 截图链接
@@ -147,7 +162,7 @@ Fastforward 方案没有挂载点清单 → 现场 grep 盘点本次改动命中
 方案第 4 节为空或过简 → 在此补充评估：
 - 新增哪些模块 / 改了哪些接口 / 引入哪些跨模块纪律
 - 架构总入口要不要新增描述（描述不是贴链接）
-- `.cyralis/attention.md` 要不要补新规约或已知坑
+- 启动 notes 要不要补新规约或已知坑
 
 **判据**：归并完成后，没读过 design 的人打开 architecture 应该能知道"系统里现在有这个能力、它的大致形态、和它交互要遵守什么"。
 
@@ -179,15 +194,15 @@ req 是能力愿景层，本节是 draft → current 升级和 backfill 的触�
 
 衔接协议看 `shared-conventions.md` 第 2.5 节。和归并 / req 同规则：实际写文件的动作。
 
-## 8. attention.md 候选盘点
+## 8. 启动 notes 候选盘点
 
 回看本次实现，盘点"每个 feature 都会撞一次"的环境 / 工具 / 工作流类信息。典型候选：编译命令、代理配置、本地起服务步骤、反复踩的环境坑、仓库内非显然的工作流约定。
 
 **判据**：下一个 feature 的 AI 还会再踩一次的事才记。一次性踩坑、和具体业务耦合的细节归 learning / decide。
 
-- [ ] 无候选：写"本 feature 未暴露需要补入 attention.md 的内容"
+- [ ] 无候选：写"本 feature 未暴露需要补入启动 notes 的内容"
 - [ ] 有候选：列出来，**不擅自写入**——本节只登记，落不落由用户在"退出后"环节定
-  - 候选 1：{描述 + 建议放 attention.md}
+  - 候选 1：{描述 + 建议放启动 notes}
 
 ## 9. 遗留
 
@@ -243,6 +258,7 @@ review 结论只是 advisory，不等于本技能已完成；本技能自己的 
 ## 退出条件
 
 - [ ] 验收报告 9 节都填完
+- [ ] 验收报告 frontmatter 完整（`doc_type` / `feature` / `summary` / `tags` / `design`）
 - [ ] 第 1/2 节核对全部勾选，无未处理偏差（含挂载点 grep + 拔除沙盘推演）
 - [ ] 第 3 节场景核对全部勾选，前端已浏览器验证
 - [ ] 命中独立代码评审 gate 时已完成评审，Critical / Important 已处理完
@@ -267,10 +283,10 @@ review 结论只是 advisory，不等于本技能已完成；本技能自己的 
    - **特检**：design 第 2.5 节是否有"建议沉淀的 convention"段。有就把那条规则原文念给用户："design 2.5 建议沉淀这条 convention：『{规则一句话}』，跑通了，要不要现在 `cs-decide` 归档？"——这种是 design 阶段就识别出的稳定模式，比一般"问问看"更应该主动提
 3. 接口变更 / 用户可见行为变更 → "需要更新指南吗？（`cs-guide`）"
 4. 库公开接口（组件 / 函数 / 命令）变了 → "需要更新 API 参考吗？（`cs-libdoc`）"
-5. 第 8 节有 attention.md 候选 → 逐条问"候选 X 加到 attention.md 吗？" 用户明确同意 → 触发 `cs-note` 走分节归类 / 查重 / 软上限检查（不在 accept 里手写，避免和 cs-note 各搞一套口径）；**一次一条**
+5. 第 8 节有启动 notes 候选 → 逐条问"候选 X 加到启动 notes 吗？" 用户明确同意 → 触发 `cs-note` 走分节归类 / 查重 / 软上限检查（不在 accept 里手写，避免和 cs-note 各搞一套口径）；**一次一条**
 6. 最后问是否代为 scoped-commit
 
-收尾提交规则看 `shared-conventions.md` 第 4 节。提交范围：功能代码 + 方案 doc + 验收报告 + 本次实际更新的架构 doc / req doc / roadmap items.yaml + 主文档。
+收尾提交规则看 `shared-conventions.md` 第 5 节。提交范围：功能代码 + 方案 doc + 验收报告 + 本次实际更新的架构 doc / req doc / roadmap items.yaml + 主文档。
 
 ---
 

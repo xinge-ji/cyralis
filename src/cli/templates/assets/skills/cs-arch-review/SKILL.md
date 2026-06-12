@@ -67,7 +67,7 @@ slug 取审查目标，如 `cli-installer-architecture`、`memory-runtime-testab
 
 必读：
 
-- `.cyralis/attention.md`
+- 项目启动上下文
 - `.cyralis/architecture/ARCHITECTURE.md` 和范围相关 architecture doc
 - `.cyralis/requirements/` 中范围相关 req
 - `.cyralis/compound/` 中相关 `decision` / `explore` / `learning`

@@ -92,7 +92,7 @@ AI 一次性起草完整文档（YAML frontmatter + 所有正文节）。一次�
 
 ### Phase 5：可发现性检查
 
-写完若发现一两行"每次 cyralis 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到 `.cyralis/attention.md`。不要自作主张改 attention，也不要写外部 AI 入口。
+写完若发现一两行"每次 cyralis 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到启动 notes。不要自作主张改这类入口，也不要写外部 AI 入口。
 
 ---
 

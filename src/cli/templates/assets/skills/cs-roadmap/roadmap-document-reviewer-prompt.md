@@ -26,7 +26,7 @@ Task tool (general-purpose):
     **Source materials to read when present:**
     - related requirements listed in frontmatter
     - related architecture docs listed in frontmatter
-    - source brainstorm record if this came from cs-brainstorm
+    - related brainstorm records, preferring `.cyralis/brainstorms/{slug}/brainstorm.md` when the roadmap came from cs-brainstorm, plus any related feature brainstorm notes
     - relevant compound decisions / learnings
     - other roadmap directories to detect duplication or conflicting plans
     - for update mode: in-progress / done feature designs and acceptance reports
