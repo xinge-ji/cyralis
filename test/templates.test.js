@@ -686,7 +686,42 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   mkdirSync(featureDir, { recursive: true });
   mkdirSync(issueDir, { recursive: true });
   mkdirSync(doneIssueDir, { recursive: true });
+  mkdirSync(join(dir, ".cyralis", "roadmap", "demo-roadmap"), { recursive: true });
   writeFileSync(helper, templates.get(".cyralis/tools/work.py"), "utf8");
+  writeFileSync(
+    join(dir, ".cyralis", "roadmap", "demo-roadmap", "demo-roadmap-items.yaml"),
+    [
+      "roadmap: demo-roadmap",
+      "created: 2026-06-01",
+      "",
+      "items:",
+      "  - slug: foundation",
+      "    description: Shared foundation",
+      "    depends_on: []",
+      "    status: done",
+      "    feature: 2026-06-01-foundation",
+      "    minimal_loop: true",
+      "    notes: null",
+      "",
+      "  - slug: ready-feature",
+      "    description: Ready roadmap feature",
+      "    depends_on: [foundation]",
+      "    status: planned",
+      "    feature: null",
+      "    minimal_loop: false",
+      "    notes: null",
+      "",
+      "  - slug: blocked-feature",
+      "    description: Blocked roadmap feature",
+      "    depends_on: [ready-feature]",
+      "    status: planned",
+      "    feature: null",
+      "    minimal_loop: false",
+      "    notes: null",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
   writeFileSync(
     join(featureDir, "demo-feature-checklist.yaml"),
     [
@@ -791,6 +826,14 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "activate",
     ".cyralis/issues/2026-06-01-demo-issue",
   ]);
+  runPython(helper, [
+    "--cwd",
+    dir,
+    "--context-key",
+    "s3",
+    "activate",
+    ".cyralis/issues/2026-06-01-done-issue",
+  ]);
 
   const s1 = runPython(helper, [
     "--cwd",
@@ -845,6 +888,8 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   assert.equal(summaryData.counts.total, 3);
   assert.equal(summaryData.counts.open, 2);
   assert.equal(summaryData.counts.done, 1);
+  assert.equal(summaryData.counts.roadmap_planned, 2);
+  assert.equal(summaryData.counts.roadmap_ready, 1);
   assert.equal(
     summaryData.current.work_root,
     ".cyralis/features/2026-06-01-demo-feature",
@@ -861,10 +906,46 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     summaryData.items.find((item) => item.id === "demo-feature").host_skill,
     /\.pi\/skills\/cs-feat-design\/SKILL\.md/,
   );
+  assert.equal(
+    summaryData.roadmap_items.find((item) => item.slug === "ready-feature")?.ready,
+    true,
+  );
+  assert.deepEqual(
+    summaryData.roadmap_items.find((item) => item.slug === "blocked-feature")?.blocked_by,
+    ["ready-feature"],
+  );
+
+  const doneCurrent = runPython(helper, [
+    "--cwd",
+    dir,
+    "--context-key",
+    "s3",
+    "resolve",
+    "--json",
+  ]);
+  const doneCurrentData = JSON.parse(doneCurrent.stdout);
+  assert.equal(doneCurrentData.status, "no_task");
+  assert.equal(doneCurrentData.work_root, null);
+  assert.match(doneCurrentData.reason, /active work is done/);
+
+  const doneSummary = runPython(helper, [
+    "--cwd",
+    dir,
+    "--context-key",
+    "s3",
+    "summary",
+    "--json",
+    "--host",
+    "pi",
+  ]);
+  assert.equal(JSON.parse(doneSummary.stdout).current, null);
 
   const textSummary = runPython(helper, ["--cwd", dir, "summary", "--text"]);
   assert.match(textSummary.stdout, /Cyralis work summary/);
   assert.match(textSummary.stdout, /Unfinished work:/);
+  assert.match(textSummary.stdout, /Roadmap planned: 2 \/ Ready: 1/);
+  assert.match(textSummary.stdout, /Planned roadmap items:/);
+  assert.match(textSummary.stdout, /ready-feature/);
   assert.doesNotMatch(textSummary.stdout, /Done issue/);
 
   const ambiguous = runPython(helper, ["--cwd", dir, "resolve", "--json"], {

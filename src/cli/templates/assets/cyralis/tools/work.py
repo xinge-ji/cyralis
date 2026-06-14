@@ -16,6 +16,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    import yaml  # type: ignore
+    _HAS_PYYAML = True
+except ImportError:
+    _HAS_PYYAML = False
+
 
 CYRALIS_DIR = ".cyralis"
 WORK_JSON = "work.json"
@@ -74,6 +80,95 @@ def read_json(path: Path) -> dict[str, Any] | None:
 def write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def parse_yaml_scalar(raw: str) -> Any:
+    value = raw.strip()
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1]
+        return [item.strip().strip("'\"") for item in inner.split(",") if item.strip()]
+    lower = value.lower()
+    if lower in ("true", "yes"):
+        return True
+    if lower in ("false", "no"):
+        return False
+    if lower in ("null", "~", ""):
+        return None
+    return value.strip("'\"")
+
+
+def parse_roadmap_items_yaml_fallback(text: str) -> dict[str, Any]:
+    data: dict[str, Any] = {}
+    items: list[dict[str, Any]] = []
+    in_items = False
+    current: dict[str, Any] | None = None
+    pending_list_key: str | None = None
+
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+
+        if not in_items:
+            if ":" not in stripped:
+                continue
+            key, _, value = stripped.partition(":")
+            key = key.strip()
+            if key == "items":
+                in_items = True
+                data["items"] = items
+            else:
+                data[key] = parse_yaml_scalar(value)
+            continue
+
+        if stripped.startswith("- "):
+            rest = stripped[2:].strip()
+            if indent <= 2:
+                current = {}
+                items.append(current)
+                pending_list_key = None
+                if ":" in rest:
+                    key, _, value = rest.partition(":")
+                    key = key.strip()
+                    if value.strip():
+                        current[key] = parse_yaml_scalar(value)
+                    else:
+                        current[key] = []
+                        pending_list_key = key
+                continue
+            if current is not None and pending_list_key:
+                current.setdefault(pending_list_key, []).append(parse_yaml_scalar(rest))
+            continue
+
+        if current is None or ":" not in stripped:
+            continue
+        key, _, value = stripped.partition(":")
+        key = key.strip()
+        if value.strip():
+            current[key] = parse_yaml_scalar(value)
+            pending_list_key = None
+        else:
+            current[key] = []
+            pending_list_key = key
+
+    data["items"] = items
+    return data
+
+
+def read_yaml_mapping(path: Path) -> dict[str, Any] | None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if _HAS_PYYAML:
+        try:
+            value = yaml.safe_load(text)
+            if isinstance(value, dict):
+                return value
+        except yaml.YAMLError:
+            pass
+    return parse_roadmap_items_yaml_fallback(text)
 
 
 def sanitize_key(raw: str) -> str:
@@ -475,22 +570,29 @@ def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
     }.get(status, "inspect resolver output with `python .cyralis/tools/work.py resolve --json`")
 
 
+def no_task_state(reason: str, host: str) -> dict[str, Any]:
+    return {
+        "status": "no_task",
+        "mode": None,
+        "work_root": None,
+        "host_skill": None,
+        "next": "classify the request and create or activate a work item",
+        "reason": reason,
+        "blockers": [],
+        "references": workflow_references(None),
+        "commands": workflow_commands(None, host),
+    }
+
+
 def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
     work_dir, work, source = load_current(root, key)
     if not work_dir or not work:
-        return {
-            "status": "no_task",
-            "mode": None,
-            "work_root": None,
-            "host_skill": None,
-            "next": "classify the request and create or activate a work item",
-            "reason": f"active work source={source}",
-            "blockers": [],
-            "references": workflow_references(None),
-            "commands": workflow_commands(None, host),
-        }
+        return no_task_state(f"active work source={source}", host)
 
     status = str(work.get("status") or "unknown")
+    if status == "done":
+        return no_task_state(f"active work is done; source={source}", host)
+
     mode = str(work.get("mode") or "unknown")
     work_root = repo_relative(root, work_dir)
 
@@ -544,14 +646,79 @@ def cmd_list(args: argparse.Namespace, root: Path, key: str | None) -> int:
     return 0
 
 
+def coerce_string_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    if isinstance(value, str) and value:
+        return [value]
+    return []
+
+
+def planned_roadmap_items(root: Path, host: str) -> list[dict[str, Any]]:
+    base = root / CYRALIS_DIR / "roadmap"
+    if not base.is_dir():
+        return []
+
+    planned: list[dict[str, Any]] = []
+    for items_yaml in sorted(base.glob("*/*-items.yaml")):
+        data = read_yaml_mapping(items_yaml)
+        if not data:
+            continue
+        raw_items = data.get("items")
+        if not isinstance(raw_items, list):
+            continue
+        status_by_slug = {
+            str(item.get("slug")): str(item.get("status") or "unknown")
+            for item in raw_items
+            if isinstance(item, dict) and item.get("slug")
+        }
+        roadmap = str(data.get("roadmap") or items_yaml.parent.name)
+        for raw_item in raw_items:
+            if not isinstance(raw_item, dict):
+                continue
+            status = str(raw_item.get("status") or "unknown")
+            if status != "planned":
+                continue
+            slug = str(raw_item.get("slug") or "")
+            depends_on = coerce_string_list(raw_item.get("depends_on"))
+            blocked_by = [
+                dep for dep in depends_on
+                if status_by_slug.get(dep) != "done"
+            ]
+            if blocked_by:
+                next_step = f"wait for roadmap dependencies: {', '.join(blocked_by)}"
+            else:
+                next_step = "start feature design from roadmap item"
+            planned.append({
+                "path": repo_relative(root, items_yaml),
+                "roadmap_root": repo_relative(root, items_yaml.parent),
+                "roadmap": roadmap,
+                "slug": slug,
+                "status": status,
+                "description": raw_item.get("description") or "",
+                "depends_on": depends_on,
+                "blocked_by": blocked_by,
+                "ready": not blocked_by,
+                "feature": raw_item.get("feature"),
+                "minimal_loop": raw_item.get("minimal_loop") is True,
+                "notes": raw_item.get("notes"),
+                "host_skill": f".{host}/skills/cs-feat-design/SKILL.md",
+                "next": next_step,
+            })
+    return planned
+
+
 def build_summary(root: Path, key: str | None, host: str) -> dict[str, Any]:
     current = resolve_state(root, key, host)
     active_path = current.get("work_root") if isinstance(current.get("work_root"), str) else None
     items: list[dict[str, Any]] = []
+    roadmap_items = planned_roadmap_items(root, host)
     counts = {
         "total": 0,
         "open": 0,
         "done": 0,
+        "roadmap_planned": len(roadmap_items),
+        "roadmap_ready": sum(1 for item in roadmap_items if item.get("ready")),
         "by_mode": {},
         "by_status": {},
     }
@@ -575,6 +742,7 @@ def build_summary(root: Path, key: str | None, host: str) -> dict[str, Any]:
         "current": current if current.get("work_root") else None,
         "counts": counts,
         "items": items,
+        "roadmap_items": roadmap_items,
     }
 
 
@@ -582,10 +750,13 @@ def format_summary(summary: dict[str, Any]) -> str:
     counts = summary.get("counts") if isinstance(summary.get("counts"), dict) else {}
     current = summary.get("current") if isinstance(summary.get("current"), dict) else None
     items = summary.get("items") if isinstance(summary.get("items"), list) else []
+    roadmap_items = summary.get("roadmap_items") if isinstance(summary.get("roadmap_items"), list) else []
     lines = [
         "Cyralis work summary",
         f"Open: {counts.get('open', 0)} / Total: {counts.get('total', 0)} / Done: {counts.get('done', 0)}",
     ]
+    if counts.get("roadmap_planned", 0):
+        lines.append(f"Roadmap planned: {counts.get('roadmap_planned', 0)} / Ready: {counts.get('roadmap_ready', 0)}")
     if current:
         lines.append(f"Active: {current.get('work_root')} ({current.get('mode')}/{current.get('status')})")
         if current.get("next"):
@@ -594,17 +765,30 @@ def format_summary(summary: dict[str, Any]) -> str:
         lines.append("Active: none")
     lines.append("")
 
-    if not items:
+    if not items and not roadmap_items:
         lines.append("No unfinished work items.")
         return "\n".join(lines)
 
-    lines.append("Unfinished work:")
-    for item in items:
-        prefix = "*" if item.get("active") else "-"
-        title = f" - {item.get('title')}" if item.get("title") else ""
-        lines.append(f"{prefix} {item.get('path')} ({item.get('mode')}/{item.get('status')}){title}")
-        if item.get("next"):
-            lines.append(f"  next: {item.get('next')}")
+    if items:
+        lines.append("Unfinished work:")
+        for item in items:
+            prefix = "*" if item.get("active") else "-"
+            title = f" - {item.get('title')}" if item.get("title") else ""
+            lines.append(f"{prefix} {item.get('path')} ({item.get('mode')}/{item.get('status')}){title}")
+            if item.get("next"):
+                lines.append(f"  next: {item.get('next')}")
+        if roadmap_items:
+            lines.append("")
+
+    if roadmap_items:
+        lines.append("Planned roadmap items:")
+        for item in roadmap_items:
+            marker = "*" if item.get("ready") else "-"
+            suffix = " ready" if item.get("ready") else f" blocked by {', '.join(item.get('blocked_by') or [])}"
+            minimal = " minimal-loop" if item.get("minimal_loop") else ""
+            lines.append(f"{marker} {item.get('roadmap')}/{item.get('slug')} ({item.get('status')};{minimal}{suffix})")
+            if item.get("description"):
+                lines.append(f"  {item.get('description')}")
     return "\n".join(lines)
 
 

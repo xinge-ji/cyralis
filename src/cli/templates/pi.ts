@@ -198,10 +198,14 @@ function formatWorkSummaryLines(summary: Record<string, unknown>): string[] {
   const counts = isRecord(summary["counts"]) ? summary["counts"] : {};
   const current = isRecord(summary["current"]) ? summary["current"] : null;
   const items = Array.isArray(summary["items"]) ? summary["items"].filter(isRecord) : [];
+  const roadmapItems = Array.isArray(summary["roadmap_items"]) ? summary["roadmap_items"].filter(isRecord) : [];
   const lines = [
     "Cyralis work summary",
     "Open: " + valueText(counts["open"], "0") + " / Total: " + valueText(counts["total"], "0") + " / Done: " + valueText(counts["done"], "0"),
   ];
+  if (counts["roadmap_planned"]) {
+    lines.push("Roadmap planned: " + valueText(counts["roadmap_planned"], "0") + " / Ready: " + valueText(counts["roadmap_ready"], "0"));
+  }
   if (current) {
     lines.push("Active: " + valueText(current["work_root"], "-") + " (" + valueText(current["mode"], "-") + "/" + valueText(current["status"], "-") + ")");
     if (current["next"]) lines.push("Active next: " + valueText(current["next"], ""));
@@ -209,18 +213,32 @@ function formatWorkSummaryLines(summary: Record<string, unknown>): string[] {
     lines.push("Active: none");
   }
   lines.push("");
-  if (items.length === 0) {
+  if (items.length === 0 && roadmapItems.length === 0) {
     lines.push("No unfinished work items.");
     lines.push("");
     lines.push("Press Escape or q to close");
     return lines;
   }
-  lines.push("Unfinished work:");
-  for (const item of items) {
-    const prefix = item["active"] ? "*" : "-";
-    const title = item["title"] ? " - " + valueText(item["title"], "") : "";
-    lines.push(prefix + " " + valueText(item["path"], "-") + " (" + valueText(item["mode"], "-") + "/" + valueText(item["status"], "-") + ")" + title);
-    if (item["next"]) lines.push("  next: " + valueText(item["next"], ""));
+  if (items.length > 0) {
+    lines.push("Unfinished work:");
+    for (const item of items) {
+      const prefix = item["active"] ? "*" : "-";
+      const title = item["title"] ? " - " + valueText(item["title"], "") : "";
+      lines.push(prefix + " " + valueText(item["path"], "-") + " (" + valueText(item["mode"], "-") + "/" + valueText(item["status"], "-") + ")" + title);
+      if (item["next"]) lines.push("  next: " + valueText(item["next"], ""));
+    }
+    if (roadmapItems.length > 0) lines.push("");
+  }
+  if (roadmapItems.length > 0) {
+    lines.push("Planned roadmap items:");
+    for (const item of roadmapItems) {
+      const marker = item["ready"] ? "*" : "-";
+      const minimal = item["minimal_loop"] ? " minimal-loop" : "";
+      const blockedBy = Array.isArray(item["blocked_by"]) ? item["blocked_by"].map((value) => String(value)).join(", ") : "";
+      const suffix = item["ready"] ? " ready" : " blocked by " + blockedBy;
+      lines.push(marker + " " + valueText(item["roadmap"], "-") + "/" + valueText(item["slug"], "-") + " (" + valueText(item["status"], "-") + ";" + minimal + suffix + ")");
+      if (item["description"]) lines.push("  " + valueText(item["description"], ""));
+    }
   }
   lines.push("");
   lines.push("Press Escape or q to close");
