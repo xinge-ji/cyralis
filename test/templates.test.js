@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import { collectTemplates } from "../dist/cli/templates.js";
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
 
 test("pi template injects Cyralis context as a hidden system prompt", () => {
   const template = collectTemplates(["pi"]).get(
@@ -193,6 +198,55 @@ test("core templates install host-neutral workflow assets", () => {
   assert.match(workflow, /\.codex\/skills\/cs-feat-design\/SKILL\.md/);
   assert.match(workflow, /\.pi\/skills\/cs-feat-design\/SKILL\.md/);
   assert.doesNotMatch(workflow, /\.cyralis\/skills/);
+});
+
+test("codex templates do not install the legacy memory agent role", () => {
+  const templates = collectTemplates(["codex"]);
+
+  assert.ok(
+    !templates.get(".codex/agents/cyralis-memory.toml"),
+    "Codex context is injected by hooks, not a standalone agent role",
+  );
+});
+
+test("codex init removes the legacy managed memory agent role", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-codex-obsolete-agent-"));
+  const legacyPath = join(dir, ".codex", "agents", "cyralis-memory.toml");
+  const legacyContent = [
+    'name = "cyralis-memory"',
+    'description = "Use Cyralis context and memory boundaries when working in this repository."',
+    'instructions = """',
+    "legacy",
+    '"""',
+    "",
+  ].join("\n");
+
+  mkdirSync(join(dir, ".codex", "agents"), { recursive: true });
+  mkdirSync(join(dir, ".cyralis"), { recursive: true });
+  writeFileSync(legacyPath, legacyContent, "utf8");
+  writeFileSync(
+    join(dir, ".cyralis", ".template-hashes.json"),
+    JSON.stringify({
+      version: 1,
+      files: {
+        ".codex/agents/cyralis-memory.toml": sha256(legacyContent),
+      },
+    }, null, 2) + "\n",
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex", "--force"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /removed: 1/);
+  assert.equal(existsSync(legacyPath), false);
+  assert.ok(
+    !JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files[".codex/agents/cyralis-memory.toml"],
+    "obsolete agent role should not remain in the managed template manifest",
+  );
 });
 
 test("feature skills preserve cyralis-style phase boundaries", () => {

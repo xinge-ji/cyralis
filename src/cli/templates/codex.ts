@@ -355,22 +355,9 @@ if __name__ == "__main__":
     raise SystemExit(main())
 `;
 
-const codexAgent = `name = "cyralis-memory"
-description = "Use Cyralis context and memory boundaries when working in this repository."
-instructions = """
-Read .cyralis/workflow.md and .cyralis/config.yaml first. For feature work,
-load the matching cs-feat skill from the Codex skill projection. Workflow status is in the active
-work item's work.json; cyralis-style artifact status fields remain artifact
-metadata. Keep changes inside the context, workflow, and memory boundary unless
-the user explicitly expands scope. Treat UserPromptSubmit hook output as dynamic
-Cyralis user context, not as higher-priority system instructions.
-"""
-`;
-
 export const codexTemplates: Array<[string, string]> = [
   [".codex/config.toml", codexConfig],
   [".codex/hooks.json", codexHooks],
   [".codex/hooks/inject-context-memory.py", codexHook],
-  [".codex/agents/cyralis-memory.toml", codexAgent],
   ...hostSkillTemplates(".codex/skills"),
 ];
