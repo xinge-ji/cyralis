@@ -142,5 +142,5 @@ index.md 末尾给优先级建议：
 ## 相关文档
 
 - `reference.md` — index.md / finding-NN.md 模板
-- `.cyralis/reference/shared-conventions.md` — 跨工作流共享口径
+- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
 - `.cyralis/architecture/` — 架构偏离类发现对照源

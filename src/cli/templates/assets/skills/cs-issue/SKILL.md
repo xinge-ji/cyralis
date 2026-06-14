@@ -102,6 +102,8 @@ Cyralis workflow status 映射：标准路径 `design` = report，`implement` = 
 
 ## 相关文档
 
-- `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径
+- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
+- `.cyralis/reference/workflow-state.md` — work.json 状态协议
+- `.cyralis/reference/issue-debugging-principles.md` / `.cyralis/reference/issue-quick-lane.md` / `.cyralis/reference/issue-patch-shape.md` / `.cyralis/reference/issue-fix-gates.md` — issue 调试治理
 - 启动注意事项和项目硬约束
 - `.cyralis/architecture/ARCHITECTURE.md` — 根因分析时可能要查

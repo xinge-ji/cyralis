@@ -26,7 +26,7 @@ Glob `.cyralis/` 发现可用目录和文档，按需取用：
   ```
 - **`requirements/`** — 有相关 req 时读边界
 - **`features/`** — 有同类 feature 时参考其 design
-- **`reference/`** — shared-conventions.md / tools.md
+- **`reference/`** — paths-and-naming.md / tools.md
 
 ---
 
@@ -93,7 +93,7 @@ design / implement 的硬约束在 fastforward 的精简版。没 design doc 不
 - 往 `utils.ts` / `helpers.ts` 万能 util 堆东西
 - 新起概念名时先 grep 同名 / 近义命名
 
-完整清单看 `.cyralis/reference/shared-conventions.md` 第 8 节。
+完整清单看 `.cyralis/reference/implementation-reflection.md`。
 
 ---
 
@@ -175,12 +175,12 @@ tags: [...]
 
 ## 收尾提交
 
-按 `.cyralis/reference/shared-conventions.md` 第 5 节"scoped-commit"规则执行。本通道：
+按 `.cyralis/reference/completion-and-review.md` 的 scoped-commit 规则执行。本通道：
 
 - **提交范围**：本次代码改动 + `{slug}-ff-note.md`
 - ff-note 落盘后告诉用户"已就绪，是否代为 commit？"，用户明确同意才执行
 
-按 `shared-conventions.md` 第 3 节"feature-ff"收尾推荐顺序逐项一句话提示（用户"不用"立即跳过）：
+按 `.cyralis/reference/completion-and-review.md` 的 feature-ff 收尾推荐顺序逐项一句话提示（用户"不用"立即跳过）：
 
 1. 暴露的坑 → "沉淀 learning？（`cs-learn`）"
 2. 拍板的长期约束 → "归档决定？（`cs-decide`）"

@@ -1,4 +1,4 @@
-# feature-design 参考模板
+# Feature Design 契约
 
 本文件提供 `cs-feat-design` 使用的 `{slug}-design.md` / `{slug}-checklist.yaml` 参考格式。
 

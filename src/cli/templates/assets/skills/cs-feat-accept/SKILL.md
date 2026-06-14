@@ -18,7 +18,7 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 
 **没产出报告 = 工作流未完成**。后人查"上次这个功能验收时确认了哪些行为"，没报告就只能翻 git diff 重新推断。
 
-> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节。
+> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。
 
 ---
 
@@ -51,7 +51,7 @@ description: feature 流程阶段 3——验收闭环：对照 design 核实现 
 
 ## 验收报告模板
 
-逐节填写**别跳节**。报告路径在 feature 目录下（位置看 `shared-conventions.md` 第 0 节）。
+逐节填写**别跳节**。报告路径在 feature 目录下（位置看 `paths-and-naming.md`）。
 
 ```markdown
 ---
@@ -189,10 +189,10 @@ req 是能力愿景层，本节是 draft → current 升级和 backfill 的触�
   - 打开 `.cyralis/roadmap/{roadmap}/{roadmap}-items.yaml`
   - 找到 `slug: {roadmap_item}`，核对当前 `status: in-progress` + `feature: {目录名}`——不对停下来找原因
   - 改 `status: done`，用 `validate-yaml.py` 校验
-  - 同步 `{roadmap}-roadmap.md` 主文档第 3 节子 feature 清单的对应条目状态
+  - 同步 roadmap 主文档里的子 feature 清单对应条目状态
 - [ ] 两字段不一致（只填了一个）→ 停下来补齐或澄清
 
-衔接协议看 `shared-conventions.md` 第 2.5 节。和归并 / req 同规则：实际写文件的动作。
+衔接协议看 `.cyralis/reference/roadmap-feature-link.md`。和归并 / req 同规则：实际写文件的动作。
 
 ## 8. 启动 notes 候选盘点
 
@@ -223,7 +223,7 @@ req 是能力愿景层，本节是 draft → current 升级和 backfill 的触�
 
 ## 独立代码评审 gate
 
-这是对**已完成代码改动**的独立 review，不替代本技能的验收、归并、req 回写、roadmap 回写。共享口径看 `.cyralis/reference/shared-conventions.md` 第 4 节。
+这是对**已完成代码改动**的独立 review，不替代本技能的验收、归并、req 回写、roadmap 回写。共享口径看 `.cyralis/reference/completion-and-review.md`。
 
 ### 什么时候必须跑
 
@@ -276,7 +276,7 @@ review 结论只是 advisory，不等于本技能已完成；本技能自己的 
 
 告诉用户："验收报告已就绪，架构文档已归并，cs-feat 工作流走完。后续 BUG 走 issue 流程。"
 
-按 `shared-conventions.md` 第 3 节收尾推荐顺序逐项一句话提示（用户说"不用"立刻跳过）：
+按 `.cyralis/reference/completion-and-review.md` 的收尾推荐顺序逐项一句话提示（用户说"不用"立刻跳过）：
 
 1. 复用价值的坑点 / 经验 → "需要沉淀 learning 吗？（`cs-learn`）"
 2. 长期约束 / 技术选型 → "需要归档决定吗？（`cs-decide`）"
@@ -286,7 +286,7 @@ review 结论只是 advisory，不等于本技能已完成；本技能自己的 
 5. 第 8 节有启动 notes 候选 → 逐条问"候选 X 加到启动 notes 吗？" 用户明确同意 → 触发 `cs-note` 走分节归类 / 查重 / 软上限检查（不在 accept 里手写，避免和 cs-note 各搞一套口径）；**一次一条**
 6. 最后问是否代为 scoped-commit
 
-收尾提交规则看 `shared-conventions.md` 第 5 节。提交范围：功能代码 + 方案 doc + 验收报告 + 本次实际更新的架构 doc / req doc / roadmap items.yaml + 主文档。
+收尾提交规则看 `.cyralis/reference/completion-and-review.md`。提交范围：功能代码 + 方案 doc + 验收报告 + 本次实际更新的架构 doc / req doc / roadmap items.yaml + 主文档。
 
 ---
 

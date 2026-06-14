@@ -2,9 +2,7 @@
 
 work.json 是 Cyralis workflow 的状态事实源。
 
----
-
-## 1. 最小结构
+## 最小结构
 
 ```json
 {
@@ -42,9 +40,7 @@ work.json 是 Cyralis workflow 的状态事实源。
 }
 ```
 
----
-
-## 2. workflow status
+## Workflow status
 
 只允许：
 
@@ -56,9 +52,7 @@ work.json 是 Cyralis workflow 的状态事实源。
 
 work item 通常不写 no_task；没有 active work 时，session resolver 输出 no_task。
 
----
-
-## 3. artifact 字段
+## Artifact 字段
 
 design.approval 可以是 draft / approved。
 
@@ -68,9 +62,7 @@ acceptance.result 可以是 passed / failed / skipped / null。
 
 design 文档不写 `draft` / `approved`；批准状态只写 `artifacts.design.approval`。迁移旧文档时如果 frontmatter 仍有旧状态字段，以 `work.json` 为准。
 
----
-
-## 4. transition 规则
+## Transition 规则
 
 状态变更统一通过：
 
@@ -80,14 +72,14 @@ python .cyralis/tools/work.py transition <work-dir> <target-status>
 
 resolver / hook 只读状态；prompt 不直接手写 `work.json.status`。
 
-### feature
+### Feature
 
 - design -> implement：需要 `artifacts.design.approval=approved`，且 checklist 已生成
 - implement -> verify：需要 `artifacts.implementation.done=true`，或 checklist steps 全部完成
 - verify -> done：需要 `artifacts.acceptance.result=passed`
 - verify -> implement：`artifacts.acceptance.result=failed`
 
-### issue
+### Issue
 
 issue mode 使用同一组 workflow status，但语义映射为：
 
@@ -103,7 +95,7 @@ transition：
 - verify -> done：需要 `artifacts.fix.result=passed`，且 fix-note 已生成
 - verify -> implement：`artifacts.fix.result=failed`
 
-### refactor
+### Refactor
 
 refactor mode 映射：
 

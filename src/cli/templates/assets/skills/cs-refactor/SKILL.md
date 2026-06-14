@@ -196,7 +196,7 @@ refactor: {YYYY-MM-DD}-{slug}
 
 ## 独立代码评审 gate
 
-这是对**已完成 refactor diff** 的独立 review，不替代本技能的行为等价验证、apply-notes、用户目视确认。共享口径看 `.cyralis/reference/shared-conventions.md` 第 4 节。
+这是对**已完成 refactor diff** 的独立 review，不替代本技能的行为等价验证、apply-notes、用户目视确认。共享口径看 `.cyralis/reference/completion-and-review.md`。
 
 ### 什么时候必须跑
 
@@ -268,4 +268,6 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - `reference/scan-checklist-format.md` — scan 清单条目字段 / 顺序 / 硬约束
 - `reference/refusal-routing.md` — scan 前置检查 7 条 + 路由表
 - `reference/methods.md` — 方法库（L1-L4 四层分类）
-- `.cyralis/reference/shared-conventions.md` — 跨工作流共享口径
+- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
+- `.cyralis/reference/workflow-state.md` — work.json 状态协议
+- `.cyralis/reference/completion-and-review.md` — 独立评审和 scoped-commit

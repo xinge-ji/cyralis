@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import test from "node:test";
@@ -108,23 +108,43 @@ test("core templates install host-neutral workflow assets", () => {
     /helper: \.cyralis\/tools\/work\.py/,
   );
   assert.ok(
-    templates.get(".cyralis/reference/shared-conventions.md"),
-    "expected shared reference",
+    !templates.get(".cyralis/reference/shared-conventions.md"),
+    "shared conventions should be split and no longer installed",
+  );
+  assert.ok(
+    !templates.get(".cyralis/reference/feature-workflow.md"),
+    "feature workflow should be split and no longer installed",
+  );
+  assert.ok(
+    !templates.get(".cyralis/reference/work-json.md"),
+    "work-json should be merged and no longer installed",
+  );
+  assert.ok(
+    !templates.get(".cyralis/reference/debugging-governance.md"),
+    "debugging governance should be split and no longer installed",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/paths-and-naming.md"),
+    "expected paths and naming reference",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
+    "expected metadata and artifacts reference",
   );
   assert.match(
-    templates.get(".cyralis/reference/shared-conventions.md"),
+    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
     /Behavior Evaluation/,
   );
   assert.match(
-    templates.get(".cyralis/reference/shared-conventions.md"),
+    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
     /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这个小节/,
   );
   assert.match(
-    templates.get(".cyralis/reference/shared-conventions.md"),
+    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
     /Behavior Coverage/,
   );
   assert.match(
-    templates.get(".cyralis/reference/shared-conventions.md"),
+    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
     /technical-only/,
   );
   assert.ok(
@@ -132,27 +152,39 @@ test("core templates install host-neutral workflow assets", () => {
     "expected decision hygiene reference",
   );
   assert.ok(
-    templates.get(".cyralis/reference/debugging-governance.md"),
-    "expected debugging governance reference",
+    templates.get(".cyralis/reference/issue-debugging-principles.md"),
+    "expected issue debugging principles reference",
   );
   assert.ok(
-    templates.get(".cyralis/reference/feature-workflow.md"),
+    templates.get(".cyralis/reference/issue-quick-lane.md"),
+    "expected issue quick-lane reference",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/issue-patch-shape.md"),
+    "expected issue patch-shape reference",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/issue-fix-gates.md"),
+    "expected issue fix gates reference",
+  );
+  assert.ok(
+    templates.get(".cyralis/reference/feature-design-contract.md"),
     "expected feature reference",
   );
   assert.match(
-    templates.get(".cyralis/reference/feature-workflow.md"),
+    templates.get(".cyralis/reference/feature-design-contract.md"),
     /Behavior Evaluation（按需）/,
   );
   assert.match(
-    templates.get(".cyralis/reference/feature-workflow.md"),
+    templates.get(".cyralis/reference/feature-design-contract.md"),
     /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这里/,
   );
   assert.match(
-    templates.get(".cyralis/reference/feature-workflow.md"),
+    templates.get(".cyralis/reference/feature-design-contract.md"),
     /technical-only/,
   );
   assert.ok(
-    templates.get(".cyralis/reference/work-json.md"),
+    templates.get(".cyralis/reference/workflow-state.md"),
     "expected work json reference",
   );
   assert.ok(
@@ -282,6 +314,43 @@ test("init removes the legacy managed workflow guide", () => {
     !JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files[".cyralis/workflow.md"],
     "obsolete workflow guide should not remain in the managed template manifest",
   );
+});
+
+test("init removes obsolete managed reference files", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-obsolete-references-"));
+  const obsolete = {
+    ".cyralis/reference/shared-conventions.md": "# Shared\n\nlegacy\n",
+    ".cyralis/reference/work-json.md": "# Work JSON\n\nlegacy\n",
+    ".cyralis/reference/feature-workflow.md": "# Feature Workflow\n\nlegacy\n",
+    ".cyralis/reference/debugging-governance.md": "# Debugging Governance\n\nlegacy\n",
+  };
+
+  const files = {};
+  for (const [relativePath, content] of Object.entries(obsolete)) {
+    const absolutePath = join(dir, relativePath);
+    mkdirSync(dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, content, "utf8");
+    files[relativePath] = sha256(content);
+  }
+  mkdirSync(join(dir, ".cyralis"), { recursive: true });
+  writeFileSync(
+    join(dir, ".cyralis", ".template-hashes.json"),
+    JSON.stringify({ version: 1, files }, null, 2) + "\n",
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--pi", "--force"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /removed: 4/);
+  const manifest = JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8"));
+  for (const relativePath of Object.keys(obsolete)) {
+    assert.equal(existsSync(join(dir, relativePath)), false, `${relativePath} should be removed`);
+    assert.ok(!manifest.files[relativePath], `${relativePath} should not remain in the managed template manifest`);
+  }
 });
 
 test("init appends Cyralis AGENTS sections without overwriting an existing project guide", () => {
@@ -432,7 +501,7 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.ok(accept);
   assert.match(index, /本技能不写代码不写文档，只做一件事/);
   assert.match(design, /feature 流程阶段 1/);
-  assert.match(design, /第 2\.5 节"结构健康度与微重构"是固定步骤/);
+  assert.match(design, /"结构健康度与微重构"是固定步骤/);
   assert.match(implement, /方案文件够不够撑实现/);
   assert.match(implement, /写代码时的三条姿态/);
   assert.match(accept, /验收闭环/);
@@ -982,8 +1051,8 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   assert.equal(s1Data.mode, "feature");
   assert.match(s1Data.host_skill, /\.codex\/skills\/cs-feat-design\/SKILL\.md/);
   assert.ok(
-    s1Data.references.includes(".cyralis/reference/feature-workflow.md"),
-    "feature workflow references should come from work.py",
+    s1Data.references.includes(".cyralis/reference/feature-design-contract.md"),
+    "feature design references should come from work.py",
   );
   assert.match(s1Data.commands.transition, /work\.py transition \.cyralis\/features\/2026-06-01-demo-feature <target-status>/);
   const s2 = runPython(helper, [
@@ -1194,11 +1263,11 @@ test("all skill-like references have host skill projections", () => {
 
 test("source doc writer skills sync memory projections", () => {
   const templates = collectTemplates(["codex"]);
-  const shared = templates.get(".cyralis/reference/shared-conventions.md");
+  const metadata = templates.get(".cyralis/reference/metadata-and-artifacts.md");
   const tools = templates.get(".cyralis/reference/tools.md");
   const compoundWriters = ["cs-learn", "cs-trick", "cs-decide", "cs-explore"];
 
-  assert.match(shared, /cyralis memory sync/);
+  assert.match(metadata, /cyralis memory sync/);
   assert.match(tools, /cyralis memory sync --kind compound/);
   for (const skill of compoundWriters) {
     const body = templates.get(`.codex/skills/${skill}/SKILL.md`);

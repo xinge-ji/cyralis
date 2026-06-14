@@ -22,7 +22,7 @@ description: cyralis 工作流根入口，介绍体系全貌并把诉求路由�
 
 回应前每次都做：
 
-1. **存在**——必须先阅读 `.cyralis/reference/shared-conventions.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
+1. **存在**——必须先阅读 `.cyralis/reference/paths-and-naming.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
 2. **看用户原话**——开放式还是带具体诉求？带诉求匹配路由表，没诉求给体系介绍
 
 扫完才回应。让用户感觉你心里有数。
@@ -59,7 +59,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 
 **核心理念**：编排的是软件本身的生命周期（需求、架构、特性、bug、决策），不是 Agent。人在环——程序员对整体把控负责，AI 是高效执行体。
 
-> 项目已初始化的话更详细约定看 `.cyralis/reference/shared-conventions.md`。
+> 项目已初始化的话，路径命名看 `.cyralis/reference/paths-and-naming.md`；具体 workflow 口径按对应 reference 文件读取。
 
 ---
 
@@ -167,4 +167,4 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 - **不读写 `.cyralis/` 下的内容产物**——这些是子技能的事
 - **不替子技能做决策**——不在本技能做 brainstorm 分诊，不判 cs-arch 走哪个模式
 - **不一次推荐多个技能**——每次只指一条路；两个独立诉求分两轮
-- **不重复共享约定细节**——`.cyralis/reference/shared-conventions.md` 才是权威完整版
+- **不重复 reference 细节**——本技能只路由；具体规则由对应 `reference/*.md` 文件承载

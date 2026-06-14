@@ -23,11 +23,11 @@ AI 对话随时可能中断（token 超限、网络断开、用户换设备）�
 
 ### 跨阶段新约束
 
-如果发现某条规则适用于所有阶段（例如所有 spec doc 都必须补某个字段），优先写进共享 reference（`shared-conventions.md`），不要只改一个子技能。
+如果发现某条规则适用于多个阶段（例如所有 spec doc 都必须补某个字段），优先按主题写进对应 reference，不要只改一个子技能。路径命名进 `paths-and-naming.md`，元数据进 `metadata-and-artifacts.md`，workflow 状态进 `workflow-state.md`，收尾评审进 `completion-and-review.md`。
 
 ### 新模板 / 新产物类型
 
-如果引入新的 spec 产物（例如风险评估表、回滚预案），先在 `shared-conventions.md` 登记路径，再在对应阶段技能里引用。
+如果引入新的 spec 产物（例如风险评估表、回滚预案），先在 `paths-and-naming.md` 登记路径；若它有通用 frontmatter 或状态规则，同步更新 `metadata-and-artifacts.md` 或 `workflow-state.md`，再在对应阶段技能里引用。
 
 ### 共享术语表
 
@@ -35,7 +35,7 @@ AI 对话随时可能中断（token 超限、网络断开、用户换设备）�
 
 ### 跨工作流状态一览
 
-目前查看"项目当前有几个 feature 在进行中、几个 issue 未关闭"仍需要手动查询。未来如要补 `status.py` 或 `.cyralis/STATUS.md`，先在 `shared-conventions.md` 登记方向，再实现。
+目前查看"项目当前有几个 feature 在进行中、几个 issue 未关闭"仍需要手动查询。未来如要补 `status.py` 或 `.cyralis/STATUS.md`，先在 `paths-and-naming.md` 登记路径，并在 `workflow-state.md` 说明它和 `work.json` 的关系，再实现。
 
 ---
 

@@ -9,7 +9,7 @@ description: feature 流程阶段 2——按 {slug}-checklist.yaml 里 design �
 
 到这一步用户已经在方案上签过字了，你的活是把方案变成代码。容易出问题的不是写代码本身，而是**实现路上发现方案没覆盖到的情况时怎么办**——硬冲下去就把方案当摆设了。下面整套规则就是为了让"停下来"成为默认动作。
 
-> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节。
+> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。
 
 ---
 
@@ -98,7 +98,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 不做方案外的改动
 
-发现值得重构的点（参考 `.cyralis/reference/shared-conventions.md` 第 8 节"写代码时的反射检查"），只要**不在本次功能影响面内**就记成后续 issue：
+发现值得重构的点（参考 `.cyralis/reference/implementation-reflection.md`），只要**不在本次功能影响面内**就记成后续 issue：
 
 ```markdown
 > 顺手发现：{文件:行号} {问题简述}。不在本次范围，记录待后续 issue。
@@ -124,7 +124,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 代码质量反射检查
 
-除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/shared-conventions.md` 第 8 节。
+除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/implementation-reflection.md`。
 
 核心：**不是"超过 N 行必须拆"，而是"遇到 X 情况就停下来问自己"**。每条对应 AI 默认会走进去的坑（往大文件继续追加、往大类加方法、补丁分支、复制粘贴、第 4+ 个参数、往万能 util 堆东西）。
 
@@ -161,7 +161,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 {是 / 否。是的话说明已回填方案 doc（补第 0 节 + 第 2.1 节）并做过 grep 防冲突}
 
 ### 代码质量反射检查自检
-{对照 shared-conventions 第 8 节，触发哪些信号 + 怎么处理；都没触发写"无触发"}
+{对照 implementation-reflection.md，触发哪些信号 + 怎么处理；都没触发写"无触发"}
 
 ### 推进顺序退出信号核对
 {对照 steps 逐条列 action + exit_signal + status（应全为 done）}

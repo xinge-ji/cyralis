@@ -7,13 +7,13 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 ## 启动必读
 
-同时读取 `.cyralis/reference/debugging-governance.md`，不只要找到 file:line，还要说明诊断停在哪一层、canonical owner 是谁、有没有 Patch-Shape 风险、能不能以至少 `B` 置信度进入修复。
+同时读取 `.cyralis/reference/issue-debugging-principles.md`，不只要找到 file:line，还要说明诊断停在哪一层、canonical owner 是谁、有没有 Patch-Shape 风险、能不能以至少 `B` 置信度进入修复。
 
 用户已把问题描述清楚，你的活是**通过实际读代码找根因**——不是脑子里推断、不是在报告基础上猜。读代码是核心动作，跳过它写出来的分析没价值。
 
 分析完不直接动手——给用户看 2-3 种修复方案让 TA 选。原因：根因往往有多种修法，影响面 / 副作用 / 改动范围各不相同，这是用户该拍板的事。
 
-> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节和 `cs-issue` 的"文件放哪儿"。
+> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md` 和 `cs-issue` 的"文件放哪儿"。
 
 ---
 
@@ -26,7 +26,7 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
    - 部分填写 → 汇报"上次做到第 X 步，从第 Y 步继续"
 4. **把上下文读全**：
    - 问题报告全文
-   - `.cyralis/reference/debugging-governance.md`
+   - `.cyralis/reference/issue-debugging-principles.md`
    - 报告里提到的相关文件（用 Glob / Grep 找别只凭描述）
    - **扫 .cyralis/ 全局**——Glob `.cyralis/` 发现可用输入，按需取用：`architecture/`（涉及跨模块时读 ARCHITECTURE.md）、`compound/`（用 search-yaml.py 搜相关 trick / explore / learning，命中在分析开头标注引用）、`requirements/`（涉及能力边界时读）
 
@@ -48,13 +48,13 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 对照复现步骤把代码执行路径走一遍：用户触发什么 → 调哪个函数 → 数据怎么流 → 哪里分叉走错。描述"正常路径"和"失败路径"的分叉点。**分叉点 = 根因候选**。
 
-还原路径时按 `debugging-governance.md` 的 L1-L7 诊断层级上钻：症状 → 逻辑 → 系统边界 → 架构 / duplicate owner / fallback → contract → platform → spec gap。停止层会影响修复边界时，在 analysis 里写 `Layer Stop Card`。
+还原路径时按 `issue-debugging-principles.md` 的 L1-L7 诊断层级上钻：症状 → 逻辑 → 系统边界 → 架构 / duplicate owner / fallback → contract → platform → spec gap。停止层会影响修复边界时，在 analysis 里写 `Layer Stop Card`。
 
 ### 步骤 3：确认根因
 
 单一 vs 多个根因；多个根因列出主次。
 
-必须明确 **canonical owner**：哪个模块 / 文件应该拥有这个正确性。多个 owner 或 duplicate parsing 不是正常现象，要作为发现写出来。候选修复命中 local guard、fallback、adapter、consumer-side patch、sample exception 等 Patch-Shape 信号时，按 `debugging-governance.md` 写 PatchShape / Minimality Check。若结论是 `needs decision-hygiene review`，读取 `.cyralis/reference/decision-hygiene.md`，用五行检查或方案卫生升级重新判断 owner / Repair Track，再回到本分析文档。
+必须明确 **canonical owner**：哪个模块 / 文件应该拥有这个正确性。多个 owner 或 duplicate parsing 不是正常现象，要作为发现写出来。候选修复命中 local guard、fallback、adapter、consumer-side patch、sample exception 等 Patch-Shape 信号时，按 `.cyralis/reference/issue-patch-shape.md` 写 PatchShape / Minimality Check。若结论是 `needs decision-hygiene review`，读取 `.cyralis/reference/decision-hygiene.md`，用五行检查或方案卫生升级重新判断 owner / Repair Track，再回到本分析文档。
 
 **根因分类**：
 - 逻辑错误（条件判断 / 边界值缺失）

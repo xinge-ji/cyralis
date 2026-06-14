@@ -25,7 +25,7 @@ description: UI 领域辅助技能。用于 feature / issue / refactor 流程中
 - 不创建 phase / slot / item DAG
 - 不写 `.cyralis` workflow status
 
-详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/shared-conventions.md`、`.cyralis/reference/feature-workflow.md` 和 `.cyralis/reference/debugging-governance.md`。跨层 contract / payload / projection 风险按 `.cyralis/reference/cross-layer-thinking.md`，复用 / shared component / duplicate state 风险按 `.cyralis/reference/code-reuse-thinking.md`。
+详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/paths-and-naming.md`、`.cyralis/reference/feature-design-contract.md` 和 `.cyralis/reference/issue-debugging-principles.md`。跨层 contract / payload / projection 风险按 `.cyralis/reference/cross-layer-thinking.md`，复用 / shared component / duplicate state 风险按 `.cyralis/reference/code-reuse-thinking.md`。
 
 ---
 
@@ -135,7 +135,7 @@ description: UI 领域辅助技能。用于 feature / issue / refactor 流程中
 | schema / validation | client-side input shape and local validation | 替代 server authorization or source-of-truth rules |
 | store / cache | cross-screen state, cache key, invalidation | 收容一次性页面状态 |
 
-命中 local guard、presentation-only patch、duplicate state、downstream re-parse、fallback branch 时，按 `.cyralis/reference/debugging-governance.md` 做 Patch-Shape Triage。
+命中 local guard、presentation-only patch、duplicate state、downstream re-parse、fallback branch 时，按 `.cyralis/reference/issue-patch-shape.md` 做 Patch-Shape Triage。
 
 ---
 

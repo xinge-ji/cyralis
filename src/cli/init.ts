@@ -27,6 +27,10 @@ const csNoteAnchor = "<!-- cs-note managed: 用 cs-note 维护，新条目按下
 const obsoleteManagedFiles: Array<{ path: string; platform?: Platform }> = [
   { path: ".codex/agents/cyralis-memory.toml", platform: "codex" },
   { path: ".cyralis/workflow.md" },
+  { path: ".cyralis/reference/shared-conventions.md" },
+  { path: ".cyralis/reference/work-json.md" },
+  { path: ".cyralis/reference/feature-workflow.md" },
+  { path: ".cyralis/reference/debugging-governance.md" },
 ];
 
 export async function initCommand(argv: string[]): Promise<void> {

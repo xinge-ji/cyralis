@@ -9,7 +9,7 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
 
 这一阶段的产出是一份方案文件 `{slug}-design.md`，加上从中抽出的行动清单 `{slug}-checklist.yaml`。这两份东西后面会被两个阶段消费——implement 照着推进、acceptance 照着核对，所以这里写错或写漏，下游就跟着错。
 
-> 共享路径和命名约定看 `.cyralis/reference/shared-conventions.md`。本阶段一般 feature 目录已经由 brainstorm 创建好了；没有的话在这一步建。
+> 共享路径和命名约定看 `.cyralis/reference/paths-and-naming.md`。本阶段一般 feature 目录已经由 brainstorm 创建好了；没有的话在这一步建。
 
 本阶段有三个入口：
 
@@ -75,7 +75,7 @@ description: feature 流程阶段 1——为新功能起草 {slug}-design.md 作
 4. **创建 feature 目录 / 落 draft 时回写 items.yaml**：对应条目 `status: in-progress` + `feature: YYYY-MM-DD-{slug}`，用 `validate-yaml.py` 校验。不要等方案批准后才回写，否则 roadmap 会看不到这条子 feature 已经启动
 5. **用户确认方案后写 `work.json.artifacts.design.approval: approved`，生成 checklist 后执行 `python .cyralis/tools/work.py transition .cyralis/features/{YYYY-MM-DD}-{slug} implement`**
 
-完整衔接协议看 `.cyralis/reference/shared-conventions.md` 第 2.5 节。
+完整衔接协议看 `.cyralis/reference/roadmap-feature-link.md`。
 
 ---
 
@@ -128,7 +128,7 @@ design 只管"编排-计算分离"里的编排那一侧：**这次 feature 在�
 
 回答："如果想把它拔掉，要拔哪些地方？" 答不出说明边界没想清楚，feature 一上线就变成拆不动的既成事实。
 
-落到挂载点清单（第 2.3 节）。**判据**：删掉这一项，feature 在用户/系统视角是不是就消失了？是→列，否→不列。详细 ✅/❌ 例子和写法看 .cyralis/reference/feature-workflow.md。这清单顺带帮你发现自己有没有不小心往太多地方插桩——真挂入点越多代表耦合越散，是个信号。
+落到设计文档的挂载点清单。**判据**：删掉这一项，feature 在用户/系统视角是不是就消失了？是→列，否→不列。详细 ✅/❌ 例子和写法看 `.cyralis/reference/feature-design-contract.md`。这清单顺带帮你发现自己有没有不小心往太多地方插桩——真挂入点越多代表耦合越散，是个信号。
 
 ---
 
@@ -163,11 +163,11 @@ design 只管"编排-计算分离"里的编排那一侧：**这次 feature 在�
 
 - **术语 grep 防冲突**——新概念名没在代码 / 架构 / 历史 feature 里见过时，grep 一遍；冲突就换名或在第 0 节明确区分
 - **复杂度档位对齐**——需求里出现"对外 SDK / 高并发 / 一次性工具"等偏离信号时，打开 `.cyralis/reference/code-dimensions.md` 列偏离点；无信号写"走默认档位"
-- **跨层边界检查**——feature 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser 时，读取 `.cyralis/reference/cross-layer-thinking.md`，在第 1 节或第 2.2 节写短 `Cross-Layer Check`
+- **跨层边界检查**——feature 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser 时，读取 `.cyralis/reference/cross-layer-thinking.md`，在 design 的决策或编排部分写短 `Cross-Layer Check`
 - **复用与单一 owner 检查**——feature 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或同类逻辑已有 2 处以上时，读取 `.cyralis/reference/code-reuse-thinking.md`，在第 2.1 / 2.5 节写短 `Code Reuse Check`
 - **grep 找"叫法不同的类似模块"**——直觉"可能已有人做过但命名不同"时，grep 同义词
 
-归档检索规则看 `.cyralis/reference/shared-conventions.md` 第 6 节；决策卫生看 `.cyralis/reference/decision-hygiene.md`。
+归档检索规则看 `.cyralis/reference/compound-archive.md`；决策卫生看 `.cyralis/reference/decision-hygiene.md`。
 
 ### 2. 想清楚这功能该放在哪儿
 
@@ -180,7 +180,7 @@ design 只管"编排-计算分离"里的编排那一侧：**这次 feature 在�
 
 代价：放错了模块就变"什么都装的筐"；新建平行实现就有几个版本同存。
 
-结论写进第 1 节"决策与约束"。涉及新建模块或跨模块接口时同步写进第 4 节，提示在 `ARCHITECTURE.md` 加指向。
+结论写进 design 的决策与约束部分。涉及新建模块或跨模块接口时同步写进设计里的架构关系部分，提示在 `ARCHITECTURE.md` 加指向。
 
 AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
@@ -200,7 +200,7 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 ### 3. 写"现状 → 变化"两段式的名词层和编排层
 
-按 `.cyralis/reference/feature-workflow.md` 模板写第 2 节五个子节（2.1 名词层 / 2.2 编排层 / 2.3 挂载点 / 2.4 推进策略 / 2.5 结构健康度与微重构）。重点提示：
+读取 `.cyralis/reference/feature-design-contract.md`，按其中的 feature design 契约写 design 的"名词与编排"章节（名词层 / 编排层 / 挂载点 / 推进策略 / 结构健康度与微重构）。重点提示：
 
 - "现状"必须指向代码位置，不能想当然——读者要靠它判断"变化"是否合理
 - **产品风险检查（按信号触发）**——涉及用户可见行为 / UI workflow / 产品策略 / 多方案价值取舍 / 成功标准仍带判断时，在第 1 节写 `Value / Non-goals / Trade-offs / Decision needed` 四行；纯内部能力或技术性 feature 不写，避免重复需求摘要
@@ -208,7 +208,7 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 - 编排层开头一张 mermaid 图建 mental model
 - 挂载点按"删了它 feature 是否消失"判据，3-5 条为正常区间
 - 推进策略按 paradigm 维度切片（编排骨架 → 计算节点 → 持久化 → 测试），不下沉到 file:line
-- **第 2.5 节"结构健康度与微重构"是固定步骤**——按 .cyralis/reference/feature-workflow.md 写作要求评估**两类对象**：要改的文件（文件级）+ 要落新文件的目标目录（目录级）。**评估前先查 compound 已有 convention**（关键词围绕"目录组织 / 文件归属 / 命名约定"），命中就直接照办。结论三选一：
+- **"结构健康度与微重构"是固定步骤**——按 `.cyralis/reference/feature-design-contract.md` 的写作要求评估**两类对象**：要改的文件（文件级）+ 要落新文件的目标目录（目录级）。**评估前先查 compound 已有 convention**（关键词围绕"目录组织 / 文件归属 / 命名约定"），命中就直接照办。结论三选一：
   1. **不做**——文件健康 / 目录不挤 / 改动量小 / 微重构收益不抵风险，写"本次不做微重构，原因：……"
   2. **做微重构（拆文件）**——文件偏胖或职责混杂但能用 provable refactor（拆函数 / 拆文件 / 移动定义，编译器全程绿灯）解决
   3. **做微重构（重组目录）**——目标目录摊平且能通过纯文件移动 + import 路径更新解决（编译器全程绿灯）
@@ -221,7 +221,7 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 ### 4. 补齐剩下各节，整稿一次性给 self-review
 
-按 .cyralis/reference/feature-workflow.md 模板补齐剩余节（第 0 / 3 / 4 节）。初稿落盘后写 `work.json.status="design"`，并写 `work.json.artifacts.design.approval="draft"`。
+按 `.cyralis/reference/feature-design-contract.md` 的 feature design 契约补齐剩余节（第 0 / 3 / 4 节）。初稿落盘后写 `work.json.status="design"`，并写 `work.json.artifacts.design.approval="draft"`。
 
 整稿成型后先做 design self-review，通过后才交给用户看。**不分批 review**——分批用户只看到局部，发现不了"第 1 节范围跟第 2 节变化对不上"这种跨节问题。
 
@@ -270,11 +270,11 @@ AI 默认翻车的姿势是**不思考就往眼前最顺手的文件里加**。
 
 ### 5. 整体 review
 
-Design self-review Approved 后，发一次整体 review 提示（提示词在 `.cyralis/reference/feature-workflow.md` 第 5 节）。用户提意见就改；如果修改触及 roadmap 对齐、接口 / 字段 / 状态、边界、验收契约、2.5 微重构结论，必须针对受影响部分重跑 self-review（改动很大就全量重跑）。反复直到放行，把 `work.json.artifacts.design.approval` 从 `draft` 改 `approved`；checklist 生成后用 `python .cyralis/tools/work.py transition <feature-dir> implement` 进入 implement，不手写 `work.json.status`。
+Design self-review Approved 后，按 `.cyralis/reference/feature-design-contract.md` 里的 review 提示发一次整体 review。用户提意见就改；如果修改触及 roadmap 对齐、接口 / 字段 / 状态、边界、验收契约、2.5 微重构结论，必须针对受影响部分重跑 self-review（改动很大就全量重跑）。反复直到放行，把 `work.json.artifacts.design.approval` 从 `draft` 改 `approved`；checklist 生成后用 `python .cyralis/tools/work.py transition <feature-dir> implement` 进入 implement，不手写 `work.json.status`。
 
 ### 6. 生成 {slug}-checklist.yaml
 
-方案确认后，**先做 Checklist 压力检查**，确认 design 已经足够支撑 checklist，再从 `{slug}-design.md` 抽出 `steps` + `checks` 落到 `{slug}-checklist.yaml`。完整格式、提取规则、典型节奏看 .cyralis/reference/feature-workflow.md 第 3 节。
+方案确认后，**先做 Checklist 压力检查**，确认 design 已经足够支撑 checklist，再从 `{slug}-design.md` 抽出 `steps` + `checks` 落到 `{slug}-checklist.yaml`。完整格式、提取规则、典型节奏看 `.cyralis/reference/feature-design-contract.md`。
 
 压力检查只回答 checklist readiness，不重新做设计：
 

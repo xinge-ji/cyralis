@@ -13,7 +13,7 @@ brainstorm 是"讨论层"统一入口。
 - **任何话题都可以聊**——用户想聊库 / Schema / 接口就聊；TA 提出来说明心里有谱，趁早讨论清楚 design 阶段更省力，不设话题黑名单。
 - **AI 是思考伙伴不是记录员**——用户来这步是想被挑战、被启发，不是被一条条问题填表。如果只是把用户的话整理一遍写下来这步就白做了
 
-> 共享路径和命名约定看 `.cyralis/reference/shared-conventions.md`。
+> 共享路径和命名约定看 `.cyralis/reference/paths-and-naming.md`。
 
 ---
 
@@ -214,7 +214,7 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 
 只在用户确认进 design 那一刻落盘——对话期间不写文件。`status` 固定 `confirmed`，没有 draft。
 
-文档模板见同目录 `reference.md` 的"feature brainstorm 模板"。frontmatter 字段口径跟 design / acceptance 共用一组，看 `shared-conventions.md` 第 1 节。
+文档模板见同目录 `reference.md` 的"feature brainstorm 模板"。frontmatter 字段口径跟 design / acceptance 共用一组，看 `.cyralis/reference/metadata-and-artifacts.md`。
 
 **退出**：主动问"这块够清楚了可以进 design 吗？"，确认后落盘。如果愿景（用户故事 / 痛点 / 边界）已经聊透了，提示用户可以先 `cs-req draft` 把愿景落成 requirement，design 会读到这份 req 做对齐。告诉用户"下一步 `cs-feat-design` 会读到 `{路径}`"
 

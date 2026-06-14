@@ -25,24 +25,56 @@ export const coreTemplates: Array<[string, string]> = [
   ],
   [".cyralis/tools/work.py", readAsset("cyralis/tools/work.py")],
   [
-    ".cyralis/reference/shared-conventions.md",
-    readAsset("cyralis/reference/shared-conventions.md"),
+    ".cyralis/reference/paths-and-naming.md",
+    readAsset("cyralis/reference/paths-and-naming.md"),
+  ],
+  [
+    ".cyralis/reference/metadata-and-artifacts.md",
+    readAsset("cyralis/reference/metadata-and-artifacts.md"),
+  ],
+  [
+    ".cyralis/reference/workflow-state.md",
+    readAsset("cyralis/reference/workflow-state.md"),
+  ],
+  [
+    ".cyralis/reference/feature-design-contract.md",
+    readAsset("cyralis/reference/feature-design-contract.md"),
+  ],
+  [
+    ".cyralis/reference/roadmap-feature-link.md",
+    readAsset("cyralis/reference/roadmap-feature-link.md"),
+  ],
+  [
+    ".cyralis/reference/completion-and-review.md",
+    readAsset("cyralis/reference/completion-and-review.md"),
+  ],
+  [
+    ".cyralis/reference/compound-archive.md",
+    readAsset("cyralis/reference/compound-archive.md"),
+  ],
+  [
+    ".cyralis/reference/implementation-reflection.md",
+    readAsset("cyralis/reference/implementation-reflection.md"),
   ],
   [
     ".cyralis/reference/decision-hygiene.md",
     readAsset("cyralis/reference/decision-hygiene.md"),
   ],
   [
-    ".cyralis/reference/debugging-governance.md",
-    readAsset("cyralis/reference/debugging-governance.md"),
+    ".cyralis/reference/issue-debugging-principles.md",
+    readAsset("cyralis/reference/issue-debugging-principles.md"),
   ],
   [
-    ".cyralis/reference/feature-workflow.md",
-    readAsset("cyralis/reference/feature-workflow.md"),
+    ".cyralis/reference/issue-quick-lane.md",
+    readAsset("cyralis/reference/issue-quick-lane.md"),
   ],
   [
-    ".cyralis/reference/work-json.md",
-    readAsset("cyralis/reference/work-json.md"),
+    ".cyralis/reference/issue-patch-shape.md",
+    readAsset("cyralis/reference/issue-patch-shape.md"),
+  ],
+  [
+    ".cyralis/reference/issue-fix-gates.md",
+    readAsset("cyralis/reference/issue-fix-gates.md"),
   ],
   [
     ".cyralis/reference/code-dimensions.md",

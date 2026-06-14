@@ -21,7 +21,7 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 **为什么文件夹不是单文件**：拆解过程会产生草稿 / 调研 / 方案对比 / 白板转述，塞一份 md 会乱又舍不得删。每个 roadmap 一个子目录，主文档对外口径，旁边 `drafts/` 随便堆。
 
-> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。主文档和 items 完整模板看同目录 `reference.md`。
+> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。主文档和 items 完整模板看同目录 `reference.md`。
 
 ---
 

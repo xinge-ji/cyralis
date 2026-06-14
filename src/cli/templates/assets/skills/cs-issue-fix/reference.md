@@ -20,7 +20,7 @@
 {是 / 否}
 
 ### 复现步骤走一遍
-{按 {slug}-report.md 第 2 节复现步骤走一遍；快速通道则按 quick-lane 启动摘要里的复现信号与验证路径执行。结果是否符合期望行为?}
+{按 report 里的复现步骤走一遍；快速通道则按 quick-lane 启动摘要里的复现信号与验证路径执行。结果是否符合期望行为?}
 
 ### Debugging Closure
 - Reproduction before: {修复前失败信号}

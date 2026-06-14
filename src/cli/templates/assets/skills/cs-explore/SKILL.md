@@ -20,7 +20,7 @@ description: 对仓库做定向代码探索并把"提问→读代码→得结论
 
 本技能只负责"看到了什么"的证据化记录。用户意图是别的（拍板 / 处方 / 修 bug）让用户按场景选对应子技能。
 
-> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-explore-{slug}.md`，frontmatter 带 `doc_type: explore`。
+> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-explore-{slug}.md`，frontmatter 带 `doc_type: explore`。
 
 ---
 
@@ -60,7 +60,7 @@ frontmatter / 正文结构 / 各节写法说明和示例见同目录 `reference.
 
 ### Phase 1.5：查重叠与意图分流（必做）
 
-按 `shared-conventions.md` §6 第 5/6 条执行：
+按 `.cyralis/reference/compound-archive.md` 执行：
 
 - 含"更新 / 复查 / 某次 explore / 这个模块之前探过"或指向某份旧 explore → 走**更新或 supersede**。explore 特性：**代码已变导致旧结论失效**时旧文档 `status: outdated` + 新建一份（supersede）；只补证据 / 收紧结论但核心结论未变时走"更新已有"
 - 否则用搜索工具按关键词 / 模块查一遍，命中相近旧 explore 时先读它，能直接回答就告诉用户"已有一份在 {路径}，复用还是重探一遍？"
@@ -87,7 +87,7 @@ frontmatter / 正文结构 / 各节写法说明和示例见同目录 `reference.
 
 - 新建：写入 `.cyralis/compound/YYYY-MM-DD-explore-{slug}.md`，frontmatter 带 `doc_type: explore`
 - 更新：写回 Phase 1.5 定位的原文件 + `updated: YYYY-MM-DD`
-- supersede：按 `shared-conventions.md` §6 第 5 条；旧文档 `status: outdated` + `superseded-by`
+- supersede：按 `.cyralis/reference/compound-archive.md`；旧文档 `status: outdated` + `superseded-by`
 - 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `outdated` 时也对旧路径跑一次
 
 ### Phase 5：给出下一步建议
@@ -126,7 +126,7 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=e
 
 ## 守护规则
 
-> 归档类共享规则见 `shared-conventions.md` 第 6 节。本技能特有反模式：
+> 归档类共享规则见 `.cyralis/reference/compound-archive.md`。本技能特有反模式：
 
 - 不读代码直接给结论
 - 证据只写"看起来像"不写 file:line

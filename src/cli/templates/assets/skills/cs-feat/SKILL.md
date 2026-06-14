@@ -109,6 +109,8 @@ brainstorm 是讨论层独立入口，会分诊：case 1（清楚 → 直接 des
 
 ## 相关文档
 
-- `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径、目录结构、checklist 生命周期
+- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
+- `.cyralis/reference/feature-design-contract.md` — design / checklist 契约
+- `.cyralis/reference/workflow-state.md` — work.json 状态协议
 - 启动注意事项和项目硬约束
 - 项目架构总入口 — 方案设计阶段需要查
