@@ -284,6 +284,141 @@ test("init removes the legacy managed workflow guide", () => {
   );
 });
 
+test("init appends Cyralis AGENTS sections without overwriting an existing project guide", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-agents-"));
+  const agentsPath = join(dir, "AGENTS.md");
+  const existing = [
+    "# Existing Agents",
+    "",
+    "Keep this repository-specific guidance.",
+    "",
+  ].join("\n");
+  writeFileSync(agentsPath, existing, "utf8");
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /updated: /);
+  assert.doesNotMatch(result.stdout, /conflicts: [1-9]/);
+
+  const updated = readFileSync(agentsPath, "utf8");
+  assert.ok(updated.startsWith(existing), "existing AGENTS content should stay at the top");
+  assert.match(updated, /## 项目碎片知识/);
+  assert.match(updated, /<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->/);
+  assert.match(updated, /### 编译与构建/);
+  assert.match(updated, /### 运行与本地起服务/);
+  assert.match(updated, /### 测试/);
+  assert.doesNotMatch(
+    updated,
+    /开发遵循SOLID和KISS软件工程原则/,
+    "existing AGENTS files should receive only the Cyralis note skeleton",
+  );
+});
+
+test("init ignores lower-case agents files and manages only AGENTS.md", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-lower-agents-"));
+  const lowerAgentsPath = join(dir, "agents.md");
+  const lowerAgentsContent = "# Existing Agents\n\nKeep this file name.\n";
+  writeFileSync(lowerAgentsPath, lowerAgentsContent, "utf8");
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(lowerAgentsPath, "utf8"), lowerAgentsContent);
+  assert.match(readFileSync(join(dir, "AGENTS.md"), "utf8"), /## 项目碎片知识/);
+  assert.ok(
+    JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files["AGENTS.md"],
+    "manifest should track only AGENTS.md",
+  );
+});
+
+test("init leaves existing AGENTS note sections unchanged even with force", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-agents-sections-"));
+  const agentsPath = join(dir, "AGENTS.md");
+  const existing = [
+    "# Existing Agents",
+    "",
+    "Project-specific guidance.",
+    "",
+    "## 项目碎片知识",
+    "",
+    "<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->",
+    "",
+    "### 编译与构建",
+    "",
+    "- Build with npm.",
+    "",
+    "### 运行与本地起服务",
+    "",
+    "### 测试",
+    "",
+    "### 命令与脚本陷阱",
+    "",
+    "### 路径与目录约定",
+    "",
+    "### 环境变量与凭证",
+    "",
+    "### 其他",
+    "",
+  ].join("\n");
+  writeFileSync(agentsPath, existing, "utf8");
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex", "--force"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(agentsPath, "utf8"), existing);
+  assert.doesNotMatch(result.stdout, /conflicts: [1-9]/);
+});
+
+test("init adds missing AGENTS note subsections without duplicating existing ones", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-partial-agents-sections-"));
+  const agentsPath = join(dir, "AGENTS.md");
+  writeFileSync(
+    agentsPath,
+    [
+      "# Existing Agents",
+      "",
+      "## 项目碎片知识",
+      "",
+      "### 编译与构建",
+      "",
+      "- Build with npm.",
+      "",
+      "## Other Guidance",
+      "",
+      "Keep this after the note block.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const updated = readFileSync(agentsPath, "utf8");
+  assert.equal((updated.match(/### 编译与构建/g) ?? []).length, 1);
+  assert.match(updated, /<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->/);
+  assert.match(updated, /### 运行与本地起服务/);
+  assert.match(updated, /### 其他/);
+  assert.match(updated, /## Other Guidance/);
+  assert.ok(
+    updated.indexOf("### 其他") < updated.indexOf("## Other Guidance"),
+    "missing note subsections should stay inside the project knowledge section",
+  );
+});
+
 test("feature skills preserve cyralis-style phase boundaries", () => {
   const templates = collectTemplates(["codex"]);
   const index = templates.get(".codex/skills/cs-feat/SKILL.md");

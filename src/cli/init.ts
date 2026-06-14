@@ -14,6 +14,16 @@ interface WriteResult {
   status: "created" | "updated" | "unchanged" | "conflict" | "removed";
 }
 
+interface MarkdownHeading {
+  level: number;
+  text: string;
+  index: number;
+}
+
+const agentsTemplatePath = "AGENTS.md";
+const projectKnowledgeHeading = "项目碎片知识";
+const csNoteAnchor = "<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->";
+
 const obsoleteManagedFiles: Array<{ path: string; platform?: Platform }> = [
   { path: ".codex/agents/cyralis-memory.toml", platform: "codex" },
   { path: ".cyralis/workflow.md" },
@@ -27,7 +37,7 @@ export async function initCommand(argv: string[]): Promise<void> {
   const results: WriteResult[] = [];
 
   for (const [relativePath, content] of templates) {
-    results.push(writeManagedFile(options.cwd, relativePath, content, options.force));
+    results.push(writeTemplateFile(options.cwd, relativePath, content, options.force));
   }
 
   results.push(...removeObsoleteManagedFiles(options.cwd, options.platforms, previousManifest));
@@ -43,6 +53,13 @@ export async function initCommand(argv: string[]): Promise<void> {
   if (summary.conflict > 0) {
     console.log("Conflicting files were left untouched. Re-run with --force to overwrite managed files.");
   }
+}
+
+function writeTemplateFile(cwd: string, relativePath: string, content: string, force: boolean): WriteResult {
+  if (relativePath === agentsTemplatePath) {
+    return writeAgentsFile(cwd, content);
+  }
+  return writeManagedFile(cwd, relativePath, content, force);
 }
 
 function parseInitArgs(argv: string[]): InitOptions {
@@ -92,6 +109,142 @@ function parseInitArgs(argv: string[]): InitOptions {
   }
 
   return { cwd: resolve(cwd), platforms, force };
+}
+
+function writeAgentsFile(cwd: string, content: string): WriteResult {
+  const absolutePath = join(cwd, agentsTemplatePath);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  const normalized = content.endsWith("\n") ? content : `${content}\n`;
+  try {
+    const current = readFileSync(absolutePath, "utf8");
+    const merged = mergeAgentsContent(current, normalized);
+    if (current === merged) return { path: agentsTemplatePath, status: "unchanged" };
+    writeFileSync(absolutePath, merged, "utf8");
+    return { path: agentsTemplatePath, status: "updated" };
+  } catch (err) {
+    if (!isNotFound(err)) throw err;
+    writeFileSync(absolutePath, normalized, "utf8");
+    return { path: agentsTemplatePath, status: "created" };
+  }
+}
+
+function mergeAgentsContent(current: string, template: string): string {
+  const projectKnowledgeBlock = buildProjectKnowledgeSkeleton(template);
+  const currentHeadings = parseMarkdownHeadings(current);
+  const projectKnowledge = currentHeadings.find((heading) => heading.text === projectKnowledgeHeading);
+
+  if (!projectKnowledge) {
+    return appendMarkdownBlock(current, projectKnowledgeBlock);
+  }
+
+  const requiredHeadings = parseMarkdownHeadings(projectKnowledgeBlock)
+    .filter((heading) => heading.text !== projectKnowledgeHeading);
+  const sectionHeadings = headingsInSection(currentHeadings, projectKnowledge);
+  const missingHeadings = requiredHeadings
+    .filter((required) => !sectionHeadings.some((heading) => heading.text === required.text));
+  if (missingHeadings.length === 0) return current;
+
+  const missingBlock = [
+    sectionContent(current, currentHeadings, projectKnowledge).includes("<!-- cs-note managed") ? null : csNoteAnchor,
+    ...missingHeadings.map((heading) => `${"#".repeat(heading.level)} ${heading.text}`),
+  ].filter((line): line is string => Boolean(line)).join("\n\n");
+
+  return insertMarkdownBlockInSection(current, projectKnowledge, missingBlock);
+}
+
+function buildProjectKnowledgeSkeleton(template: string): string {
+  const headings = parseMarkdownHeadings(template);
+  const projectKnowledge = headings.find((heading) => heading.text === projectKnowledgeHeading);
+  if (!projectKnowledge) {
+    throw new Error(`AGENTS template is missing ${projectKnowledgeHeading}`);
+  }
+  const requiredHeadings = [
+    projectKnowledge,
+    ...headingsInSection(headings, projectKnowledge),
+  ];
+  return [
+    `${"#".repeat(projectKnowledge.level)} ${projectKnowledge.text}`,
+    csNoteAnchor,
+    ...requiredHeadings
+      .filter((heading) => heading !== projectKnowledge)
+      .map((heading) => `${"#".repeat(heading.level)} ${heading.text}`),
+  ].join("\n\n");
+}
+
+function insertMarkdownBlockInSection(content: string, section: MarkdownHeading, block: string): string {
+  const headings = parseMarkdownHeadings(content);
+  const sectionEnd = headings.find(
+    (heading) => heading.index > section.index && heading.level <= section.level,
+  )?.index;
+  if (sectionEnd === undefined) return appendMarkdownBlock(content, block);
+  return insertMarkdownBlockAt(content, sectionEnd, block);
+}
+
+function headingsInSection(headings: MarkdownHeading[], section: MarkdownHeading): MarkdownHeading[] {
+  return headings.filter(
+    (heading) => heading.index > section.index
+      && heading.index < sectionEndIndex(headings, section)
+      && heading.level > section.level,
+  );
+}
+
+function sectionContent(content: string, headings: MarkdownHeading[], section: MarkdownHeading): string {
+  return content.slice(section.index, sectionEndIndex(headings, section));
+}
+
+function sectionEndIndex(headings: MarkdownHeading[], section: MarkdownHeading): number {
+  return headings.find(
+    (heading) => heading.index > section.index && heading.level <= section.level,
+  )?.index ?? Number.POSITIVE_INFINITY;
+}
+
+function appendMarkdownBlock(content: string, block: string): string {
+  return insertMarkdownBlockAt(content, content.length, block);
+}
+
+function insertMarkdownBlockAt(content: string, index: number, block: string): string {
+  const before = content.slice(0, index);
+  const after = content.slice(index);
+  const normalizedBlock = block.trimEnd();
+  const prefix = before.length === 0 || before.endsWith("\n\n")
+    ? ""
+    : before.endsWith("\n")
+      ? "\n"
+      : "\n\n";
+  const suffix = after.length === 0
+    ? "\n"
+    : after.startsWith("\n\n")
+      ? ""
+      : after.startsWith("\n")
+        ? "\n"
+        : "\n\n";
+  return `${before}${prefix}${normalizedBlock}${suffix}${after}`;
+}
+
+function parseMarkdownHeadings(content: string): MarkdownHeading[] {
+  const headings: MarkdownHeading[] = [];
+  let index = 0;
+  let inFence = false;
+  for (const line of content.split(/(?<=\n)/)) {
+    const fence = /^\s{0,3}(```|~~~)/.test(line);
+    if (fence) {
+      inFence = !inFence;
+      index += line.length;
+      continue;
+    }
+
+    const match = /^( {0,3})(#{1,6})\s+(.+?)\s*$/.exec(line.trimEnd());
+    if (!inFence && match) {
+      const headingText = match[3].replace(/\s+#+\s*$/, "").trim();
+      headings.push({
+        level: match[2].length,
+        text: headingText,
+        index: index + match[1].length,
+      });
+    }
+    index += line.length;
+  }
+  return headings;
 }
 
 function writeManagedFile(cwd: string, relativePath: string, content: string, force: boolean): WriteResult {
