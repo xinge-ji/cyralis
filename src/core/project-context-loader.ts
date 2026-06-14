@@ -22,13 +22,6 @@ export async function loadProjectContext(options: LoadProjectContextOptions): Pr
       content: architectureIndex,
     });
   }
-  entries.push({
-    title: "Cyralis source roots",
-    content: [
-      "architecture_source_root: .cyralis/architecture",
-      "compound_source_root: .cyralis/compound",
-    ].join("\n"),
-  });
   return entries;
 }
 

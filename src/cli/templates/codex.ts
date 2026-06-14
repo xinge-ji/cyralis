@@ -276,23 +276,11 @@ def print_recall_hints(root: Path, query: str) -> None:
 def print_project_context(root: Path) -> None:
     config = root / ".cyralis" / "config.yaml"
     workflow = root / ".cyralis" / "workflow.md"
-    reference = root / ".cyralis" / "reference"
-    templates = root / ".cyralis" / "templates"
-    roadmap = root / ".cyralis" / "roadmap"
-    features = root / ".cyralis" / "features"
-    issues = root / ".cyralis" / "issues"
-    refactors = root / ".cyralis" / "refactors"
     architecture_index = root / ".cyralis" / "architecture" / "ARCHITECTURE.md"
 
     print("[project_context]")
     print(f"config: {config}")
     print(f"workflow: {workflow}")
-    print(f"reference_root: {reference}")
-    print(f"template_root: {templates}")
-    print(f"roadmap_root: {roadmap}")
-    print(f"feature_root: {features}")
-    print(f"issue_root: {issues}")
-    print(f"refactor_root: {refactors}")
     for label, path, limit in [
         (".cyralis/architecture/ARCHITECTURE.md", architecture_index, 10000),
     ]:

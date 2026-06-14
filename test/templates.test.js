@@ -27,10 +27,13 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.match(template, /\[session_identity\]/);
   assert.match(template, /\[project_context\]/);
   assert.doesNotMatch(template, /host_skill_root:/);
-  assert.match(template, /reference_root:/);
-  assert.match(template, /template_root:/);
+  assert.doesNotMatch(template, /reference_root:/);
+  assert.doesNotMatch(template, /template_root:/);
   assert.doesNotMatch(template, /memory_root:/);
-  assert.match(template, /feature_root:/);
+  assert.doesNotMatch(template, /roadmap_root:/);
+  assert.doesNotMatch(template, /feature_root:/);
+  assert.doesNotMatch(template, /issue_root:/);
+  assert.doesNotMatch(template, /refactor_root:/);
   assert.doesNotMatch(
     template,
     /result\.messages\s*=/,
@@ -384,9 +387,12 @@ test("codex hook exposes workflow and project paths", () => {
   assert.match(hook, /\[project_context\]/);
   assert.doesNotMatch(hook, /host_skill_root:/);
   assert.doesNotMatch(hook, /memory_root:/);
-  assert.match(hook, /reference = root \/ "\.cyralis" \/ "reference"/);
-  assert.match(hook, /templates = root \/ "\.cyralis" \/ "templates"/);
-  assert.match(hook, /features = root \/ "\.cyralis" \/ "features"/);
+  assert.doesNotMatch(hook, /reference_root:/);
+  assert.doesNotMatch(hook, /template_root:/);
+  assert.doesNotMatch(hook, /roadmap_root:/);
+  assert.doesNotMatch(hook, /feature_root:/);
+  assert.doesNotMatch(hook, /issue_root:/);
+  assert.doesNotMatch(hook, /refactor_root:/);
   assert.match(
     hook,
     /architecture_index = root \/ "\.cyralis" \/ "architecture" \/ "ARCHITECTURE\.md"/,
@@ -416,6 +422,12 @@ test("pi extension injects dynamic workflow state", () => {
   assert.doesNotMatch(template, /memory_projection_root:/);
   assert.doesNotMatch(template, /host_skill_root:/);
   assert.doesNotMatch(template, /memory_root:/);
+  assert.doesNotMatch(template, /reference_root:/);
+  assert.doesNotMatch(template, /template_root:/);
+  assert.doesNotMatch(template, /roadmap_root:/);
+  assert.doesNotMatch(template, /feature_root:/);
+  assert.doesNotMatch(template, /issue_root:/);
+  assert.doesNotMatch(template, /refactor_root:/);
   assert.doesNotMatch(template, /Workflow skills are projected/);
   assert.doesNotMatch(template, /Full architecture and compound documents/);
   assert.match(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);

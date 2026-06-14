@@ -131,12 +131,6 @@ function buildProjectContext(root: string): string[] {
     "[project_context]",
     "config: " + join(root, ".cyralis", "config.yaml"),
     "workflow: " + join(root, ".cyralis", "workflow.md"),
-    "reference_root: " + join(root, ".cyralis", "reference"),
-    "template_root: " + join(root, ".cyralis", "templates"),
-    "roadmap_root: " + join(root, ".cyralis", "roadmap"),
-    "feature_root: " + join(root, ".cyralis", "features"),
-    "issue_root: " + join(root, ".cyralis", "issues"),
-    "refactor_root: " + join(root, ".cyralis", "refactors"),
   ];
   for (const [label, file, maxChars] of [
     [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],

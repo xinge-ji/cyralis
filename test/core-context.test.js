@@ -129,7 +129,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   assert.equal(recallMessage.hints[0].id, "mem_pi");
 });
 
-test("loadProjectContext includes architecture index but not compound docs", async () => {
+test("loadProjectContext includes architecture index without source roots", async () => {
   const dir = mkdtempSync(join(tmpdir(), "cyralis-project-context-"));
   mkdirSync(join(dir, ".cyralis", "architecture"), { recursive: true });
   mkdirSync(join(dir, ".cyralis", "compound"), { recursive: true });
@@ -140,10 +140,11 @@ test("loadProjectContext includes architecture index but not compound docs", asy
 
   assert.deepEqual(entries.map((entry) => entry.path ?? entry.title), [
     ".cyralis/architecture/ARCHITECTURE.md",
-    "Cyralis source roots",
   ]);
   const text = entries.map((entry) => entry.content).join("\n");
   assert.match(text, /Project architecture/);
+  assert.doesNotMatch(text, /architecture_source_root/);
+  assert.doesNotMatch(text, /compound_source_root/);
   assert.doesNotMatch(text, /memory_projection_root/);
   assert.doesNotMatch(text, /Full architecture and compound documents/);
   assert.doesNotMatch(text, /Hidden learning/);
