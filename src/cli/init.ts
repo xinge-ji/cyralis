@@ -14,8 +14,9 @@ interface WriteResult {
   status: "created" | "updated" | "unchanged" | "conflict" | "removed";
 }
 
-const obsoleteManagedFiles = [
-  ".codex/agents/cyralis-memory.toml",
+const obsoleteManagedFiles: Array<{ path: string; platform?: Platform }> = [
+  { path: ".codex/agents/cyralis-memory.toml", platform: "codex" },
+  { path: ".cyralis/workflow.md" },
 ];
 
 export async function initCommand(argv: string[]): Promise<void> {
@@ -126,11 +127,12 @@ function removeObsoleteManagedFiles(
   platforms: Platform[],
   manifest: { version: number; files: Record<string, string> } | null,
 ): WriteResult[] {
-  if (!platforms.includes("codex")) return [];
   const files = manifest?.files;
   if (!files) return [];
   const results: WriteResult[] = [];
-  for (const relativePath of obsoleteManagedFiles) {
+  for (const obsolete of obsoleteManagedFiles) {
+    if (obsolete.platform && !platforms.includes(obsolete.platform)) continue;
+    const relativePath = obsolete.path;
     if (!files[relativePath]) continue;
     const absolutePath = join(cwd, relativePath);
     try {

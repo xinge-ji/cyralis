@@ -26,6 +26,32 @@ WORK_ROOTS = {
     "issue": "issues",
     "refactor": "refactors",
 }
+COMMON_REFERENCES = [
+    ".cyralis/reference/shared-conventions.md",
+    ".cyralis/reference/work-json.md",
+    ".cyralis/reference/tools.md",
+]
+MODE_REFERENCES = {
+    "roadmap": [
+        ".cyralis/reference/decision-hygiene.md",
+    ],
+    "feature": [
+        ".cyralis/reference/feature-workflow.md",
+        ".cyralis/reference/decision-hygiene.md",
+        ".cyralis/reference/cross-layer-thinking.md",
+        ".cyralis/reference/code-reuse-thinking.md",
+    ],
+    "issue": [
+        ".cyralis/reference/debugging-governance.md",
+        ".cyralis/reference/cross-layer-thinking.md",
+        ".cyralis/reference/code-reuse-thinking.md",
+    ],
+    "refactor": [
+        ".cyralis/reference/code-dimensions.md",
+        ".cyralis/reference/cross-layer-thinking.md",
+        ".cyralis/reference/code-reuse-thinking.md",
+    ],
+}
 
 
 def find_root(start: Path) -> Path | None:
@@ -399,6 +425,33 @@ def host_skill(host: str, mode: str, status: str, work: dict[str, Any] | None = 
     return f"{root}/{skill}/SKILL.md"
 
 
+def workflow_references(mode: str | None) -> list[str]:
+    refs = list(COMMON_REFERENCES)
+    if mode in MODE_REFERENCES:
+        refs.extend(MODE_REFERENCES[mode])
+    seen: set[str] = set()
+    unique: list[str] = []
+    for ref in refs:
+        if ref in seen:
+            continue
+        seen.add(ref)
+        unique.append(ref)
+    return unique
+
+
+def workflow_commands(work_root: str | None, host: str) -> dict[str, str]:
+    commands = {
+        "resolve": f"python .cyralis/tools/work.py resolve --json --host {host}",
+        "summary": f"python .cyralis/tools/work.py summary --json --host {host}",
+        "list": "python .cyralis/tools/work.py list --json",
+    }
+    if work_root:
+        commands["transition"] = f"python .cyralis/tools/work.py transition {work_root} <target-status>"
+    else:
+        commands["activate"] = "python .cyralis/tools/work.py activate <work-dir>"
+    return commands
+
+
 def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
     status = str(work.get("status") or "unknown")
     mode = str(work.get("mode") or "unknown")
@@ -419,7 +472,7 @@ def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
         "implement": pending or f"continue {mode} implementation/apply work",
         "verify": f"run {mode} verification/acceptance",
         "done": "summarize and clear active work when appropriate",
-    }.get(status, "refer to workflow.md")
+    }.get(status, "inspect resolver output with `python .cyralis/tools/work.py resolve --json`")
 
 
 def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
@@ -433,21 +486,26 @@ def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
             "next": "classify the request and create or activate a work item",
             "reason": f"active work source={source}",
             "blockers": [],
+            "references": workflow_references(None),
+            "commands": workflow_commands(None, host),
         }
 
     status = str(work.get("status") or "unknown")
     mode = str(work.get("mode") or "unknown")
+    work_root = repo_relative(root, work_dir)
 
     return {
         "status": status,
         "mode": mode,
-        "work_root": repo_relative(root, work_dir),
+        "work_root": work_root,
         "id": work.get("id") or work_dir.name,
         "title": work.get("title") or "",
         "host_skill": host_skill(host, mode, status, work),
         "next": workflow_next(work_dir, work),
         "reason": f"work.json status={status}; source={source}",
         "blockers": [],
+        "references": workflow_references(mode),
+        "commands": workflow_commands(work_root, host),
     }
 
 
@@ -461,9 +519,18 @@ def build_breadcrumb(root: Path, key: str | None, host: str) -> str:
         f"mode: {state.get('mode') or '-'}",
         f"host_skill: {state.get('host_skill') or '-'}",
         f"next: {state.get('next')}",
-        "workflow: .cyralis/workflow.md",
-        "</workflow-state>",
     ]
+    references = state.get("references")
+    if isinstance(references, list) and references:
+        lines.append("references:")
+        for ref in references:
+            lines.append(f"- {ref}")
+    commands = state.get("commands")
+    if isinstance(commands, dict) and commands:
+        lines.append("commands:")
+        for name, command in commands.items():
+            lines.append(f"- {name}: {command}")
+    lines.append("</workflow-state>")
     return "\n".join(lines)
 
 

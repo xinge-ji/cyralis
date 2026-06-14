@@ -4,7 +4,7 @@ memory_root: .cyralis/memory
 max_recent_turns: 10
 
 workflow:
-  guide: .cyralis/workflow.md
+  helper: .cyralis/tools/work.py
   host_skill_roots:
     codex: .codex/skills
     pi: .pi/skills

@@ -23,7 +23,7 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.match(template, /work\.py/);
   assert.match(template, /summary", "--json", "--host", "pi"/);
   assert.match(template, /systemPrompt:/);
-  assert.match(template, /workflow:/);
+  assert.match(template, /workflow_helper:/);
   assert.match(template, /\[session_identity\]/);
   assert.match(template, /\[project_context\]/);
   assert.doesNotMatch(template, /host_skill_root:/);
@@ -98,7 +98,15 @@ test("core templates install host-neutral workflow assets", () => {
   );
   assert.match(templates.get(".cyralis/tools/work.py"), /next:/);
   assert.match(templates.get(".cyralis/tools/work.py"), /cmd_summary/);
-  assert.match(templates.get(".cyralis/workflow.md"), /work\.py summary --json/);
+  assert.match(templates.get(".cyralis/tools/work.py"), /workflow_references/);
+  assert.ok(
+    !templates.get(".cyralis/workflow.md"),
+    "workflow guide markdown should not be installed",
+  );
+  assert.match(
+    templates.get(".cyralis/config.yaml"),
+    /helper: \.cyralis\/tools\/work\.py/,
+  );
   assert.ok(
     templates.get(".cyralis/reference/shared-conventions.md"),
     "expected shared reference",
@@ -192,15 +200,7 @@ test("core templates install host-neutral workflow assets", () => {
     "feature acceptance markdown template should not be installed",
   );
 
-  const workflow = templates.get(".cyralis/workflow.md");
-  assert.ok(workflow, "expected workflow template");
-  assert.match(workflow, /\[workflow-state:no_task\]/);
-  assert.match(workflow, /\[workflow-state:design\]/);
-  assert.match(workflow, /\[workflow-state:implement\]/);
-  assert.match(workflow, /\[workflow-state:verify\]/);
-  assert.match(workflow, /\.codex\/skills\/cs-feat-design\/SKILL\.md/);
-  assert.match(workflow, /\.pi\/skills\/cs-feat-design\/SKILL\.md/);
-  assert.doesNotMatch(workflow, /\.cyralis\/skills/);
+  assert.doesNotMatch(templates.get(".cyralis/tools/work.py"), /\.cyralis\/skills/);
 });
 
 test("codex templates do not install the legacy memory agent role", () => {
@@ -249,6 +249,38 @@ test("codex init removes the legacy managed memory agent role", () => {
   assert.ok(
     !JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files[".codex/agents/cyralis-memory.toml"],
     "obsolete agent role should not remain in the managed template manifest",
+  );
+});
+
+test("init removes the legacy managed workflow guide", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-obsolete-workflow-"));
+  const workflowPath = join(dir, ".cyralis", "workflow.md");
+  const workflowContent = "# Cyralis Workflow\n\nlegacy guide\n";
+
+  mkdirSync(join(dir, ".cyralis"), { recursive: true });
+  writeFileSync(workflowPath, workflowContent, "utf8");
+  writeFileSync(
+    join(dir, ".cyralis", ".template-hashes.json"),
+    JSON.stringify({
+      version: 1,
+      files: {
+        ".cyralis/workflow.md": sha256(workflowContent),
+      },
+    }, null, 2) + "\n",
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--pi", "--force"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /removed: 1/);
+  assert.equal(existsSync(workflowPath), false);
+  assert.ok(
+    !JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files[".cyralis/workflow.md"],
+    "obsolete workflow guide should not remain in the managed template manifest",
   );
 });
 
@@ -382,9 +414,10 @@ test("codex hook exposes workflow and project paths", () => {
   );
 
   assert.ok(hook, "expected codex hook template");
-  assert.match(hook, /workflow = root \/ "\.cyralis" \/ "workflow\.md"/);
+  assert.match(hook, /workflow_helper = root \/ "\.cyralis" \/ "tools" \/ "work\.py"/);
   assert.match(hook, /\[session_identity\]/);
   assert.match(hook, /\[project_context\]/);
+  assert.doesNotMatch(hook, /\.cyralis" \/ "workflow\.md"/);
   assert.doesNotMatch(hook, /host_skill_root:/);
   assert.doesNotMatch(hook, /memory_root:/);
   assert.doesNotMatch(hook, /reference_root:/);
@@ -438,10 +471,12 @@ test("pi extension injects dynamic workflow state", () => {
   assert.match(template, /<cyralis-recall>/);
   assert.match(template, /CYRALIS_PI_DUMP_PROVIDER_REQUEST/);
   assert.match(template, /return undefined/);
-  assert.match(template, /currentWorkRef/);
-  assert.match(template, /\.pi\/skills/);
+  assert.ok(templates.get(".pi/skills/cs-feat-design/SKILL.md"));
   assert.match(template, /<workflow-state>/);
-  assert.match(template, /next:/);
+  assert.match(template, /breadcrumb", "--host", "pi"/);
+  assert.match(template, /work\.py breadcrumb/);
+  assert.match(template, /workflow_helper:/);
+  assert.doesNotMatch(template, /workflow: "\s*\+ join\(root, "\.cyralis", "workflow\.md"\)/);
   assert.ok(
     !templates.get(".pi/skills/cyralis-memory/SKILL.md"),
     "memory is injected by Pi hooks, not a standalone skill",
@@ -633,7 +668,6 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   const templates = collectTemplates([]);
   const dir = mkdtempSync(join(tmpdir(), "cyralis-work-"));
   const helper = join(dir, ".cyralis", "tools", "work.py");
-  const workflow = join(dir, ".cyralis", "workflow.md");
   const featureDir = join(
     dir,
     ".cyralis",
@@ -653,7 +687,6 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   mkdirSync(issueDir, { recursive: true });
   mkdirSync(doneIssueDir, { recursive: true });
   writeFileSync(helper, templates.get(".cyralis/tools/work.py"), "utf8");
-  writeFileSync(workflow, templates.get(".cyralis/workflow.md"), "utf8");
   writeFileSync(
     join(featureDir, "demo-feature-checklist.yaml"),
     [
@@ -767,7 +800,14 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "resolve",
     "--json",
   ]);
-  assert.equal(JSON.parse(s1.stdout).mode, "feature");
+  const s1Data = JSON.parse(s1.stdout);
+  assert.equal(s1Data.mode, "feature");
+  assert.match(s1Data.host_skill, /\.codex\/skills\/cs-feat-design\/SKILL\.md/);
+  assert.ok(
+    s1Data.references.includes(".cyralis/reference/feature-workflow.md"),
+    "feature workflow references should come from work.py",
+  );
+  assert.match(s1Data.commands.transition, /work\.py transition \.cyralis\/features\/2026-06-01-demo-feature <target-status>/);
   const s2 = runPython(helper, [
     "--cwd",
     dir,
@@ -777,6 +817,19 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "--json",
   ]);
   assert.equal(JSON.parse(s2.stdout).mode, "issue");
+
+  const breadcrumb = runPython(helper, [
+    "--cwd",
+    dir,
+    "--context-key",
+    "s1",
+    "breadcrumb",
+    "--host",
+    "codex",
+  ]);
+  assert.match(breadcrumb.stdout, /references:/);
+  assert.match(breadcrumb.stdout, /commands:/);
+  assert.doesNotMatch(breadcrumb.stdout, /\.cyralis\/workflow\.md/);
 
   const summary = runPython(helper, [
     "--cwd",

@@ -130,7 +130,7 @@ function buildProjectContext(root: string): string[] {
   const lines = [
     "[project_context]",
     "config: " + join(root, ".cyralis", "config.yaml"),
-    "workflow: " + join(root, ".cyralis", "workflow.md"),
+    "workflow_helper: " + join(root, ".cyralis", "tools", "work.py"),
   ];
   for (const [label, file, maxChars] of [
     [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],
@@ -519,123 +519,32 @@ function safeJson(value: unknown): string {
   }, 2);
 }
 
-function readJson(file: string): Record<string, unknown> | null {
-  try {
-    const value = JSON.parse(readFileSync(file, "utf8"));
-    return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-  } catch {
-    return null;
-  }
-}
-
-function currentWorkRef(root: string, event?: PiEvent): string | null {
-  const sessions = join(root, ".cyralis", "runtime", "sessions");
-  const key = contextKey(event);
-  if (key) {
-    const data = readJson(join(sessions, key + ".json"));
-    const current = data?.current_work;
-    if (typeof current === "string" && current) return current;
-  }
-  try {
-    const files = readdirSync(sessions).filter((name) => name.endsWith(".json"));
-    if (files.length === 1) {
-      const data = readJson(join(sessions, files[0]));
-      const current = data?.current_work;
-      if (typeof current === "string" && current) return current;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-function resolveWorkDir(root: string, ref: string): string | null {
-  const direct = resolve(root, ref);
-  if (existsSync(join(direct, "work.json"))) return direct;
-  for (const folder of ["features", "issues", "refactors", "roadmap"]) {
-    const base = join(root, ".cyralis", folder);
-    try {
-      for (const name of readdirSync(base)) {
-        const candidate = join(base, name);
-        if ((name === ref || name.endsWith("-" + ref)) && existsSync(join(candidate, "work.json"))) {
-          return candidate;
-        }
-      }
-    } catch {
-      // Missing work roots are valid in new projects.
-    }
-  }
-  return null;
-}
-
-function artifact(work: Record<string, unknown> | null, name: string): Record<string, unknown> {
-  const artifacts = work?.artifacts;
-  if (!artifacts || typeof artifacts !== "object" || Array.isArray(artifacts)) return {};
-  const value = (artifacts as Record<string, unknown>)[name];
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-}
-
-function issueQuickLane(work: Record<string, unknown> | null): boolean {
-  return work?.mode === "issue" && artifact(work, "fix").quick_lane === true;
-}
-
-function workflowNext(status: string, mode: string, work: Record<string, unknown> | null = null): string {
-  if (mode === "issue") {
-    if (status === "design") return "continue issue report planning";
-    if (status === "implement" && issueQuickLane(work)) return "run issue quick-lane fix";
-    if (status === "implement") return "continue issue root-cause analysis";
-    if (status === "verify") return "run issue standard fix verification";
-    if (status === "done") return "summarize and clear active work when appropriate";
-  }
-  if (status === "design") return "continue " + mode + " design/report planning";
-  if (status === "implement") return "continue " + mode + " implementation/apply work";
-  if (status === "verify") return "run " + mode + " verification/acceptance";
-  if (status === "done") return "summarize and clear active work when appropriate";
-  return "classify the request and create or activate a work item";
-}
-
-function piSkill(mode: string, status: string, work: Record<string, unknown> | null = null): string {
-  if (mode === "feature") {
-    const name = status === "design" ? "cs-feat-design" : status === "implement" ? "cs-feat-impl" : status === "verify" ? "cs-feat-accept" : "cs-feat";
-    return ".pi/skills/" + name + "/SKILL.md";
-  }
-  if (mode === "issue") {
-    const name = status === "design" ? "cs-issue-report" : status === "implement" && issueQuickLane(work) ? "cs-issue-fix" : status === "implement" ? "cs-issue-analyze" : status === "verify" ? "cs-issue-fix" : "cs-issue";
-    return ".pi/skills/" + name + "/SKILL.md";
-  }
-  if (mode === "refactor") return ".pi/skills/cs-refactor/SKILL.md";
-  if (mode === "roadmap") return ".pi/skills/cs-roadmap/SKILL.md";
-  return "-";
-}
-
-function repoRelative(root: string, path: string): string {
-  const normalizedRoot = resolve(root);
-  const normalizedPath = resolve(path);
-  return normalizedPath.startsWith(normalizedRoot) ? normalizedPath.slice(normalizedRoot.length + 1).replace(/\\\\/g, "/") : path;
-}
-
 function buildWorkflowState(root: string, event?: PiEvent): string {
-  const ref = currentWorkRef(root, event);
-  if (!ref) {
+  const helper = join(root, ".cyralis", "tools", "work.py");
+  if (!existsSync(helper)) {
     return [
       "<workflow-state>",
       "Status: no_task",
-      "next: " + workflowNext("no_task", "-", null),
-      "workflow: .cyralis/workflow.md",
+      "Cyralis workflow helper missing: " + helper,
       "</workflow-state>",
     ].join("\\n");
   }
-  const workDir = resolveWorkDir(root, ref);
-  const work = workDir ? readJson(join(workDir, "work.json")) : null;
-  const status = typeof work?.status === "string" ? work.status : "no_task";
-  const mode = typeof work?.mode === "string" ? work.mode : "-";
+  const args = ["-X", "utf8", helper, "--cwd", root];
+  const key = contextKey(event);
+  if (key) args.push("--context-key", key);
+  args.push("breadcrumb", "--host", "pi");
+  let result = spawnSync("python3", args, { cwd: root, encoding: "utf8" });
+  if (result.error && (result.error as { code?: string }).code === "ENOENT") {
+    result = spawnSync("python", args, { cwd: root, encoding: "utf8" });
+  }
+  if (!result.error && result.status === 0 && String(result.stdout || "").trim()) {
+    return String(result.stdout).trim();
+  }
+  const message = result.error?.message || String(result.stderr || result.stdout || "work.py breadcrumb failed").trim();
   return [
     "<workflow-state>",
-    workDir ? "Work: " + repoRelative(root, workDir) + " (" + status + ")" : "Status: " + status,
-    "mode: " + mode,
-    "host_skill: " + piSkill(mode, status, work),
-    "next: " + workflowNext(status, mode, work),
-    "workflow: .cyralis/workflow.md",
+    "Status: no_task",
+    "Could not resolve Cyralis workflow state: " + message,
     "</workflow-state>",
   ].join("\\n");
 }
@@ -643,10 +552,11 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
 
 const piPrompt = `# Cyralis Context
 
-Inspect .cyralis/config.yaml and .cyralis/workflow.md before changing project
-context, workflow, or memory behavior. Workflow skills are host projections
-under .pi/skills or .codex/skills; shared references and templates are under
-.cyralis/reference and .cyralis/templates. Active workflow status lives in the current work item's
+Inspect .cyralis/config.yaml and resolve workflow through
+.cyralis/tools/work.py before changing project context, workflow, or memory
+behavior. Workflow skills are host projections under .pi/skills or
+.codex/skills; shared references and templates are under .cyralis/reference
+and .cyralis/templates. Active workflow status lives in the current work item's
 work.json.
 `;
 

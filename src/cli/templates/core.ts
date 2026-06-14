@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 
 export const coreTemplates: Array<[string, string]> = [
   [".cyralis/config.yaml", readAsset("cyralis/config.yaml")],
-  [".cyralis/workflow.md", readAsset("cyralis/workflow.md")],
   ["AGENTS.md", readAsset("cyralis/AGENTS.md")],
   [".cyralis/.gitignore", readAsset("cyralis/gitignore")],
   [".cyralis/memory/.gitkeep", ""],
