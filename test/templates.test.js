@@ -21,10 +21,10 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.match(template, /workflow:/);
   assert.match(template, /\[session_identity\]/);
   assert.match(template, /\[project_context\]/);
-  assert.match(template, /host_skill_root:/);
+  assert.doesNotMatch(template, /host_skill_root:/);
   assert.match(template, /reference_root:/);
   assert.match(template, /template_root:/);
-  assert.match(template, /memory_root:/);
+  assert.doesNotMatch(template, /memory_root:/);
   assert.match(template, /feature_root:/);
   assert.doesNotMatch(
     template,
@@ -319,17 +319,17 @@ test("arch review skill is cyralis-native", () => {
   assert.doesNotMatch(reference, /docs\/adr/);
 });
 
-test("codex hook exposes workflow and skill source paths", () => {
+test("codex hook exposes workflow and project paths", () => {
   const hook = collectTemplates(["codex"]).get(
     ".codex/hooks/inject-context-memory.py",
   );
 
   assert.ok(hook, "expected codex hook template");
   assert.match(hook, /workflow = root \/ "\.cyralis" \/ "workflow\.md"/);
-  assert.match(hook, /skills = root \/ "\.codex" \/ "skills"/);
   assert.match(hook, /\[session_identity\]/);
   assert.match(hook, /\[project_context\]/);
-  assert.match(hook, /host_skill_root:/);
+  assert.doesNotMatch(hook, /host_skill_root:/);
+  assert.doesNotMatch(hook, /memory_root:/);
   assert.match(hook, /reference = root \/ "\.cyralis" \/ "reference"/);
   assert.match(hook, /templates = root \/ "\.cyralis" \/ "templates"/);
   assert.match(hook, /features = root \/ "\.cyralis" \/ "features"/);
@@ -337,13 +337,12 @@ test("codex hook exposes workflow and skill source paths", () => {
     hook,
     /architecture_index = root \/ "\.cyralis" \/ "architecture" \/ "ARCHITECTURE\.md"/,
   );
-  assert.match(hook, /memory_projection_root:/);
+  assert.doesNotMatch(hook, /memory_projection_root:/);
   assert.match(hook, /def recall_projection_hints/);
   assert.match(hook, /<cyralis-recall>/);
-  assert.match(
-    hook,
-    /Workflow status is stored in each active work item's work\.json/,
-  );
+  assert.doesNotMatch(hook, /Workflow skills are projected/);
+  assert.doesNotMatch(hook, /Workflow status is stored/);
+  assert.doesNotMatch(hook, /Full architecture and compound documents/);
   assert.match(hook, /work\.py/);
   assert.match(hook, /<workflow-state>/);
   assert.doesNotMatch(hook, /\[system_core\]/);
@@ -360,10 +359,16 @@ test("pi extension injects dynamic workflow state", () => {
   assert.ok(template, "expected pi extension template");
   assert.match(template, /buildWorkflowState/);
   assert.match(template, /buildProjectContext/);
-  assert.match(template, /memory_projection_root:/);
+  assert.doesNotMatch(template, /memory_projection_root:/);
+  assert.doesNotMatch(template, /host_skill_root:/);
+  assert.doesNotMatch(template, /memory_root:/);
+  assert.doesNotMatch(template, /Workflow skills are projected/);
+  assert.doesNotMatch(template, /Full architecture and compound documents/);
   assert.match(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
   assert.match(template, /before_provider_request/);
   assert.match(template, /appendRecallToPayload/);
+  assert.match(template, /lastUserMessageIsRecall/);
+  assert.doesNotMatch(template, /containsRecallMarker/);
   assert.match(template, /<cyralis-recall>/);
   assert.match(template, /CYRALIS_PI_DUMP_PROVIDER_REQUEST/);
   assert.match(template, /return undefined/);
@@ -433,6 +438,129 @@ test("codex hook injects projection recall hints from user prompt", () => {
   );
   assert.doesNotMatch(result.stdout, /excerpt:/);
   assert.doesNotMatch(result.stdout, /Open the source document/);
+});
+
+test("codex hook emits session context once while recall stays per prompt", () => {
+  const templates = collectTemplates(["codex"]);
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-codex-session-context-"));
+  const hook = join(dir, ".codex", "hooks", "inject-context-memory.py");
+  const projectionDir = join(
+    dir,
+    ".cyralis",
+    "memory",
+    "projections",
+    "compound",
+    "learning",
+  );
+
+  mkdirSync(join(dir, ".codex", "hooks"), { recursive: true });
+  mkdirSync(projectionDir, { recursive: true });
+  mkdirSync(join(dir, ".cyralis", "tools"), { recursive: true });
+  writeFileSync(
+    hook,
+    templates.get(".codex/hooks/inject-context-memory.py"),
+    "utf8",
+  );
+  writeFileSync(
+    join(projectionDir, "learning_proxy.md"),
+    [
+      "---",
+      "id: learning_proxy",
+      "name: learning proxy",
+      "description: Vite proxy target port failures.",
+      "tags: [vite, proxy]",
+      "source: .cyralis/compound/2026-06-02-learning-vite-proxy.md",
+      "projection: true",
+      "---",
+      "",
+      "Vite proxy target port failures.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const runHook = (input) => spawnSync("python3", ["-X", "utf8", hook], {
+    cwd: dir,
+    input: JSON.stringify(input),
+    encoding: "utf8",
+  });
+
+  const first = runHook({ cwd: dir, session_id: "demo", prompt: "vite proxy" });
+  assert.equal(first.status, 0, first.stderr);
+  assert.match(first.stdout, /<cyralis-context>/);
+  assert.match(first.stdout, /\[project_context\]/);
+  assert.match(first.stdout, /<workflow-state>/);
+  assert.match(first.stdout, /<cyralis-recall>/);
+
+  const second = runHook({ cwd: dir, session_id: "demo", prompt: "vite proxy" });
+  assert.equal(second.status, 0, second.stderr);
+  assert.doesNotMatch(second.stdout, /<cyralis-context>/);
+  assert.doesNotMatch(second.stdout, /<workflow-state>/);
+  assert.match(second.stdout, /<cyralis-recall>/);
+
+  const afterCompact = runHook({
+    cwd: dir,
+    session_id: "demo",
+    event: "after_compact",
+    prompt: "vite proxy",
+  });
+  assert.equal(afterCompact.status, 0, afterCompact.stderr);
+  assert.match(afterCompact.stdout, /<cyralis-context>/);
+  assert.match(afterCompact.stdout, /<workflow-state>/);
+  assert.match(afterCompact.stdout, /<cyralis-recall>/);
+});
+
+test("codex hook skips weak projection recall matches", () => {
+  const templates = collectTemplates(["codex"]);
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-codex-weak-recall-"));
+  const hook = join(dir, ".codex", "hooks", "inject-context-memory.py");
+  const projectionDir = join(
+    dir,
+    ".cyralis",
+    "memory",
+    "projections",
+    "compound",
+    "decision",
+  );
+
+  mkdirSync(join(dir, ".codex", "hooks"), { recursive: true });
+  mkdirSync(projectionDir, { recursive: true });
+  mkdirSync(join(dir, ".cyralis", "tools"), { recursive: true });
+  writeFileSync(
+    hook,
+    templates.get(".codex/hooks/inject-context-memory.py"),
+    "utf8",
+  );
+  writeFileSync(
+    join(projectionDir, "decision_doris.md"),
+    [
+      "---",
+      "id: decision_doris",
+      "name: Doris aggregate key",
+      "description: Doris physical property validation constraint.",
+      "tags: [doris, aggregate_key]",
+      "source: .cyralis/compound/2026-06-13-decision-doris.md",
+      "projection: true",
+      "---",
+      "",
+      "Doris aggregate key is not supported in this adapter.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  const result = spawnSync("python3", ["-X", "utf8", hook], {
+    cwd: dir,
+    input: JSON.stringify({
+      cwd: dir,
+      prompt: "doris alpha beta gamma delta epsilon zeta eta theta iota kappa lambda",
+    }),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.doesNotMatch(result.stdout, /<cyralis-recall>/);
+  assert.doesNotMatch(result.stdout, /decision_doris/);
 });
 
 test("work helper resolves session-scoped active work and gated transitions", () => {

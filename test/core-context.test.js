@@ -144,6 +144,7 @@ test("loadProjectContext includes architecture index but not compound docs", asy
   ]);
   const text = entries.map((entry) => entry.content).join("\n");
   assert.match(text, /Project architecture/);
-  assert.match(text, /memory_projection_root/);
+  assert.doesNotMatch(text, /memory_projection_root/);
+  assert.doesNotMatch(text, /Full architecture and compound documents/);
   assert.doesNotMatch(text, /Hidden learning/);
 });

@@ -56,8 +56,6 @@ export default async function cyralisPiExtension(pi: PiLike) {
       "<cyralis-context>",
 	      "[session_identity]",
 	      "cwd: " + root,
-	      "host_skill_root: " + join(root, ".pi", "skills"),
-	      "memory_root: " + join(root, ".cyralis", "memory"),
 	      "",
 	      ...buildProjectContext(root),
 	      buildWorkflowState(root, event),
@@ -139,9 +137,6 @@ function buildProjectContext(root: string): string[] {
     "feature_root: " + join(root, ".cyralis", "features"),
     "issue_root: " + join(root, ".cyralis", "issues"),
     "refactor_root: " + join(root, ".cyralis", "refactors"),
-    "memory_projection_root: " + join(root, ".cyralis", "memory", "projections"),
-    "Use Cyralis recall hints when available. Workflow skills are projected into the active host skill directory; .cyralis stores state, references, templates, and memory. Workflow status is stored in each active work item's work.json.",
-    "Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.",
   ];
   for (const [label, file, maxChars] of [
     [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],
@@ -276,7 +271,7 @@ function dumpProviderPayload(payload: unknown): undefined {
 }
 
 function appendRecallToPayload(payload: unknown, root: string): unknown {
-  if (containsRecallMarker(payload)) return payload;
+  if (lastUserMessageIsRecall(payload)) return payload;
   const query = extractLastUserText(payload);
   const recall = buildRecallBlock(root, query);
   if (!recall) return payload;
@@ -403,7 +398,7 @@ type RecallProjectionHint = {
   excerpt: string;
 };
 
-function recallProjectionHints(root: string, query: string, limit = 3): RecallProjectionHint[] {
+function recallProjectionHints(root: string, query: string, limit = 3, minScore = 0.2): RecallProjectionHint[] {
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) return [];
   const scored: RecallProjectionHint[] = [];
@@ -413,7 +408,7 @@ function recallProjectionHints(root: string, query: string, limit = 3): RecallPr
     const haystack = new Set(tokenize([parsed.name, parsed.description, parsed.tags.join(" "), parsed.body].join(" ")));
     if (haystack.size === 0) continue;
     const score = queryTokens.filter((token) => haystack.has(token)).length / queryTokens.length;
-    if (score <= 0) continue;
+    if (score < minScore) continue;
     scored.push({ ...parsed, score, excerpt: compactExcerpt(parsed.body) });
   }
   return scored.sort((left, right) => right.score - left.score).slice(0, limit);
@@ -497,12 +492,23 @@ function isCjk(ch: string): boolean {
   return /[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}]/u.test(ch);
 }
 
-function containsRecallMarker(value: unknown, depth = 0): boolean {
-  if (depth > 6 || value == null) return false;
-  if (typeof value === "string") return value.includes("<cyralis-recall>");
-  if (Array.isArray(value)) return value.some((item) => containsRecallMarker(item, depth + 1));
-  if (!isRecord(value)) return false;
-  return Object.values(value).some((item) => containsRecallMarker(item, depth + 1));
+function lastUserMessageIsRecall(payload: unknown): boolean {
+  const unwrapped = unwrapBody(payload);
+  if (!isRecord(unwrapped)) return false;
+  if (Array.isArray(unwrapped.messages)) return lastUserEntryIsRecall(unwrapped.messages);
+  if (Array.isArray(unwrapped.input)) return lastUserEntryIsRecall(unwrapped.input);
+  if (Array.isArray(unwrapped.contents)) return lastUserEntryIsRecall(unwrapped.contents);
+  return false;
+}
+
+function lastUserEntryIsRecall(items: unknown[]): boolean {
+  for (let index = items.length - 1; index >= 0; index--) {
+    const item = items[index];
+    if (!isRecord(item)) continue;
+    if (item.role !== "user" && item.role !== "USER") continue;
+    return textFromContent(item.content ?? item.parts).includes("<cyralis-recall>");
+  }
+  return false;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

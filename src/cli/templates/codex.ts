@@ -23,7 +23,7 @@ const codexHooks = `{
 }`;
 
 const codexHook = `#!/usr/bin/env python3
-"""Emit a compact Cyralis breadcrumb for Codex per-turn hooks."""
+"""Emit Cyralis session context plus per-turn recall for Codex hooks."""
 
 from __future__ import annotations
 
@@ -32,6 +32,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 
@@ -67,6 +68,40 @@ def context_key(data: dict) -> str | None:
         if value:
             return sanitize_key(value)
     return None
+
+
+def is_compact_event(data: dict) -> bool:
+    for key in ("compact", "compacted", "is_compaction", "after_compact"):
+        if data.get(key) is True:
+            return True
+    for key in ("event", "hook_event", "hook_event_name", "type", "trigger", "reason", "source"):
+        value = data.get(key)
+        if isinstance(value, str) and "compact" in value.lower():
+            return True
+    return False
+
+
+def context_marker_path(root: Path, key: str) -> Path:
+    return root / ".cyralis" / "runtime" / "context-injections" / f"{key}.json"
+
+
+def should_emit_session_context(root: Path, data: dict) -> bool:
+    key = context_key(data)
+    if not key:
+        return True
+    path = context_marker_path(root, key)
+    emit = is_compact_event(data) or not path.is_file()
+    if emit:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({
+                "context_key": key,
+                "updated_at": int(time.time()),
+                "reason": "compact" if is_compact_event(data) else "session_start",
+            }, ensure_ascii=False) + "\\n", encoding="utf-8")
+        except OSError:
+            pass
+    return emit
 
 
 def read_limited(path: Path, max_chars: int) -> str | None:
@@ -189,7 +224,7 @@ def compact_excerpt(body: str, max_chars: int = 420) -> str:
     return text[:max_chars].rstrip() + "..."
 
 
-def recall_projection_hints(root: Path, query: str, limit: int = 3) -> list[dict]:
+def recall_projection_hints(root: Path, query: str, limit: int = 3, min_score: float = 0.2) -> list[dict]:
     query_tokens = tokenize(query)
     if not query_tokens:
         return []
@@ -211,7 +246,7 @@ def recall_projection_hints(root: Path, query: str, limit: int = 3) -> list[dict
             continue
         hay = set(haystack)
         score = sum(1 for token in query_tokens if token in hay) / len(query_tokens)
-        if score <= 0:
+        if score < min_score:
             continue
         scored.append((score, parsed))
     scored.sort(key=lambda item: item[0], reverse=True)
@@ -238,7 +273,7 @@ def print_recall_hints(root: Path, query: str) -> None:
     print("</cyralis-recall>")
 
 
-def print_project_context(root: Path, skills: Path) -> None:
+def print_project_context(root: Path) -> None:
     config = root / ".cyralis" / "config.yaml"
     workflow = root / ".cyralis" / "workflow.md"
     reference = root / ".cyralis" / "reference"
@@ -247,8 +282,6 @@ def print_project_context(root: Path, skills: Path) -> None:
     features = root / ".cyralis" / "features"
     issues = root / ".cyralis" / "issues"
     refactors = root / ".cyralis" / "refactors"
-    memory = root / ".cyralis" / "memory"
-    projections = memory / "projections"
     architecture_index = root / ".cyralis" / "architecture" / "ARCHITECTURE.md"
 
     print("[project_context]")
@@ -260,10 +293,6 @@ def print_project_context(root: Path, skills: Path) -> None:
     print(f"feature_root: {features}")
     print(f"issue_root: {issues}")
     print(f"refactor_root: {refactors}")
-    print(f"memory_projection_root: {projections}")
-    print("Workflow skills are projected into the active host skill directory; .cyralis does not store skill copies.")
-    print("Workflow status is stored in each active work item's work.json.")
-    print("Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.")
     for label, path, limit in [
         (".cyralis/architecture/ARCHITECTURE.md", architecture_index, 10000),
     ]:
@@ -310,18 +339,15 @@ def main() -> int:
     root = find_root(Path(cwd) if cwd else Path.cwd())
     if root is None:
         return 0
-    skills = root / ".codex" / "skills"
-    memory = root / ".cyralis" / "memory"
-    print("<cyralis-context>")
-    print("[session_identity]")
-    print(f"cwd: {root}")
-    print(f"host_skill_root: {skills}")
-    print(f"memory_root: {memory}")
-    print("")
-    print_project_context(root, skills)
+    if should_emit_session_context(root, data):
+        print("<cyralis-context>")
+        print("[session_identity]")
+        print(f"cwd: {root}")
+        print("")
+        print_project_context(root)
+        print("</cyralis-context>")
+        print_workflow_state(root, context_key(data))
     print_recall_hints(root, extract_user_text(data))
-    print("</cyralis-context>")
-    print_workflow_state(root, context_key(data))
     return 0
 
 

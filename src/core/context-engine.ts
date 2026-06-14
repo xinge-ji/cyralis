@@ -109,9 +109,7 @@ export class ContextEngine {
   }
 
   #sessionIdentity(): string {
-    const lines = ["[session_identity]", `cwd: ${this.cwd}`];
-    if (this.memoryRoot) lines.push(`memory_root: ${this.memoryRoot}`);
-    return lines.join("\n");
+    return ["[session_identity]", `cwd: ${this.cwd}`].join("\n");
   }
 
   #projectContextLayer(): string {

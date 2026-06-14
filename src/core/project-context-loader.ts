@@ -27,8 +27,6 @@ export async function loadProjectContext(options: LoadProjectContextOptions): Pr
     content: [
       "architecture_source_root: .cyralis/architecture",
       "compound_source_root: .cyralis/compound",
-      "memory_projection_root: .cyralis/memory/projections",
-      "Full architecture and compound documents are not default context; use recall hints or explicit search/read when relevant.",
     ].join("\n"),
   });
   return entries;
