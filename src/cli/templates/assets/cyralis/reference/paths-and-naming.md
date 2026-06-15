@@ -56,7 +56,7 @@ AGENTS.md                项目注意事项入口（自动进入上下文）
 - feature / issue / refactor / audit 目录：带日期前缀 `YYYY-MM-DD-{slug}`
 - 沉淀类：`compound/YYYY-MM-DD-{doc_type}-{slug}.md`，日期用**归档当天**
 - 架构 doc：`architecture/{type}-{slug}.md`（长效，不带日期前缀）；总入口固定 `ARCHITECTURE.md`
-- 项目注意事项入口固定为 `AGENTS.md`，所有子技能启动前默认已进入上下文；不再兼容 `.cyralis/attention.md` / `CLAUDE.md` 等外部入口
+- 项目指引入口固定为 `AGENTS.md`，所有子技能启动前默认已进入上下文；不兼容其他外部入口
 
 ## 架构 doc 分组规则（同类聚合）
 

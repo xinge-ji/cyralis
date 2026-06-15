@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { initCommand } from "./init.js";
+import { initCommand, updateCommand } from "./init.js";
 import { memoryCommand } from "./memory.js";
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
@@ -14,6 +14,11 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
 
   if (command === "init") {
     await initCommand(rest);
+    return;
+  }
+
+  if (command === "update") {
+    await updateCommand(rest);
     return;
   }
 
@@ -45,6 +50,7 @@ function printHelp(): void {
 
 Usage:
   cyralis init [options]
+  cyralis update [options]
   cyralis memory sync [options]
 
 Options:
@@ -60,6 +66,7 @@ Examples:
   cyralis init
   cyralis init --pi
   cyralis init --codex --cwd /path/to/project
+  cyralis update --cwd /path/to/project
   cyralis memory sync --kind compound
 `);
 }

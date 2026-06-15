@@ -7,6 +7,7 @@ interface InitOptions {
   cwd: string;
   platforms: Platform[];
   force: boolean;
+  command: "init" | "update";
 }
 
 interface WriteResult {
@@ -24,18 +25,19 @@ const agentsTemplatePath = "AGENTS.md";
 const projectKnowledgeHeading = "项目碎片知识";
 const csNoteAnchor = "<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->";
 
-const obsoleteManagedFiles: Array<{ path: string; platform?: Platform }> = [
-  { path: ".codex/agents/cyralis-memory.toml", platform: "codex" },
-  { path: ".cyralis/workflow.md" },
-  { path: ".cyralis/reference/shared-conventions.md" },
-  { path: ".cyralis/reference/work-json.md" },
-  { path: ".cyralis/reference/feature-workflow.md" },
-  { path: ".cyralis/reference/debugging-governance.md" },
-];
-
 export async function initCommand(argv: string[]): Promise<void> {
-  const options = parseInitArgs(argv);
+  const options = parseInstallArgs("init", argv, false);
+  installTemplates(options);
+}
+
+export async function updateCommand(argv: string[]): Promise<void> {
+  const options = parseInstallArgs("update", argv, true);
+  installTemplates(options);
+}
+
+function installTemplates(options: InitOptions): void {
   const templates = collectTemplates(options.platforms);
+  const currentTemplatePaths = new Set(templates.keys());
   const manifestPath = join(options.cwd, ".cyralis", ".template-hashes.json");
   const previousManifest = readTemplateHashManifest(manifestPath);
   const results: WriteResult[] = [];
@@ -44,7 +46,14 @@ export async function initCommand(argv: string[]): Promise<void> {
     results.push(writeTemplateFile(options.cwd, relativePath, content, options.force));
   }
 
-  results.push(...removeObsoleteManagedFiles(options.cwd, options.platforms, previousManifest));
+  if (options.force) {
+    results.push(...removeObsoleteManagedFiles(
+      options.cwd,
+      options.platforms,
+      currentTemplatePaths,
+      previousManifest,
+    ));
+  }
 
   const managedPaths = results
     .filter((result) => result.status !== "conflict" && result.status !== "removed")
@@ -52,7 +61,7 @@ export async function initCommand(argv: string[]): Promise<void> {
   writeTemplateHashes(options.cwd, managedPaths);
 
   const summary = summarize(results);
-  console.log(`Cyralis initialized in ${options.cwd}`);
+  console.log(`Cyralis ${options.command === "update" ? "updated" : "initialized"} in ${options.cwd}`);
   console.log(`created: ${summary.created}, updated: ${summary.updated}, unchanged: ${summary.unchanged}, removed: ${summary.removed}, conflicts: ${summary.conflict}`);
   if (summary.conflict > 0) {
     console.log("Conflicting files were left untouched. Re-run with --force to overwrite managed files.");
@@ -66,16 +75,16 @@ function writeTemplateFile(cwd: string, relativePath: string, content: string, f
   return writeManagedFile(cwd, relativePath, content, force);
 }
 
-function parseInitArgs(argv: string[]): InitOptions {
+function parseInstallArgs(command: "init" | "update", argv: string[], forceDefault: boolean): InitOptions {
   let cwd = process.cwd();
-  let force = false;
+  let force = forceDefault;
   let pi = false;
   let codex = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") {
-      console.log("Usage: cyralis init [--cwd <dir>] [--pi] [--codex] [--all] [--force]");
+      console.log(`Usage: cyralis ${command} [--cwd <dir>] [--pi] [--codex] [--all] [--force]`);
       process.exit(0);
     }
     if (arg === "--cwd") {
@@ -101,7 +110,7 @@ function parseInitArgs(argv: string[]): InitOptions {
       codex = true;
       continue;
     }
-    throw new Error(`Unknown init option: ${arg}`);
+    throw new Error(`Unknown ${command} option: ${arg}`);
   }
 
   const platforms: Platform[] = [];
@@ -112,7 +121,7 @@ function parseInitArgs(argv: string[]): InitOptions {
     if (codex) platforms.push("codex");
   }
 
-  return { cwd: resolve(cwd), platforms, force };
+  return { cwd: resolve(cwd), platforms, force, command };
 }
 
 function writeAgentsFile(cwd: string, content: string): WriteResult {
@@ -282,15 +291,15 @@ function writeTemplateHashes(cwd: string, managedPaths: string[]): void {
 function removeObsoleteManagedFiles(
   cwd: string,
   platforms: Platform[],
+  currentTemplatePaths: Set<string>,
   manifest: { version: number; files: Record<string, string> } | null,
 ): WriteResult[] {
   const files = manifest?.files;
   if (!files) return [];
   const results: WriteResult[] = [];
-  for (const obsolete of obsoleteManagedFiles) {
-    if (obsolete.platform && !platforms.includes(obsolete.platform)) continue;
-    const relativePath = obsolete.path;
-    if (!files[relativePath]) continue;
+  for (const relativePath of Object.keys(files)) {
+    if (currentTemplatePaths.has(relativePath)) continue;
+    if (!isManagedScopeActive(relativePath, platforms)) continue;
     const absolutePath = join(cwd, relativePath);
     try {
       const current = readFileSync(absolutePath);
@@ -303,6 +312,13 @@ function removeObsoleteManagedFiles(
     }
   }
   return results;
+}
+
+function isManagedScopeActive(relativePath: string, platforms: Platform[]): boolean {
+  if (relativePath === agentsTemplatePath || relativePath.startsWith(".cyralis/")) return true;
+  if (relativePath.startsWith(".codex/")) return platforms.includes("codex");
+  if (relativePath.startsWith(".pi/")) return platforms.includes("pi");
+  return false;
 }
 
 function readTemplateHashManifest(path: string): { version: number; files: Record<string, string> } | null {

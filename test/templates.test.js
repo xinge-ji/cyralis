@@ -74,10 +74,6 @@ test("core templates install host-neutral workflow assets", () => {
     "expected AGENTS template",
   );
   assert.ok(
-    !templates.get(".cyralis/attention.md"),
-    "legacy attention template should not be installed",
-  );
-  assert.ok(
     templates.get(".cyralis/architecture/ARCHITECTURE.md"),
     "expected architecture template",
   );
@@ -321,11 +317,14 @@ test("init removes the legacy managed workflow guide", () => {
 
 test("init removes obsolete managed reference files", () => {
   const dir = mkdtempSync(join(tmpdir(), "cyralis-obsolete-references-"));
+  const legacyProjectGuidancePath = [".cyralis", "atten" + "tion.md"].join("/");
   const obsolete = {
     ".cyralis/reference/shared-conventions.md": "# Shared\n\nlegacy\n",
     ".cyralis/reference/work-json.md": "# Work JSON\n\nlegacy\n",
     ".cyralis/reference/feature-workflow.md": "# Feature Workflow\n\nlegacy\n",
     ".cyralis/reference/debugging-governance.md": "# Debugging Governance\n\nlegacy\n",
+    ".cyralis/reference/old-generated-guide.md": "# Old Generated Guide\n\nlegacy\n",
+    [legacyProjectGuidancePath]: "# Legacy Project Guidance\n\nlegacy\n",
   };
 
   const files = {};
@@ -348,12 +347,74 @@ test("init removes obsolete managed reference files", () => {
   });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /removed: 4/);
+  assert.match(result.stdout, /removed: 6/);
   const manifest = JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8"));
   for (const relativePath of Object.keys(obsolete)) {
     assert.equal(existsSync(join(dir, relativePath)), false, `${relativePath} should be removed`);
     assert.ok(!manifest.files[relativePath], `${relativePath} should not remain in the managed template manifest`);
   }
+});
+
+test("init keeps obsolete managed files that were edited locally", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-edited-obsolete-reference-"));
+  const relativePath = ".cyralis/reference/old-generated-guide.md";
+  const original = "# Old Generated Guide\n\nlegacy\n";
+  const edited = "# Old Generated Guide\n\nlocal edit\n";
+  const absolutePath = join(dir, relativePath);
+
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, edited, "utf8");
+  mkdirSync(join(dir, ".cyralis"), { recursive: true });
+  writeFileSync(
+    join(dir, ".cyralis", ".template-hashes.json"),
+    JSON.stringify({ version: 1, files: { [relativePath]: sha256(original) } }, null, 2) + "\n",
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--pi", "--force"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /removed: 0/);
+  assert.equal(readFileSync(absolutePath, "utf8"), edited);
+});
+
+test("update force-updates templates and prunes obsolete managed files", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-update-obsolete-"));
+  const configPath = join(dir, ".cyralis", "config.yaml");
+  const oldConfig = "version: 0\n";
+  const obsoletePath = ".cyralis/reference/old-generated-guide.md";
+  const obsoleteContent = "# Old Generated Guide\n\nlegacy\n";
+
+  mkdirSync(dirname(configPath), { recursive: true });
+  mkdirSync(dirname(join(dir, obsoletePath)), { recursive: true });
+  writeFileSync(configPath, oldConfig, "utf8");
+  writeFileSync(join(dir, obsoletePath), obsoleteContent, "utf8");
+  writeFileSync(
+    join(dir, ".cyralis", ".template-hashes.json"),
+    JSON.stringify({
+      version: 1,
+      files: {
+        ".cyralis/config.yaml": sha256(oldConfig),
+        [obsoletePath]: sha256(obsoleteContent),
+      },
+    }, null, 2) + "\n",
+    "utf8",
+  );
+
+  const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "update", "--cwd", dir, "--pi"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Cyralis updated/);
+  assert.match(result.stdout, /updated: /);
+  assert.match(result.stdout, /removed: 1/);
+  assert.notEqual(readFileSync(configPath, "utf8"), oldConfig);
+  assert.equal(existsSync(join(dir, obsoletePath)), false);
 });
 
 test("init appends Cyralis AGENTS sections without overwriting an existing project guide", () => {

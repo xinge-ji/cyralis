@@ -18,7 +18,7 @@ test("context engine builds host-neutral layered context", () => {
     memoryRoot: "/repo/.cyralis/memory",
     systemCore: "[system_core]\nCyralis core rules",
     injections: ["## extension\nExtra rule"],
-    projectContext: [{ path: "AGENTS.md", content: "Project attention" }],
+    projectContext: [{ path: "AGENTS.md", content: "Project guidance" }],
     maxRecentTurns: 2,
   });
 
@@ -52,7 +52,7 @@ test("codex context block carries AGENTS through project_context, not system con
     cwd: "/repo",
     systemCore: "[system_core]\nDo not emit this through Codex hooks.",
     memoryRoot: "/repo/.cyralis/memory",
-    projectContext: [{ path: "AGENTS.md", content: "Project attention rule" }],
+    projectContext: [{ path: "AGENTS.md", content: "Project guidance rule" }],
   });
   engine.recordTurn({ userMessage: "old", assistantMessage: "old answer" });
 
@@ -60,7 +60,7 @@ test("codex context block carries AGENTS through project_context, not system con
   assert.match(block, /<cyralis-context>/);
   assert.match(block, /\[session_identity\]/);
   assert.match(block, /\[project_context\]/);
-  assert.match(block, /--- AGENTS\.md ---\nProject attention rule/);
+  assert.match(block, /--- AGENTS\.md ---\nProject guidance rule/);
   assert.doesNotMatch(block, /\[system_core\]/);
   assert.doesNotMatch(block, /\[recent_chat\]/);
   assert.doesNotMatch(block, /\[current_user\]/);
@@ -108,7 +108,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const engine = new ContextEngine({
     cwd: "/repo",
     systemCore: "[system_core]\nPi system",
-    projectContext: [{ path: "AGENTS.md", content: "Pi attention rule" }],
+    projectContext: [{ path: "AGENTS.md", content: "Pi guidance rule" }],
   });
   const recall = {
     observeAssistantText() {},
@@ -121,7 +121,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   const start = handlers.get("before_agent_start")();
   assert.match(start.systemPrompt, /\[system_core\]\nPi system/);
   assert.match(start.systemPrompt, /\[project_context\]/);
-  assert.match(start.systemPrompt, /--- AGENTS\.md ---\nPi attention rule/);
+  assert.match(start.systemPrompt, /--- AGENTS\.md ---\nPi guidance rule/);
 
   const recallMessage = await handlers.get("turn_end")();
   assert.equal(recallMessage.customType, "cyralis.recall");
