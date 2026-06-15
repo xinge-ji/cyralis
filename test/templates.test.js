@@ -34,6 +34,7 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.doesNotMatch(template, /feature_root:/);
   assert.doesNotMatch(template, /issue_root:/);
   assert.doesNotMatch(template, /refactor_root:/);
+  assert.doesNotMatch(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
   assert.doesNotMatch(
     template,
     /result\.messages\s*=/,
@@ -99,6 +100,8 @@ test("core templates install host-neutral workflow assets", () => {
   assert.match(templates.get(".cyralis/tools/work.py"), /next:/);
   assert.match(templates.get(".cyralis/tools/work.py"), /cmd_summary/);
   assert.match(templates.get(".cyralis/tools/work.py"), /workflow_references/);
+  assert.doesNotMatch(templates.get(".cyralis/tools/work.py"), /shared-conventions\.md/);
+  assert.doesNotMatch(templates.get(".cyralis/tools/work.py"), /work-json\.md/);
   assert.ok(
     !templates.get(".cyralis/workflow.md"),
     "workflow guide markdown should not be installed",
@@ -630,10 +633,8 @@ test("codex hook exposes workflow and project paths", () => {
   assert.doesNotMatch(hook, /feature_root:/);
   assert.doesNotMatch(hook, /issue_root:/);
   assert.doesNotMatch(hook, /refactor_root:/);
-  assert.match(
-    hook,
-    /architecture_index = root \/ "\.cyralis" \/ "architecture" \/ "ARCHITECTURE\.md"/,
-  );
+  assert.doesNotMatch(hook, /architecture_index/);
+  assert.doesNotMatch(hook, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
   assert.doesNotMatch(hook, /memory_projection_root:/);
   assert.match(hook, /def recall_projection_hints/);
   assert.match(hook, /<cyralis-recall>/);
@@ -667,7 +668,7 @@ test("pi extension injects dynamic workflow state", () => {
   assert.doesNotMatch(template, /refactor_root:/);
   assert.doesNotMatch(template, /Workflow skills are projected/);
   assert.doesNotMatch(template, /Full architecture and compound documents/);
-  assert.match(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
+  assert.doesNotMatch(template, /\.cyralis\/architecture\/ARCHITECTURE\.md/);
   assert.match(template, /before_provider_request/);
   assert.match(template, /appendRecallToPayload/);
   assert.match(template, /lastUserMessageIsRecall/);

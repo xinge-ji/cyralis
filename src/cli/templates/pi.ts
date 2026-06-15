@@ -116,30 +116,12 @@ function contextKey(event?: PiEvent): string | null {
   return null;
 }
 
-function readLimited(file: string, maxChars: number): string | null {
-  try {
-    const text = readFileSync(file, "utf8").trim();
-    if (text.length <= maxChars) return text;
-    return text.slice(0, maxChars).trimEnd() + "\\n[truncated]";
-  } catch {
-    return null;
-  }
-}
-
 function buildProjectContext(root: string): string[] {
-  const lines = [
+  return [
     "[project_context]",
     "config: " + join(root, ".cyralis", "config.yaml"),
     "workflow_helper: " + join(root, ".cyralis", "tools", "work.py"),
   ];
-  for (const [label, file, maxChars] of [
-    [".cyralis/architecture/ARCHITECTURE.md", join(root, ".cyralis", "architecture", "ARCHITECTURE.md"), 10000],
-  ] as const) {
-    const content = readLimited(file, maxChars);
-    if (!content) continue;
-    lines.push("", "--- " + label + " ---", content);
-  }
-  return lines;
 }
 
 type WorkSummaryResult = {

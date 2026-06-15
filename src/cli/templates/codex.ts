@@ -104,16 +104,6 @@ def should_emit_session_context(root: Path, data: dict) -> bool:
     return emit
 
 
-def read_limited(path: Path, max_chars: int) -> str | None:
-    try:
-        text = path.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
-    if len(text) <= max_chars:
-        return text
-    return text[:max_chars].rstrip() + "\\n[truncated]"
-
-
 def extract_user_text(value, depth: int = 0) -> str:
     if depth > 4 or value is None:
         return ""
@@ -276,19 +266,10 @@ def print_recall_hints(root: Path, query: str) -> None:
 def print_project_context(root: Path) -> None:
     config = root / ".cyralis" / "config.yaml"
     workflow_helper = root / ".cyralis" / "tools" / "work.py"
-    architecture_index = root / ".cyralis" / "architecture" / "ARCHITECTURE.md"
 
     print("[project_context]")
     print(f"config: {config}")
     print(f"workflow_helper: {workflow_helper}")
-    for label, path, limit in [
-        (".cyralis/architecture/ARCHITECTURE.md", architecture_index, 10000),
-    ]:
-        content = read_limited(path, limit)
-        if content:
-            print("")
-            print(f"--- {label} ---")
-            print(content)
 
 
 def print_workflow_state(root: Path, key: str | None) -> None:

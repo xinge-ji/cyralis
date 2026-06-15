@@ -129,20 +129,23 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   assert.equal(recallMessage.hints[0].id, "mem_pi");
 });
 
-test("loadProjectContext includes architecture index without source roots", async () => {
+test("loadProjectContext exposes helper paths without inlining architecture", async () => {
   const dir = mkdtempSync(join(tmpdir(), "cyralis-project-context-"));
+  mkdirSync(join(dir, ".cyralis", "tools"), { recursive: true });
   mkdirSync(join(dir, ".cyralis", "architecture"), { recursive: true });
   mkdirSync(join(dir, ".cyralis", "compound"), { recursive: true });
+  writeFileSync(join(dir, ".cyralis", "config.yaml"), "version: 1\n", "utf8");
+  writeFileSync(join(dir, ".cyralis", "tools", "work.py"), "# helper\n", "utf8");
   writeFileSync(join(dir, ".cyralis", "architecture", "ARCHITECTURE.md"), "# Project architecture\n\nModule index", "utf8");
   writeFileSync(join(dir, ".cyralis", "compound", "2026-06-02-learning-hidden.md"), "# Hidden learning", "utf8");
 
   const entries = await loadProjectContext({ cwd: dir });
 
-  assert.deepEqual(entries.map((entry) => entry.path ?? entry.title), [
-    ".cyralis/architecture/ARCHITECTURE.md",
-  ]);
+  assert.equal(entries.length, 1);
   const text = entries.map((entry) => entry.content).join("\n");
-  assert.match(text, /Project architecture/);
+  assert.match(text, /config: .*\.cyralis\/config\.yaml/);
+  assert.match(text, /workflow_helper: .*\.cyralis\/tools\/work\.py/);
+  assert.doesNotMatch(text, /Project architecture/);
   assert.doesNotMatch(text, /architecture_source_root/);
   assert.doesNotMatch(text, /compound_source_root/);
   assert.doesNotMatch(text, /memory_projection_root/);

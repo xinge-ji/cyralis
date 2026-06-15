@@ -23,7 +23,7 @@ Context is assembled as stable host-neutral layers:
 [system_core]      stable Cyralis behavior supplied by the active host projection
 [injections]       explicit external context snippets
 [session_identity] cwd, memory root, and session identity
-[project_context]  .cyralis project facts such as attention and workflow state
+[project_context]  .cyralis project helper paths
 [recent_chat]      rolling Cyralis turn projection
 ```
 
@@ -64,9 +64,9 @@ cyralis memory sync --kind compound --source .cyralis/compound/YYYY-MM-DD-learni
 ```
 
 Those stubs are generated recall entry points, not source of truth. Default
-project context includes attention and the architecture index, but not full
-architecture or compound documents; relevant source docs should appear through
-recall hints or explicit search/read.
+project context includes only project helper paths, not architecture or compound
+document bodies; relevant source docs should appear through recall hints or
+explicit search/read.
 
 Host projections use those stubs for lightweight per-turn recall. When a user
 prompt overlaps an architecture or compound projection, Cyralis injects a compact
