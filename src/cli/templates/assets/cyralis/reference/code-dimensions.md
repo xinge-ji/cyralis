@@ -2,8 +2,6 @@
 
 写代码前先确认每个维度的档位。没明说的走默认，偏离默认的地方要标出来让用户确认。
 
-这份文档是子技能共享的口径，被 design / fastforward / issue-fix 等阶段引用。项目内的权威副本在 `.cyralis/reference/code-dimensions.md`，由 `cyralis init` 从技能包释放。
-
 ---
 
 ## 核心四维（每次都要定）
