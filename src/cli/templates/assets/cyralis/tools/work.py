@@ -291,16 +291,7 @@ def current_work_ref(root: Path, key: str | None) -> tuple[str | None, str]:
         current = data.get("current_work")
         if isinstance(current, str) and current:
             return current, "session"
-
-    files = sorted(sessions_dir(root).glob("*.json"))
-    if len(files) == 1:
-        data = read_json(files[0]) or {}
-        current = data.get("current_work")
-        if isinstance(current, str) and current:
-            return current, "single-session-fallback"
-    if not key and len(files) > 1:
-        return None, "ambiguous"
-    return None, "none"
+    return None, "missing-session-key"
 
 
 def load_current(root: Path, key: str | None) -> tuple[Path | None, dict[str, Any] | None, str]:
@@ -608,7 +599,6 @@ def resolve_state(root: Path, key: str | None, host: str) -> dict[str, Any]:
 
     mode = str(work.get("mode") or "unknown")
     work_root = repo_relative(root, work_dir)
-
     return {
         "status": status,
         "mode": mode,

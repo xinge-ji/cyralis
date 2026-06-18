@@ -50,7 +50,7 @@ work.json 是 Cyralis workflow 的状态事实源。
 - verify
 - done
 
-work item 通常不写 no_task；没有 active work 时，session resolver 输出 no_task。
+work item 通常不写 no_task；没有明确 active work 时，session resolver 直接输出 no_task。
 
 ## Artifact 字段
 

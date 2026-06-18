@@ -1214,12 +1214,6 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   assert.match(textSummary.stdout, /ready-feature/);
   assert.doesNotMatch(textSummary.stdout, /Done issue/);
 
-  const ambiguous = runPython(helper, ["--cwd", dir, "resolve", "--json"], {
-    allowFailure: true,
-  });
-  assert.equal(JSON.parse(ambiguous.stdout).status, "no_task");
-  assert.match(JSON.parse(ambiguous.stdout).reason, /ambiguous/);
-
   const transition = runPython(helper, [
     "--cwd",
     dir,
@@ -1228,6 +1222,55 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "implement",
   ]);
   assert.equal(JSON.parse(transition.stdout).ok, true);
+
+  const secondTransition = runPython(helper, [
+    "--cwd",
+    dir,
+    "transition",
+    ".cyralis/issues/2026-06-01-demo-issue",
+    "implement",
+  ]);
+  assert.equal(JSON.parse(secondTransition.stdout).ok, true);
+  const secondIssue = JSON.parse(readFileSync(join(issueDir, "work.json"), "utf8"));
+  secondIssue.artifacts.analysis.confirmed = true;
+  writeFileSync(
+    join(issueDir, "work.json"),
+    JSON.stringify(secondIssue, null, 2) + "\n",
+    "utf8",
+  );
+  assert.equal(
+    JSON.parse(
+      runPython(helper, [
+        "--cwd",
+        dir,
+        "transition",
+        ".cyralis/issues/2026-06-01-demo-issue",
+        "verify",
+      ]).stdout,
+    ).ok,
+    true,
+  );
+  writeFileSync(join(issueDir, "demo-issue-fix-note.md"), "fixed\n", "utf8");
+  const verifyIssue = JSON.parse(readFileSync(join(issueDir, "work.json"), "utf8"));
+  verifyIssue.artifacts.fix.result = "passed";
+  writeFileSync(
+    join(issueDir, "work.json"),
+    JSON.stringify(verifyIssue, null, 2) + "\n",
+    "utf8",
+  );
+  assert.equal(
+    JSON.parse(
+      runPython(helper, [
+        "--cwd",
+        dir,
+        "transition",
+        ".cyralis/issues/2026-06-01-demo-issue",
+        "done",
+      ]).stdout,
+    ).ok,
+    true,
+  );
+
 });
 
 function runPython(script, args, options = {}) {
