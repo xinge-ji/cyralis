@@ -15,7 +15,7 @@ description: 把已拍板的技术选型、架构决定、长期约束、编码�
 
 本工作流让每一条重要的"已经决定了"都有完整存档：**是什么、为什么、考虑过什么替代方案、后果是什么**。
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-decision-{slug}.md`，frontmatter 带 `doc_type: decision`。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-decision-{slug}.md`，frontmatter 带 `doc_type: decision`。
 
 ---
 
@@ -56,7 +56,7 @@ frontmatter / 正文模板 / 示例见同目录 `reference.md`。本技能流程
 
 ### Phase 1.5：查重叠与意图分流（必做）
 
-按 `.cyralis/reference/compound-archive.md` 执行：
+按 `.cyralis/reference/shared.md` 执行：
 
 - 用户话里含"改 / 更新 / 推翻 / 某条决策 / 某个选型"或明确指向某份旧决策 → 直接走**更新或 supersede**。决策文档特性：**结论本身变更几乎总要 supersede**（旧结论留痕不能原地覆盖）；只补背景 / 替代方案 / 影响描述时走"更新已有条目"
 - 否则用下面"搜索工具"按 category + 关键词查一遍，命中相近旧决策时把候选列给用户
@@ -81,7 +81,7 @@ AI 根据对话起草完整文档（YAML frontmatter + 所有正文节）。一�
 
 - 新建：写入 `.cyralis/compound/YYYY-MM-DD-decision-{slug}.md`，frontmatter 顶部带 `doc_type: decision`
 - 更新：写回 Phase 1.5 定位到的原文件，frontmatter 补 `updated: YYYY-MM-DD`
-- supersede：按 `.cyralis/reference/compound-archive.md` 处理；旧文档 `status: superseded` + `superseded-by`
+- supersede：按 `.cyralis/reference/shared.md` 处理；旧文档 `status: superseded` + `superseded-by`
 - 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
 
 ### Phase 5：相关工作流更新提示
@@ -95,7 +95,7 @@ AI 根据对话起草完整文档（YAML frontmatter + 所有正文节）。一�
 
 ## 搜索工具
 
-> 完整语法见 `.cyralis/reference/tools.md`。
+> 完整语法见 `.cyralis/reference/core.md`。
 
 ```bash
 # 列出所有当前有效的决策
@@ -115,7 +115,7 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=d
 
 ## 守护规则
 
-> 归档类工作流共享守护规则（只增不删 / 宁缺毋滥 / 不替用户写 / 可发现性 / 归档后查重叠）见 `.cyralis/reference/compound-archive.md`。本技能特有：
+> 归档类工作流共享守护规则（只增不删 / 宁缺毋滥 / 不替用户写 / 可发现性 / 归档后查重叠）见 `.cyralis/reference/shared.md`。本技能特有：
 
 1. **只归档已拍板的决定**——讨论中的方案不归档
 2. **status=superseded 不等于删除**——被取代的保留原文 + `superseded-by` + 正文顶部 `**[已取代]** 见 {新文档 slug}`

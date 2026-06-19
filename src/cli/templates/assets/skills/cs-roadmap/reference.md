@@ -210,7 +210,7 @@ python .cyralis/tools/validate-yaml.py --file .cyralis/roadmap/{slug}/{slug}-ite
 - [ ] 依赖关系讲得清具体理由？"B 需要 A 提供的 {具体产物}"
 - [ ] 最小闭环真是"最窄的端到端路径"？还是只是"最容易的一条"？
 - [ ] 有条目其实应该是 requirement 变化而不是 feature？（"把 XX 能力的边界改一下"）那种转 `cs-req`
-- [ ] 模块拆分 / 接口契约 / owner 归属 / 最小闭环是否出现多种可行方案但选择标准不清？命中时读取 `.cyralis/reference/decision-hygiene.md`，用"方案卫生升级"检查，并把结论落到对应章节
+- [ ] 模块拆分 / 接口契约 / owner 归属 / 最小闭环是否出现多种可行方案但选择标准不清？命中时读取 `.cyralis/reference/shared.md`，用"方案卫生升级"检查，并把结论落到对应章节
 
 ---
 

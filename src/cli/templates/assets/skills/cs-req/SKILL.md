@@ -30,7 +30,7 @@ description: 维护 `.cyralis/requirements/` 下的能力愿景文档。三种�
 - 起花哨标题或用比喻——读者要读半段才知道这能力是什么
 - 把实现细节塞进来——"通过 XXX 服务调用 YYY 接口"
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。一份样例看 `.cyralis/reference/requirement-example.md`——起草前读一遍对齐语气。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`。一份样例看 `.cyralis/reference/core.md`——起草前读一遍对齐语气。
 
 ---
 

@@ -7,13 +7,13 @@ description: issue 修复阶段——按已确认根因和方案定点修复、�
 
 ## 启动必读
 
-同时读取 `.cyralis/reference/issue-debugging-principles.md`、`.cyralis/reference/issue-patch-shape.md` 和 `.cyralis/reference/issue-fix-gates.md`。fix 阶段执行修复前 gate、完成前 gate、Repair Track / Retirement Track 和 confidence 口径；不要把局部补丁包装成根因修复。
+同时读取 `.cyralis/reference/issue.md`。fix 阶段执行修复前 gate、完成前 gate、Repair Track / Retirement Track 和 confidence 口径；不要把局部补丁包装成根因修复。
 
 根因和方案已经确定（标准路径在 analysis、快速通道在 quick-lane 启动摘要里确认过），你的活是按方案改代码、验证效果、写下修复记录。
 
 fix 阶段最容易出问题的不是改代码本身，而是**改的过程中冒出的"顺手"冲动**——顺手优化、顺手重构、顺手加抽象。每项单独看说得通，但合在一个 PR 里让别人分不清"这次到底为了修 bug 改了什么"。
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md` 和 `cs-issue` 的"文件放哪儿"。
+> 共享路径与命名约定看 `.cyralis/reference/core.md` 和 `cs-issue` 的"文件放哪儿"。
 
 ---
 
@@ -23,29 +23,29 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 
 1. **方案已确认**——读 analysis，确认 `doc_type=issue-analysis` 且 `status=confirmed`，第 5 节用户选定了哪个方案
 2. **调试治理已就绪**——analysis 里应有复现信号、诊断停止层、canonical owner、Patch-Shape / Minimality 检查、confidence。confidence 低于 `B` 时只能进入 mitigation，不要宣称根因修复
-3. **上下文读全**：analysis 全文 + report 全文 + analysis 里定位出的所有代码 + issue 调试 reference（`.cyralis/reference/issue-debugging-principles.md`、`.cyralis/reference/issue-patch-shape.md`、`.cyralis/reference/issue-fix-gates.md`）+ 沉淀目录搜索：
+3. **上下文读全**：analysis 全文 + report 全文 + analysis 里定位出的所有代码 + `.cyralis/reference/issue.md` + 沉淀目录搜索：
    - `python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=trick --filter status=active --query "{关键词}"`——确认修复方式不违背已有库用法 / 模式
    - 同样命令换 `--filter doc_type=explore`——确认修复点和已有证据不冲突
-   - 如果修复跨 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`
-   - 如果修复需要新增 helper / utility / adapter / decoder / normalizer / projection / constant，或会复制 / 批量修改相似逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`
+   - 如果修复跨 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/shared.md`
+   - 如果修复需要新增 helper / utility / adapter / decoder / normalizer / projection / constant，或会复制 / 批量修改相似逻辑，读取 `.cyralis/reference/shared.md`
 4. **确认起点**——告诉用户"我将按方案 X 修改 {文件列表}，开始修复"，等用户确认才动手
 
 ### 快速通道（无 report / analysis，从 quick-lane work item 直接触发）
 
-进入这个入口时 AI 已读过代码并对根因有把握，且满足 `.cyralis/reference/issue-quick-lane.md` quick lane 准入。先读 `work.json`，确认 `mode=issue`、`status=implement`、`artifacts.fix.quick_lane=true`；否则不要按快速通道执行。
+进入这个入口时 AI 已读过代码并对根因有把握，且满足 `.cyralis/reference/issue.md` quick lane 准入。先读 `work.json`，确认 `mode=issue`、`status=implement`、`artifacts.fix.quick_lane=true`；否则不要按快速通道执行。
 
 1. **明确陈述根因**："`{文件}:{行号}` 的 {具体代码} 存在 {问题描述}"，让用户确认根因判断准确
 2. **给修复方案和 Fix Boundary**——改哪里、怎么改、只允许动哪些文件（一两句话，不写完整分析文档）
 3. **等用户明确说"对，就这样改"才动手**——不允许"我觉得对，直接改了"
-4. 读 issue 调试 reference：`.cyralis/reference/issue-debugging-principles.md`、`.cyralis/reference/issue-patch-shape.md`、`.cyralis/reference/issue-fix-gates.md`
+4. 读 issue 调试 reference：`.cyralis/reference/issue.md`
 5. **补搜沉淀目录**——快速通道也要查一遍 `compound/`（trick + explore），避免误把已知边界条件当新问题
-6. 按风险读取通用 reference：跨层边界触发时读 `.cyralis/reference/cross-layer-thinking.md`；新增复用点或重复逻辑触发时读 `.cyralis/reference/code-reuse-thinking.md`
+6. 按风险读取通用 reference：跨层边界触发时读 `.cyralis/reference/shared.md`；新增复用点或重复逻辑触发时读 `.cyralis/reference/shared.md`
 
 ---
 
 ## 修复前 gate
 
-动手前对照 `.cyralis/reference/issue-fix-gates.md` 逐项确认：
+动手前对照 `.cyralis/reference/issue.md` 逐项确认：
 
 - [ ] 有 failing test、可重复命令、可执行复现步骤，或写清为什么只能人工验证
 - [ ] root cause 和 canonical owner 已明确
@@ -79,13 +79,11 @@ fix 阶段最容易出问题的不是改代码本身，而是**改的过程中�
 
 ### 跨层与复用守护
 
-如果 bug 来自 contract drift、raw payload 重复解析、caller 侧补丁、duplicate owner、template / runtime parser 漂移，按 `.cyralis/reference/cross-layer-thinking.md` 写短 `Cross-Layer Check`，确认真正 owner 和 downstream consumers。
-
-如果修复需要新增 helper / decoder / projection / constant，或相同修法要改多处，按 `.cyralis/reference/code-reuse-thinking.md` 写短 `Code Reuse Check`。结论是 `stop` 时回 analysis，不在 fix 阶段硬冲。
+如果 bug 来自 contract drift、raw payload 重复解析、caller 侧补丁、duplicate owner、template / runtime parser 漂移，按 `.cyralis/reference/shared.md` 写短 `Cross-Layer Check`；如果修复需要新增 helper / decoder / projection / constant，或相同修法要改多处，写短 `Code Reuse Check`。结论是 `stop` 时回 analysis，不在 fix 阶段硬冲。
 
 ### 代码质量反射检查
 
-修 bug 看似动作小但 AI 写修复代码一样会漂——大文件再塞特殊处理、大类再加方法、为绕开边界加 `if` 分支。反射检查见 `.cyralis/reference/implementation-reflection.md`。
+修 bug 看似动作小但 AI 写修复代码一样会漂——大文件再塞特殊处理、大类再加方法、为绕开边界加 `if` 分支。反射检查见 `.cyralis/reference/shared.md`。
 
 issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该拆"时默认不在本次 PR 做**——按"改动最小化"记成顺手发现。唯一例外是"不拆就没法干净修这个 bug"，那停下来跟用户确认"修这个 bug 的前置是 {重构动作}，合进来还是拆出去单独做"。
 
@@ -104,7 +102,7 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 - [ ] **影响面回归**——analysis 第 4 节"潜在受害模块"每个走一遍最基本的冒烟路径
 - [ ] **前端改动浏览器验证**（如涉及）——按项目启动约定执行，不能只 typecheck
 - [ ] **相关测试通过**——有测试覆盖到修复区域就跑一遍
-- [ ] **Debugging Closure**——按 `.cyralis/reference/issue-fix-gates.md` 写 reproduction before / verification after / canonical owner / H-class signals / confidence
+- [ ] **Debugging Closure**——按 `.cyralis/reference/issue.md` 写 reproduction before / verification after / canonical owner / H-class signals / confidence
 - [ ] **Repair / Retirement 双轨**——涉及旧 owner / fallback / adapter / historical patch 时，说明删除或保留理由与 retirement trigger
 
 ---
@@ -115,7 +113,7 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 
 为什么切换：反复试错本质是猜测在原假设下还有什么可能性，但如果原假设就错了再猜也是绕圈。日志强制看实际运行时数据，往往一眼看出原假设哪里偏了。
 
-如果修复后仍有任何残留症状，按 `.cyralis/reference/issue-debugging-principles.md` 重新做一次差异诊断：残留症状和已修症状是同一根因未修透、修错深度、复合根因，还是完全独立根因。连续 3 次修复尝试失败时停止继续补丁，回到分析阶段讨论架构 / contract / spec gap。
+如果修复后仍有任何残留症状，按 `.cyralis/reference/issue.md` 重新做一次差异诊断：残留症状和已修症状是同一根因未修透、修错深度、复合根因，还是完全独立根因。连续 3 次修复尝试失败时停止继续补丁，回到分析阶段讨论架构 / contract / spec gap。
 
 日志调试步骤、用户取日志提示词、循环限制见同目录 `reference.md`。
 
@@ -129,7 +127,7 @@ issue-fix 比 feature-implement 更谨慎：**触发反射信号但结论是"该
 
 ## 独立代码评审 gate
 
-这是对**本次 bug fix diff** 的独立 review，不替代 Debugging Closure、Repair / Retirement Track、fix-note 落档。共享口径看 `.cyralis/reference/completion-and-review.md`。
+这是对**本次 bug fix diff** 的独立 review，不替代 Debugging Closure、Repair / Retirement Track、fix-note 落档。共享口径看 `.cyralis/reference/shared.md`。
 
 ### 什么时候必须跑
 
@@ -175,7 +173,7 @@ review 结论只是 advisory；fix-note、confidence、Repair / Retirement Track
 
 ## 收尾提交
 
-按 `.cyralis/reference/completion-and-review.md` 的 scoped-commit 规则执行。本阶段：
+按 `.cyralis/reference/shared.md` 的 scoped-commit 规则执行。本阶段：
 
 - **提交范围**：修复代码 + `{slug}-fix-note.md` + 本次一并更新的 report / analysis
 - 修复闭环后告诉用户"修复验证已完成，`{slug}-fix-note.md` 已落盘"，紧接着问是否需要 commit
@@ -186,7 +184,7 @@ review 结论只是 advisory；fix-note、confidence、Repair / Retirement Track
 
 告诉用户："issue 修复完成，工作流闭环。标准路径 report + analysis + fix-note 已存档；快速通道 fix-note 已存档。"
 
-按 `.cyralis/reference/completion-and-review.md` 的 issue-fix 收尾推荐顺序各问一句（用户"不用"立即跳过）：
+按 `.cyralis/reference/shared.md` 的 issue-fix 收尾推荐顺序各问一句（用户"不用"立即跳过）：
 
 1. 暴露了值得复用的坑点 → "沉淀 learning？（`cs-learn`）"
 2. 沉淀出长期约束 / 规约 / 技术决定 → "归档决定？（`cs-decide`）"

@@ -9,6 +9,8 @@ description: 代码优化的子流程入口，处理"行为不变、结构变"�
 
 AI 自己重构有两个稳定失败模式：一是不知道模块真实需求和约束，改出来的东西功能不等价；二是一次吞掉的范围超过上下文承载，改到后面忘了前面的约束。这流程在"想优化"和"动手改"之间塞了扫描清单 + 方法库，让 AI 只接自己能稳定做对的活。
 
+scan / design / apply 的高层口径看 `.cyralis/reference/refactor.md`；详细 scan 检查、方法库和清单格式仍在本目录 `reference/`。
+
 ```
 scan（扫优化点清单）→ design（和用户定做哪几条 + 顺序）→ apply（逐条执行，每步人工放行）
 ```
@@ -196,7 +198,7 @@ refactor: {YYYY-MM-DD}-{slug}
 
 ## 独立代码评审 gate
 
-这是对**已完成 refactor diff** 的独立 review，不替代本技能的行为等价验证、apply-notes、用户目视确认。共享口径看 `.cyralis/reference/completion-and-review.md`。
+这是对**已完成 refactor diff** 的独立 review，不替代本技能的行为等价验证、apply-notes、用户目视确认。共享口径看 `.cyralis/reference/shared.md`。
 
 ### 什么时候必须跑
 
@@ -268,6 +270,6 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - `reference/scan-checklist-format.md` — scan 清单条目字段 / 顺序 / 硬约束
 - `reference/refusal-routing.md` — scan 前置检查 7 条 + 路由表
 - `reference/methods.md` — 方法库（L1-L4 四层分类）
-- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
-- `.cyralis/reference/workflow-state.md` — work.json 状态协议
-- `.cyralis/reference/completion-and-review.md` — 独立评审和 scoped-commit
+- `.cyralis/reference/core.md` — 目录结构和命名
+- `.cyralis/reference/core.md` — work.json 状态协议
+- `.cyralis/reference/shared.md` — 独立评审和 scoped-commit

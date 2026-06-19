@@ -11,7 +11,7 @@ cs-trick 是面向问题的**处方性参考库**，回答：**要做 X，经过
 
 典型内容：某个设计模式在这个项目的标准写法 / 某个库的核心 API 用法 + 已知坑 / 某类操作的命令配方。
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`。
 
 ---
 
@@ -52,7 +52,7 @@ frontmatter / 正文模板 / 长示例见同目录 `reference.md`。流程约束
 
 ### Phase 1.5：查重叠与意图分流（必做）
 
-按 `.cyralis/reference/compound-archive.md`：
+按 `.cyralis/reference/shared.md`：
 
 - 含"改 / 更新 / 修订 / 补充 / 某条 trick"或指向某份旧文档 → 直接走**更新已有**，不进新建流程
 - 否则用搜索工具 `--query` 查一遍 `topic`，命中相近时把候选列给用户
@@ -91,7 +91,7 @@ AI 一次性起草完整文档（YAML frontmatter + 正文）。示例代码优�
 
 - 新建：写入 `compound/YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`
 - 更新：写回 Phase 1.5 定位的原文件 + `updated: YYYY-MM-DD`
-- supersede：按 `.cyralis/reference/compound-archive.md` 处理
+- supersede：按 `.cyralis/reference/shared.md` 处理
 - 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
 
 ### Phase 6：可发现性检查
@@ -102,7 +102,7 @@ AI 一次性起草完整文档（YAML frontmatter + 正文）。示例代码优�
 
 ## 搜索工具
 
-> 完整语法见 `.cyralis/reference/tools.md`。
+> 完整语法见 `.cyralis/reference/core.md`。
 
 ```bash
 # 按类型 + 框架筛选
@@ -122,7 +122,7 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=t
 
 ## 守护规则
 
-> 归档类共享规则见 `.cyralis/reference/compound-archive.md`。本技能特有：
+> 归档类共享规则见 `.cyralis/reference/shared.md`。本技能特有：
 
 1. **只归档已验证的做法**——"也许应该这样做"不归档；必须用户或 AI 确认过有效
 2. **必须调查代码仓**——Phase 2 不可跳过。示例代码优先用项目真实代码不凭空编写

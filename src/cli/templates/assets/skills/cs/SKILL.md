@@ -22,7 +22,7 @@ description: cyralis 工作流根入口，介绍体系全貌并把诉求路由�
 
 回应前每次都做：
 
-1. **存在**——必须先阅读 `.cyralis/reference/paths-and-naming.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
+1. **存在**——必须先阅读 `.cyralis/reference/core.md`（如果有）；`Glob` 一下 `features/` `issues/` `roadmap/` 看进行中的工作（拿目录名就够，不逐份读）
 2. **看用户原话**——开放式还是带具体诉求？带诉求匹配路由表，没诉求给体系介绍
 
 扫完才回应。让用户感觉你心里有数。
@@ -59,7 +59,7 @@ cyralis 把开发活动建模成 **8 个实体 + 3 个流程**，所有产物聚
 
 **核心理念**：编排的是软件本身的生命周期（需求、架构、特性、bug、决策），不是 Agent。人在环——程序员对整体把控负责，AI 是高效执行体。
 
-> 项目已初始化的话，路径命名看 `.cyralis/reference/paths-and-naming.md`；具体 workflow 口径按对应 reference 文件读取。
+> 项目已初始化的话，路径命名看 `.cyralis/reference/core.md`；具体 workflow 口径按对应 reference 文件读取。
 
 ---
 

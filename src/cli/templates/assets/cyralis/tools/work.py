@@ -33,42 +33,23 @@ WORK_ROOTS = {
     "refactor": "refactors",
 }
 COMMON_REFERENCES = [
-    ".cyralis/reference/paths-and-naming.md",
-    ".cyralis/reference/metadata-and-artifacts.md",
-    ".cyralis/reference/workflow-state.md",
-    ".cyralis/reference/tools.md",
+    ".cyralis/reference/core.md",
 ]
 MODE_REFERENCES = {
     "roadmap": [
-        ".cyralis/reference/roadmap-feature-link.md",
-        ".cyralis/reference/decision-hygiene.md",
+        ".cyralis/reference/shared.md",
     ],
     "feature": [
-        ".cyralis/reference/feature-design-contract.md",
-        ".cyralis/reference/roadmap-feature-link.md",
-        ".cyralis/reference/completion-and-review.md",
-        ".cyralis/reference/compound-archive.md",
-        ".cyralis/reference/implementation-reflection.md",
-        ".cyralis/reference/decision-hygiene.md",
-        ".cyralis/reference/cross-layer-thinking.md",
-        ".cyralis/reference/code-reuse-thinking.md",
+        ".cyralis/reference/feature.md",
+        ".cyralis/reference/shared.md",
     ],
     "issue": [
-        ".cyralis/reference/issue-debugging-principles.md",
-        ".cyralis/reference/issue-quick-lane.md",
-        ".cyralis/reference/issue-patch-shape.md",
-        ".cyralis/reference/issue-fix-gates.md",
-        ".cyralis/reference/completion-and-review.md",
-        ".cyralis/reference/compound-archive.md",
-        ".cyralis/reference/implementation-reflection.md",
-        ".cyralis/reference/cross-layer-thinking.md",
-        ".cyralis/reference/code-reuse-thinking.md",
+        ".cyralis/reference/issue.md",
+        ".cyralis/reference/shared.md",
     ],
     "refactor": [
-        ".cyralis/reference/completion-and-review.md",
-        ".cyralis/reference/code-dimensions.md",
-        ".cyralis/reference/cross-layer-thinking.md",
-        ".cyralis/reference/code-reuse-thinking.md",
+        ".cyralis/reference/refactor.md",
+        ".cyralis/reference/shared.md",
     ],
 }
 

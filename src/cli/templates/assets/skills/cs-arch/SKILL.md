@@ -22,7 +22,7 @@ description: 维护 `.cyralis/architecture/` 这份只记现状的系统地图�
 - **代码复述**——每节都说"这里有什么"，不说"为什么这么分"，信息量等于 `ls -R`
 - **检查时看一眼感觉没问题**——没给具体位置证据
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。文档结构模板、check 覆盖项、报告格式看同目录 `reference.md`。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`。文档结构模板、check 覆盖项、报告格式看同目录 `reference.md`。
 
 ---
 
@@ -78,7 +78,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 ### Phase 2：读取材料
 
-**共同必读**：`paths-and-naming.md` + `ARCHITECTURE.md` + `architecture/` 下其他文档。
+**共同必读**：`core.md` + `ARCHITECTURE.md` + `architecture/` 下其他文档。
 
 **backfill / update 额外**（详见 `reference.md` "读取清单"）：目标模块代码入口和核心文件 + 用户素材 + 相关 compound 沉淀（decision / explore / learning）+ 相关已有 feature 方案。**update 专项**：当前 doc 全文 + `last_reviewed` 之后的代码变更（`git log` 粗扫）。
 
@@ -108,7 +108,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 **backfill**：
 
-- 写入 `architecture/{type}-{slug}.md`（命名规则见 `paths-and-naming.md`），frontmatter `status: current`、`last_reviewed` 填当天
+- 写入 `architecture/{type}-{slug}.md`（命名规则见 `core.md`），frontmatter `status: current`、`last_reviewed` 填当天
 - **同类聚合检查**（落盘前必跑）：按"架构 doc 分组规则"判断本次落盘后某 type 在根目录 ≥6 份——命中就把这类全搬进 `architecture/{type}/`、去掉文件名前缀、同步改 `ARCHITECTURE.md` 链接；搬迁清单在 Phase 5 一并 review
 - **索引更新**：`ARCHITECTURE.md` 加新文档引用——backfill **必定**要加，否则写了没人会读；改动同样 review，不偷偷改
 

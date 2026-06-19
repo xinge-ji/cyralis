@@ -25,7 +25,7 @@ description: 后端领域辅助技能。用于 feature / issue / refactor 流程
 - 不创建 phase / slot / item DAG
 - 不写 `.cyralis` workflow status
 
-详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/paths-and-naming.md`、`.cyralis/reference/feature-design-contract.md` 和 `.cyralis/reference/issue-debugging-principles.md`。跨层 contract / payload / projection 风险按 `.cyralis/reference/cross-layer-thinking.md`，复用 / shared owner / duplicate helper 风险按 `.cyralis/reference/code-reuse-thinking.md`。
+详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/core.md`、`.cyralis/reference/feature.md` 和 `.cyralis/reference/issue.md`。跨层 contract / payload / projection 风险、以及复用 / shared owner / duplicate helper 风险按 `.cyralis/reference/shared.md`（Cross-layer thinking / Code reuse thinking）。
 
 ---
 
@@ -112,8 +112,7 @@ description: 后端领域辅助技能。用于 feature / issue / refactor 流程
    ```
 
 4. 读真实代码和测试入口。事实以代码、架构文档和已确认的 spec 为准。
-5. 如果本轮改变跨层 contract / payload / event / config / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`。
-6. 如果本轮要新增 helper / utility / adapter / decoder / normalizer / projection / constant，或有重复后端逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`。
+5. 如果本轮改变跨层 contract / payload / event / config / generated template / runtime parser，或要新增 helper / utility / adapter / decoder / normalizer / projection / constant、出现重复后端逻辑，读取 `.cyralis/reference/shared.md`。
 7. 明确本轮姿态：Design Assist / Implementation Assist / Acceptance Assist。
 
 ---
@@ -131,7 +130,7 @@ description: 后端领域辅助技能。用于 feature / issue / refactor 流程
 | job / event / integration | 异步编排、第三方适配、重试、幂等 key | 成为第二套 source-of-truth |
 | shared / util | 真正跨领域且稳定的通用能力 | 收容业务规则 |
 
-命中 caller patch、adapter patch、fallback patch、regex / keyword patch、local guard patch 时，先按 `.cyralis/reference/issue-patch-shape.md` 做 Patch-Shape Triage。
+命中 caller patch、adapter patch、fallback patch、regex / keyword patch、local guard patch 时，先按 `.cyralis/reference/issue.md` 做 Patch-Shape Triage。
 
 ---
 

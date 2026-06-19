@@ -21,7 +21,7 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 **为什么文件夹不是单文件**：拆解过程会产生草稿 / 调研 / 方案对比 / 白板转述，塞一份 md 会乱又舍不得删。每个 roadmap 一个子目录，主文档对外口径，旁边 `drafts/` 随便堆。
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。主文档和 items 完整模板看同目录 `reference.md`。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`。主文档和 items 完整模板看同目录 `reference.md`。
 
 ---
 
@@ -98,7 +98,7 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 6. **明确不做的边界**——用户脑子里的"权限系统"可能包括审计日志 / 数据脱敏，不打算覆盖就写进"明确不做"
 7. **不替用户决定优先级**——技术依赖之外的排序让用户拍板
 
-**决策卫生检查（按信号触发）**：模块拆分、接口契约、owner 归属、最小闭环任一项出现多种可行方案且选择标准不清时，读取 `.cyralis/reference/decision-hygiene.md`，用"方案卫生升级"检查一次。
+**决策卫生检查（按信号触发）**：模块拆分、接口契约、owner 归属、最小闭环任一项出现多种可行方案且选择标准不清时，读取 `.cyralis/reference/shared.md`，用"方案卫生升级"检查一次。
 
 检查结论不单独成文；把结果落到 roadmap 对应章节：
 - owner / 退休判断 → 第 3 节模块拆分

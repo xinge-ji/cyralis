@@ -118,7 +118,7 @@ implements: []   # 承载的 requirement slug 列表，可空——纯基础设�
 3. **跨文引用有效性**——`see xxx.md` / `定义见 yyy.md` 引用的目标真的存在
 4. **接口 / 契约对齐**——多份涉及同一接口 / 类型时签名 / 字段 / 语义一致
 5. **依赖关系闭环**——A 声明依赖 B 提供的能力，B 真的暴露了；有没有单向悬空依赖
-6. **同类聚合与命名**——同 type 文档遵循 `{type}-{slug}.md`，根目录某 type ≥6 份是否还平铺（参照 `.cyralis/reference/paths-and-naming.md`）
+6. **同类聚合与命名**——同 type 文档遵循 `{type}-{slug}.md`，根目录某 type ≥6 份是否还平铺（参照 `.cyralis/reference/core.md`）
 
 ---
 

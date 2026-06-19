@@ -9,6 +9,8 @@ description: 系统审计——从代码中主动发现 bug 隐患、安全漏�
 
 `cs-issue` 等你报 bug，`cs-refactor` 等你指优化点，`cs-explore` 等你提问题——但"我也不知道哪有问题，你先扫一遍看看"这个诉求没人接。`cs-audit` 补上这块：**在用户限定的范围内主动扫描，产出一份按严重度 × 性质交叉分类的发现清单**。
 
+审计和架构专项的共通总纲看 `.cyralis/reference/arch-audit.md`；本技能主抓 bug / security / performance / maintainability / arch-drift 扫描。
+
 本技能只发现、不定修。修是 `cs-issue` / `cs-refactor` 的事。
 
 ---
@@ -142,5 +144,5 @@ index.md 末尾给优先级建议：
 ## 相关文档
 
 - `reference.md` — index.md / finding-NN.md 模板
-- `.cyralis/reference/paths-and-naming.md` — 目录结构和命名
+- `.cyralis/reference/core.md` — 目录结构和命名
 - `.cyralis/architecture/` — 架构偏离类发现对照源

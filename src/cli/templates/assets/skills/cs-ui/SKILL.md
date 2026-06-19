@@ -25,7 +25,7 @@ description: UI 领域辅助技能。用于 feature / issue / refactor 流程中
 - 不创建 phase / slot / item DAG
 - 不写 `.cyralis` workflow status
 
-详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/paths-and-naming.md`、`.cyralis/reference/feature-design-contract.md` 和 `.cyralis/reference/issue-debugging-principles.md`。跨层 contract / payload / projection 风险按 `.cyralis/reference/cross-layer-thinking.md`，复用 / shared component / duplicate state 风险按 `.cyralis/reference/code-reuse-thinking.md`。
+详细检查口径见同目录 `reference.md`。共享路径与工作流规则见 `.cyralis/reference/core.md`、`.cyralis/reference/feature.md` 和 `.cyralis/reference/issue.md`。跨层 contract / payload / projection 风险，以及复用 / shared component / duplicate state 风险按 `.cyralis/reference/shared.md`（Cross-layer thinking / Code reuse thinking）。
 
 ---
 
@@ -115,8 +115,7 @@ description: UI 领域辅助技能。用于 feature / issue / refactor 流程中
    ```
 
 4. 读真实代码、route tree、component entry、state owner、API client 和测试入口。
-5. 如果本轮改变 UI/API contract、payload、event、config、schema、cache projection、generated template 或 runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`。
-6. 如果本轮要新增 shared component / hook / utility / API adapter / decoder / normalizer / projection / constant，或有重复 UI state / duplicate component，读取 `.cyralis/reference/code-reuse-thinking.md`。
+5. 如果本轮改变 UI/API contract、payload、event、config、schema、cache projection、generated template 或 runtime parser，或要新增 shared component / hook / utility / API adapter / decoder / normalizer / projection / constant、出现重复 UI state / duplicate component，读取 `.cyralis/reference/shared.md`。
 7. 明确本轮姿态：Design Assist / Implementation Assist / Acceptance Assist。
 
 ---
@@ -135,7 +134,7 @@ description: UI 领域辅助技能。用于 feature / issue / refactor 流程中
 | schema / validation | client-side input shape and local validation | 替代 server authorization or source-of-truth rules |
 | store / cache | cross-screen state, cache key, invalidation | 收容一次性页面状态 |
 
-命中 local guard、presentation-only patch、duplicate state、downstream re-parse、fallback branch 时，按 `.cyralis/reference/issue-patch-shape.md` 做 Patch-Shape Triage。
+命中 local guard、presentation-only patch、duplicate state、downstream re-parse、fallback branch 时，按 `.cyralis/reference/issue.md` 做 Patch-Shape Triage。
 
 ---
 

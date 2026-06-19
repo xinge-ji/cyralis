@@ -11,6 +11,8 @@ description: 架构改进专项审查，寻找让代码更可测试、更 AI 可
 
 它是 `cs-audit` 的架构专项分支，产出仍落在 `.cyralis/audits/`，但 `doc_type` 用 `arch-review-*` 和普通 audit 区分。它只发现和讨论候选；真正执行走 `cs-refactor`，大到跨 feature 的目标态走 `cs-roadmap`，已经拍板的长期约束走 `cs-decide`，现状地图更新走 `cs-arch`。
 
+审计 / 架构 review 的共通总纲看 `.cyralis/reference/arch-audit.md`。
+
 > 架构语言读同目录 `language.md`；候选判断读 `deepening.md`；报告模板读 `reference.md`；用户选中候选后要比较多个 interface 方案时读 `interface-design.md`。
 
 ---
@@ -152,9 +154,3 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=d
 - [ ] 没有写 HTML、没有打开浏览器、没有写 `CONTEXT.md` / `docs/adr`
 - [ ] 没有改代码、没有改 `.cyralis/architecture/`
 - [ ] 已给出 Top recommendation 和下一步路由
-
----
-
-## 来源与改写说明
-
-本技能改写自 Matt Pocock 的 `improve-codebase-architecture` skill。保留其 deep module、interface、seam、adapter、locality、leverage、deletion test 等判断语言；报告落点、领域术语来源、决策记录和后续执行路径已改为 Cyralis 原生工作流。

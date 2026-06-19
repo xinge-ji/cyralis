@@ -9,7 +9,7 @@ description: feature 流程阶段 2——按 {slug}-checklist.yaml 里 design �
 
 到这一步用户已经在方案上签过字了，你的活是把方案变成代码。容易出问题的不是写代码本身，而是**实现路上发现方案没覆盖到的情况时怎么办**——硬冲下去就把方案当摆设了。下面整套规则就是为了让"停下来"成为默认动作。
 
-> 共享路径与命名约定看 `.cyralis/reference/paths-and-naming.md`。
+> 共享路径与命名约定看 `.cyralis/reference/core.md`，跨层与复用判断看 `.cyralis/reference/shared.md`（Cross-layer thinking / Code reuse thinking）。
 
 ---
 
@@ -67,8 +67,8 @@ frontmatter：`doc_type=feature-design` / `feature` 一致 / `summary` 非空 / 
 - 方案 doc 全文（重点：第 1 节、2.1/2.2/2.3/2.4/2.5、3）
 - `{slug}-checklist.yaml`、需求来源（用户描述 + brainstorm note）
 - 第 2.1 节接口示例的来源位置——读相关函数即可
-- 若当前 step 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/cross-layer-thinking.md`
-- 若当前 step 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或需要复制 / 批量修改相似逻辑，读取 `.cyralis/reference/code-reuse-thinking.md`
+- 若当前 step 触及 2+ 层、payload / event / config / API contract / generated template / runtime parser，读取 `.cyralis/reference/shared.md`
+- 若当前 step 要新增 helper / utility / shared component / adapter / decoder / normalizer / projection / constant / config key，或需要复制 / 批量修改相似逻辑，读取 `.cyralis/reference/shared.md`
 
 ### 4. 跟用户确认从哪一步开始
 
@@ -98,7 +98,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 不做方案外的改动
 
-发现值得重构的点（参考 `.cyralis/reference/implementation-reflection.md`），只要**不在本次功能影响面内**就记成后续 issue：
+发现值得重构的点（参考 `.cyralis/reference/shared.md`），只要**不在本次功能影响面内**就记成后续 issue：
 
 ```markdown
 > 顺手发现：{文件:行号} {问题简述}。不在本次范围，记录待后续 issue。
@@ -108,9 +108,9 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### Search-first 与复用检查
 
-触发 `.cyralis/reference/code-reuse-thinking.md` 的信号时，先 search 再写代码。不要新增第二套 decoder / projection / constant / helper，也不要把重复逻辑塞进 generic util。结论写进完成汇报的"代码质量反射检查自检"。
+触发 `.cyralis/reference/shared.md` 的信号时，先 search 再写代码。不要新增第二套 decoder / projection / constant / helper，也不要把重复逻辑塞进 generic util。结论写进完成汇报的"代码质量反射检查自检"。
 
-触发 `.cyralis/reference/cross-layer-thinking.md` 的信号时，先确认 flow、boundary owner 和 validation owner。不要让 display / command / caller 重新解释 raw payload。结论写进完成汇报的"行为场景绑定"或"验收场景自检"。
+触发 `.cyralis/reference/shared.md` 的信号时，先确认 flow、boundary owner 和 validation owner。不要让 display / command / caller 重新解释 raw payload。结论写进完成汇报的"行为场景绑定"或"验收场景自检"。
 
 ### 术语守护
 
@@ -124,7 +124,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 
 ### 代码质量反射检查
 
-除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/implementation-reflection.md`。
+除上面流程约束外，还有一组针对代码质量的反射检查——看 `.cyralis/reference/shared.md`。
 
 核心：**不是"超过 N 行必须拆"，而是"遇到 X 情况就停下来问自己"**。每条对应 AI 默认会走进去的坑（往大文件继续追加、往大类加方法、补丁分支、复制粘贴、第 4+ 个参数、往万能 util 堆东西）。
 
@@ -161,7 +161,7 @@ design 给的 `steps` 是 paradigm 维度切片（编排骨架 → 计算节点 
 {是 / 否。是的话说明已回填方案 doc（补第 0 节 + 第 2.1 节）并做过 grep 防冲突}
 
 ### 代码质量反射检查自检
-{对照 implementation-reflection.md，触发哪些信号 + 怎么处理；都没触发写"无触发"}
+{对照 `.cyralis/reference/shared.md`，触发哪些信号 + 怎么处理；都没触发写"无触发"}
 
 ### 推进顺序退出信号核对
 {对照 steps 逐条列 action + exit_signal + status（应全为 done）}

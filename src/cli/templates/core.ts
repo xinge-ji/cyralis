@@ -25,78 +25,20 @@ export const coreTemplates: Array<[string, string]> = [
   ],
   [".cyralis/tools/work.py", readAsset("cyralis/tools/work.py")],
   [
-    ".cyralis/reference/paths-and-naming.md",
-    readAsset("cyralis/reference/paths-and-naming.md"),
+    ".cyralis/reference/core.md",
+    readAsset("cyralis/reference/core.md"),
+  ],
+  [".cyralis/reference/shared.md", readAsset("cyralis/reference/shared.md")],
+  [".cyralis/reference/feature.md", readAsset("cyralis/reference/feature.md")],
+  [".cyralis/reference/issue.md", readAsset("cyralis/reference/issue.md")],
+  [
+    ".cyralis/reference/refactor.md",
+    readAsset("cyralis/reference/refactor.md"),
   ],
   [
-    ".cyralis/reference/metadata-and-artifacts.md",
-    readAsset("cyralis/reference/metadata-and-artifacts.md"),
+    ".cyralis/reference/arch-audit.md",
+    readAsset("cyralis/reference/arch-audit.md"),
   ],
-  [
-    ".cyralis/reference/workflow-state.md",
-    readAsset("cyralis/reference/workflow-state.md"),
-  ],
-  [
-    ".cyralis/reference/feature-design-contract.md",
-    readAsset("cyralis/reference/feature-design-contract.md"),
-  ],
-  [
-    ".cyralis/reference/roadmap-feature-link.md",
-    readAsset("cyralis/reference/roadmap-feature-link.md"),
-  ],
-  [
-    ".cyralis/reference/completion-and-review.md",
-    readAsset("cyralis/reference/completion-and-review.md"),
-  ],
-  [
-    ".cyralis/reference/compound-archive.md",
-    readAsset("cyralis/reference/compound-archive.md"),
-  ],
-  [
-    ".cyralis/reference/implementation-reflection.md",
-    readAsset("cyralis/reference/implementation-reflection.md"),
-  ],
-  [
-    ".cyralis/reference/decision-hygiene.md",
-    readAsset("cyralis/reference/decision-hygiene.md"),
-  ],
-  [
-    ".cyralis/reference/issue-debugging-principles.md",
-    readAsset("cyralis/reference/issue-debugging-principles.md"),
-  ],
-  [
-    ".cyralis/reference/issue-quick-lane.md",
-    readAsset("cyralis/reference/issue-quick-lane.md"),
-  ],
-  [
-    ".cyralis/reference/issue-patch-shape.md",
-    readAsset("cyralis/reference/issue-patch-shape.md"),
-  ],
-  [
-    ".cyralis/reference/issue-fix-gates.md",
-    readAsset("cyralis/reference/issue-fix-gates.md"),
-  ],
-  [
-    ".cyralis/reference/code-dimensions.md",
-    readAsset("cyralis/reference/code-dimensions.md"),
-  ],
-  [
-    ".cyralis/reference/cross-layer-thinking.md",
-    readAsset("cyralis/reference/cross-layer-thinking.md"),
-  ],
-  [
-    ".cyralis/reference/code-reuse-thinking.md",
-    readAsset("cyralis/reference/code-reuse-thinking.md"),
-  ],
-  [
-    ".cyralis/reference/maintainer-notes.md",
-    readAsset("cyralis/reference/maintainer-notes.md"),
-  ],
-  [
-    ".cyralis/reference/requirement-example.md",
-    readAsset("cyralis/reference/requirement-example.md"),
-  ],
-  [".cyralis/reference/tools.md", readAsset("cyralis/reference/tools.md")],
   [
     ".cyralis/templates/feature/work.json",
     readAsset("cyralis/templates/feature/work.json"),

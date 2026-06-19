@@ -123,84 +123,44 @@ test("core templates install host-neutral workflow assets", () => {
     "debugging governance should be split and no longer installed",
   );
   assert.ok(
-    templates.get(".cyralis/reference/paths-and-naming.md"),
-    "expected paths and naming reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
-    "expected metadata and artifacts reference",
+    templates.get(".cyralis/reference/core.md"),
+    "expected core reference",
   );
   assert.match(
-    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
-    /Behavior Evaluation/,
+    templates.get(".cyralis/reference/core.md"),
+    /Shared tools/,
   );
   assert.match(
-    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
-    /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这个小节/,
+    templates.get(".cyralis/reference/core.md"),
+    /Requirement sample/,
   );
   assert.match(
-    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
-    /Behavior Coverage/,
+    templates.get(".cyralis/reference/core.md"),
+    /Memory projection/,
   );
   assert.match(
-    templates.get(".cyralis/reference/metadata-and-artifacts.md"),
-    /technical-only/,
+    templates.get(".cyralis/reference/core.md"),
+    /Project notes/,
   );
   assert.ok(
-    templates.get(".cyralis/reference/decision-hygiene.md"),
-    "expected decision hygiene reference",
+    templates.get(".cyralis/reference/shared.md"),
+    "expected shared reference",
   );
   assert.ok(
-    templates.get(".cyralis/reference/issue-debugging-principles.md"),
-    "expected issue debugging principles reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/issue-quick-lane.md"),
-    "expected issue quick-lane reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/issue-patch-shape.md"),
-    "expected issue patch-shape reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/issue-fix-gates.md"),
-    "expected issue fix gates reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/feature-design-contract.md"),
+    templates.get(".cyralis/reference/feature.md"),
     "expected feature reference",
   );
-  assert.match(
-    templates.get(".cyralis/reference/feature-design-contract.md"),
-    /Behavior Evaluation（按需）/,
-  );
-  assert.match(
-    templates.get(".cyralis/reference/feature-design-contract.md"),
-    /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这里/,
-  );
-  assert.match(
-    templates.get(".cyralis/reference/feature-design-contract.md"),
-    /technical-only/,
+  assert.ok(
+    templates.get(".cyralis/reference/issue.md"),
+    "expected issue reference",
   );
   assert.ok(
-    templates.get(".cyralis/reference/workflow-state.md"),
-    "expected work json reference",
+    templates.get(".cyralis/reference/refactor.md"),
+    "expected refactor reference",
   );
   assert.ok(
-    templates.get(".cyralis/reference/tools.md"),
-    "expected tools reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/code-dimensions.md"),
-    "expected code dimensions reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/cross-layer-thinking.md"),
-    "expected cross-layer thinking reference",
-  );
-  assert.ok(
-    templates.get(".cyralis/reference/code-reuse-thinking.md"),
-    "expected code reuse thinking reference",
+    templates.get(".cyralis/reference/arch-audit.md"),
+    "expected arch/audit reference",
   );
   assert.ok(
     templates.get(".cyralis/templates/feature/work.json"),
@@ -574,10 +534,10 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.doesNotMatch(design, /Cyralis 投影说明/);
   assert.doesNotMatch(design, /Cyralis 状态写入点/);
   assert.doesNotMatch(design, /status=approved/);
-  assert.match(design, /cross-layer-thinking\.md/);
-  assert.match(design, /code-reuse-thinking\.md/);
-  assert.match(implement, /cross-layer-thinking\.md/);
-  assert.match(implement, /code-reuse-thinking\.md/);
+  assert.match(design, /Cross-layer thinking/);
+  assert.match(design, /Code reuse thinking/);
+  assert.match(implement, /Cross-layer thinking/);
+  assert.match(implement, /Code reuse thinking/);
 });
 
 test("backend and ui skills are projected and reference shared thinking guides", () => {
@@ -596,11 +556,11 @@ test("backend and ui skills are projected and reference shared thinking guides",
     assert.ok(ui, `expected ${host} ui skill`);
     assert.ok(uiReference, `expected ${host} ui reference`);
     assert.match(backend, /领域辅助技能/);
-    assert.match(backend, /cross-layer-thinking\.md/);
-    assert.match(backend, /code-reuse-thinking\.md/);
+    assert.match(backend, /Cross-layer thinking/);
+    assert.match(backend, /Code reuse thinking/);
     assert.match(ui, /领域辅助技能/);
-    assert.match(ui, /cross-layer-thinking\.md/);
-    assert.match(ui, /code-reuse-thinking\.md/);
+    assert.match(ui, /Cross-layer thinking/);
+    assert.match(ui, /Code reuse thinking/);
   }
 });
 
@@ -1113,7 +1073,15 @@ test("work helper resolves session-scoped active work and gated transitions", ()
   assert.equal(s1Data.mode, "feature");
   assert.match(s1Data.host_skill, /\.codex\/skills\/cs-feat-design\/SKILL\.md/);
   assert.ok(
-    s1Data.references.includes(".cyralis/reference/feature-design-contract.md"),
+    s1Data.references.includes(".cyralis/reference/core.md"),
+    "feature design references should come from work.py",
+  );
+  assert.ok(
+    s1Data.references.includes(".cyralis/reference/feature.md"),
+    "feature design references should come from work.py",
+  );
+  assert.ok(
+    s1Data.references.includes(".cyralis/reference/shared.md"),
     "feature design references should come from work.py",
   );
   assert.match(s1Data.commands.transition, /work\.py transition \.cyralis\/features\/2026-06-01-demo-feature <target-status>/);
@@ -1368,12 +1336,11 @@ test("all skill-like references have host skill projections", () => {
 
 test("source doc writer skills sync memory projections", () => {
   const templates = collectTemplates(["codex"]);
-  const metadata = templates.get(".cyralis/reference/metadata-and-artifacts.md");
-  const tools = templates.get(".cyralis/reference/tools.md");
+  const core = templates.get(".cyralis/reference/core.md");
   const compoundWriters = ["cs-learn", "cs-trick", "cs-decide", "cs-explore"];
 
-  assert.match(metadata, /cyralis memory sync/);
-  assert.match(tools, /cyralis memory sync --kind compound/);
+  assert.match(core, /cyralis memory sync/);
+  assert.match(core, /cyralis memory sync --kind compound/);
   for (const skill of compoundWriters) {
     const body = templates.get(`.codex/skills/${skill}/SKILL.md`);
     assert.ok(body, `expected ${skill} template`);
