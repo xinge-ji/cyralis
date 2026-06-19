@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -520,16 +521,25 @@ def workflow_references(mode: str | None) -> list[str]:
 
 
 def workflow_commands(work_root: str | None, host: str) -> dict[str, str]:
+    python_cmd = python_command()
     commands = {
-        "resolve": f"python .cyralis/tools/work.py resolve --json --host {host}",
-        "summary": f"python .cyralis/tools/work.py summary --json --host {host}",
-        "list": "python .cyralis/tools/work.py list --json",
+        "resolve": f"{python_cmd} .cyralis/tools/work.py resolve --json --host {host}",
+        "summary": f"{python_cmd} .cyralis/tools/work.py summary --json --host {host}",
+        "list": f"{python_cmd} .cyralis/tools/work.py list --json",
     }
     if work_root:
-        commands["transition"] = f"python .cyralis/tools/work.py transition {work_root} <target-status>"
+        commands["transition"] = f"{python_cmd} .cyralis/tools/work.py transition {work_root} <target-status>"
     else:
-        commands["activate"] = "python .cyralis/tools/work.py activate <work-dir>"
+        commands["activate"] = f"{python_cmd} .cyralis/tools/work.py activate <work-dir>"
     return commands
+
+
+def python_command() -> str:
+    if shutil.which("python3"):
+        return "python3"
+    if shutil.which("python"):
+        return "python"
+    return "python3"
 
 
 def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
@@ -552,7 +562,7 @@ def workflow_next(work_dir: Path, work: dict[str, Any]) -> str:
         "implement": pending or f"continue {mode} implementation/apply work",
         "verify": f"run {mode} verification/acceptance",
         "done": "summarize and clear active work when appropriate",
-    }.get(status, "inspect resolver output with `python .cyralis/tools/work.py resolve --json`")
+    }.get(status, f"inspect resolver output with `{python_command()} .cyralis/tools/work.py resolve --json`")
 
 
 def no_task_state(reason: str, host: str) -> dict[str, Any]:
@@ -606,11 +616,6 @@ def build_breadcrumb(root: Path, key: str | None, host: str) -> str:
         f"host_skill: {state.get('host_skill') or '-'}",
         f"next: {state.get('next')}",
     ]
-    references = state.get("references")
-    if isinstance(references, list) and references:
-        lines.append("references:")
-        for ref in references:
-            lines.append(f"- {ref}")
     commands = state.get("commands")
     if isinstance(commands, dict) and commands:
         lines.append("commands:")

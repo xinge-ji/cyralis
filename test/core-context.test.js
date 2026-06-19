@@ -129,7 +129,7 @@ test("pi binding renders system core plus dynamic context through Pi systemPromp
   assert.equal(recallMessage.hints[0].id, "mem_pi");
 });
 
-test("loadProjectContext exposes helper paths without inlining architecture", async () => {
+test("loadProjectContext exposes config without inlining architecture", async () => {
   const dir = mkdtempSync(join(tmpdir(), "cyralis-project-context-"));
   mkdirSync(join(dir, ".cyralis", "tools"), { recursive: true });
   mkdirSync(join(dir, ".cyralis", "architecture"), { recursive: true });
@@ -144,7 +144,7 @@ test("loadProjectContext exposes helper paths without inlining architecture", as
   assert.equal(entries.length, 1);
   const text = entries.map((entry) => entry.content).join("\n");
   assert.match(text, /config: .*\.cyralis\/config\.yaml/);
-  assert.match(text, /workflow_helper: .*\.cyralis\/tools\/work\.py/);
+  assert.doesNotMatch(text, /workflow_helper:/);
   assert.doesNotMatch(text, /Project architecture/);
   assert.doesNotMatch(text, /architecture_source_root/);
   assert.doesNotMatch(text, /compound_source_root/);

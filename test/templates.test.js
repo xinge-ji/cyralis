@@ -23,7 +23,6 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   assert.match(template, /work\.py/);
   assert.match(template, /summary", "--json", "--host", "pi"/);
   assert.match(template, /systemPrompt:/);
-  assert.match(template, /workflow_helper:/);
   assert.match(template, /\[session_identity\]/);
   assert.match(template, /\[project_context\]/);
   assert.doesNotMatch(template, /host_skill_root:/);
@@ -642,7 +641,7 @@ test("codex hook exposes workflow and project paths", () => {
   );
 
   assert.ok(hook, "expected codex hook template");
-  assert.match(hook, /workflow_helper = root \/ "\.cyralis" \/ "tools" \/ "work\.py"/);
+  assert.doesNotMatch(hook, /workflow_helper/);
   assert.match(hook, /\[session_identity\]/);
   assert.match(hook, /\[project_context\]/);
   assert.doesNotMatch(hook, /\.cyralis" \/ "workflow\.md"/);
@@ -701,7 +700,8 @@ test("pi extension injects dynamic workflow state", () => {
   assert.match(template, /<workflow-state>/);
   assert.match(template, /breadcrumb", "--host", "pi"/);
   assert.match(template, /work\.py breadcrumb/);
-  assert.match(template, /workflow_helper:/);
+  assert.doesNotMatch(template, /workflow_helper:/);
+  assert.match(template, /function pythonExecutable/);
   assert.doesNotMatch(template, /workflow: "\s*\+ join\(root, "\.cyralis", "workflow\.md"\)/);
   assert.ok(
     !templates.get(".pi/skills/cyralis-memory/SKILL.md"),
@@ -1104,7 +1104,7 @@ test("work helper resolves session-scoped active work and gated transitions", ()
     "--host",
     "codex",
   ]);
-  assert.match(breadcrumb.stdout, /references:/);
+  assert.doesNotMatch(breadcrumb.stdout, /references:/);
   assert.match(breadcrumb.stdout, /commands:/);
   assert.doesNotMatch(breadcrumb.stdout, /\.cyralis\/workflow\.md/);
 
@@ -1242,9 +1242,14 @@ test("work helper resolves session-scoped active work and gated transitions", ()
 });
 
 function runPython(script, args, options = {}) {
-  const result = spawnSync("python3", [script, ...args], {
-    encoding: "utf8",
-  });
+  const candidates = ["python3", "python"];
+  let result = { status: 127, stdout: "", stderr: "python not found" };
+  for (const executable of candidates) {
+    result = spawnSync(executable, [script, ...args], { encoding: "utf8" });
+    if (!result.error || (result.error && result.error.code !== "ENOENT")) {
+      break;
+    }
+  }
   if (!options.allowFailure && result.status !== 0) {
     throw new Error(
       `python failed (${result.status})\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,

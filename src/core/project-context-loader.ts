@@ -16,7 +16,6 @@ export async function loadProjectContext(options: LoadProjectContextOptions): Pr
   return [{
     content: [
       `config: ${join(cyralisRoot, "config.yaml")}`,
-      `workflow_helper: ${join(cyralisRoot, "tools", "work.py")}`,
     ].join("\n"),
   }];
 }

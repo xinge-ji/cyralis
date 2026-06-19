@@ -265,11 +265,9 @@ def print_recall_hints(root: Path, query: str) -> None:
 
 def print_project_context(root: Path) -> None:
     config = root / ".cyralis" / "config.yaml"
-    workflow_helper = root / ".cyralis" / "tools" / "work.py"
 
     print("[project_context]")
     print(f"config: {config}")
-    print(f"workflow_helper: {workflow_helper}")
 
 
 def print_workflow_state(root: Path, key: str | None) -> None:

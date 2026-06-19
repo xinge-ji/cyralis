@@ -46,6 +46,8 @@ type PiEvent = {
   threadId?: string;
 };
 
+type PythonExecutable = "python3" | "python";
+
 export default async function cyralisPiExtension(pi: PiLike) {
   const inject = (...args: unknown[]) => {
     const event = args[0] as PiEvent | undefined;
@@ -120,8 +122,17 @@ function buildProjectContext(root: string): string[] {
   return [
     "[project_context]",
     "config: " + join(root, ".cyralis", "config.yaml"),
-    "workflow_helper: " + join(root, ".cyralis", "tools", "work.py"),
   ];
+}
+
+function pythonExecutable(): PythonExecutable {
+  try {
+    const result = spawnSync("python3", ["--version"], { encoding: "utf8" });
+    if (!result.error) return "python3";
+  } catch {
+    // fall through
+  }
+  return "python";
 }
 
 type WorkSummaryResult = {
@@ -157,10 +168,7 @@ function loadWorkSummary(root: string, ctx?: PiCommandContext): WorkSummaryResul
   if (sessionId) args.push("--context-key", sessionId);
   args.push("summary", "--json", "--host", "pi");
 
-  let result = spawnSync("python3", args, { cwd: root, encoding: "utf8" });
-  if (result.error && (result.error as { code?: string }).code === "ENOENT") {
-    result = spawnSync("python", args, { cwd: root, encoding: "utf8" });
-  }
+  let result = spawnSync(pythonExecutable(), args, { cwd: root, encoding: "utf8" });
   if (result.error) {
     return { error: result.error.message || String(result.error) };
   }
@@ -533,10 +541,7 @@ function buildWorkflowState(root: string, event?: PiEvent): string {
   const key = contextKey(event);
   if (key) args.push("--context-key", key);
   args.push("breadcrumb", "--host", "pi");
-  let result = spawnSync("python3", args, { cwd: root, encoding: "utf8" });
-  if (result.error && (result.error as { code?: string }).code === "ENOENT") {
-    result = spawnSync("python", args, { cwd: root, encoding: "utf8" });
-  }
+  let result = spawnSync(pythonExecutable(), args, { cwd: root, encoding: "utf8" });
   if (!result.error && result.status === 0 && String(result.stdout || "").trim()) {
     return String(result.stdout).trim();
   }
