@@ -239,6 +239,15 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - [ ] 用户最后一次目视确认通过
 - [ ] `work.json.artifacts.verification.result="passed"`，并且已执行 `python .cyralis/tools/work.py transition <refactor-dir> done`
 
+## 退出后
+
+按 `.cyralis/reference/shared.md#2-finish-gate` 走收尾门禁：
+
+- 先完成本次 apply / verify 的终点文件和 `work.json` transition
+- 再问 `scoped-commit`
+
+`cs-refactor` 本身不额外沉淀 learning / decide，除非用户主动说要记。
+
 ---
 
 ## 容易踩的坑

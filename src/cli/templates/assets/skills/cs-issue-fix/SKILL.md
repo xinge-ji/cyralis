@@ -173,7 +173,7 @@ review 结论只是 advisory；fix-note、confidence、Repair / Retirement Track
 
 ## 收尾提交
 
-按 `.cyralis/reference/shared.md` 的 scoped-commit 规则执行。本阶段：
+按 `.cyralis/reference/shared.md#2-finish-gate` 走。本阶段：
 
 - **提交范围**：修复代码 + `{slug}-fix-note.md` + 本次一并更新的 report / analysis
 - 修复闭环后告诉用户"修复验证已完成，`{slug}-fix-note.md` 已落盘"，紧接着问是否需要 commit
@@ -184,7 +184,7 @@ review 结论只是 advisory；fix-note、confidence、Repair / Retirement Track
 
 告诉用户："issue 修复完成，工作流闭环。标准路径 report + analysis + fix-note 已存档；快速通道 fix-note 已存档。"
 
-按 `.cyralis/reference/shared.md` 的 issue-fix 收尾推荐顺序各问一句（用户"不用"立即跳过）：
+按 `.cyralis/reference/shared.md#2-finish-gate` 走收尾门禁（用户"不用"立即跳过）：
 
 1. 暴露了值得复用的坑点 → "沉淀 learning？（`cs-learn`）"
 2. 沉淀出长期约束 / 规约 / 技术决定 → "归档决定？（`cs-decide`）"

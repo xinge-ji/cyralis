@@ -276,7 +276,7 @@ review 结论只是 advisory，不等于本技能已完成；本技能自己的 
 
 告诉用户："验收报告已就绪，架构文档已归并，cs-feat 工作流走完。后续 BUG 走 issue 流程。"
 
-按 `.cyralis/reference/shared.md` 的收尾推荐顺序逐项一句话提示（用户说"不用"立刻跳过）：
+按 `.cyralis/reference/shared.md#2-finish-gate` 走收尾门禁（用户说"不用"立刻跳过）：
 
 1. 复用价值的坑点 / 经验 → "需要沉淀 learning 吗？（`cs-learn`）"
 2. 长期约束 / 技术选型 → "需要归档决定吗？（`cs-decide`）"

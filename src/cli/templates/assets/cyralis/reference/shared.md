@@ -16,14 +16,17 @@ Shared rules:
 - supersede / mark outdated when the conclusion is replaced
 - run `cyralis memory sync` after write / update / supersede
 
-## 2. Completion and review
+## 2. Finish gate
 
-When a workflow finishes, write the report artifact first, then ask about commit.
+`work.json` stays the workflow-state source. The finish gate is only the terminal closeout protocol; it does not add a second state store.
 
-- keep the commit scoped to the current workflow artifacts + code
-- do not merge unrelated fixes into the same completion record
-- if the user says "不用", stop asking
-- suggested closeout order: `cs-learn`, `cs-decide`, `cs-guide` or `cs-libdoc`, then `scoped-commit`
+Use this order:
+
+1. Finish the workflow's terminal artifact first.
+   - write / update the report, note, guide, manifest, or index that closes the workflow
+   - if the workflow owns a `work.json` transition, finish that documented transition first
+   - if the workflow writes `.cyralis/architecture/` or `.cyralis/compound/`, run the relevant `cyralis memory sync` before any commit question
+2. Ask about related questions of the skill.
 
 ## 3. Decision hygiene
 

@@ -175,12 +175,12 @@ tags: [...]
 
 ## 收尾提交
 
-按 `.cyralis/reference/shared.md` 的 scoped-commit 规则执行。本通道：
+按 `.cyralis/reference/shared.md#2-finish-gate` 走。本通道：
 
 - **提交范围**：本次代码改动 + `{slug}-ff-note.md`
 - ff-note 落盘后告诉用户"已就绪，是否代为 commit？"，用户明确同意才执行
 
-按 `.cyralis/reference/shared.md` 的 feature-ff 收尾推荐顺序逐项一句话提示（用户"不用"立即跳过）：
+按 `.cyralis/reference/shared.md#2-finish-gate` 的后续顺序逐项一句话提示（用户"不用"立即跳过）：
 
 1. 暴露的坑 → "沉淀 learning？（`cs-learn`）"
 2. 拍板的长期约束 → "归档决定？（`cs-decide`）"
