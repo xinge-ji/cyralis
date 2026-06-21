@@ -7,6 +7,8 @@ description: 维护 `.cyralis/requirements/` 下的能力愿景文档。三种�
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 `.cyralis/requirements/` 是项目的"能力清单"——每份描述**一个能力因什么问题而产生、怎么解决、边界在哪**，写成人话非技术读者也能看懂。架构文档讲"怎么搭"，需求文档讲"为什么要有"。
 
 **req 是系统的能力愿景层**——描述"用户需要什么、系统提供什么能力来满足"。三层时间深度用一个 `status` 字段区分：
@@ -30,7 +32,7 @@ description: 维护 `.cyralis/requirements/` 下的能力愿景文档。三种�
 - 起花哨标题或用比喻——读者要读半段才知道这能力是什么
 - 把实现细节塞进来——"通过 XXX 服务调用 YYY 接口"
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md`。一份样例看 `.cyralis/reference/core.md`——起草前读一遍对齐语气。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。一份样例看 `.cyralis/reference/requirement-example.md`——起草前读一遍对齐语气。
 
 ---
 
@@ -202,7 +204,7 @@ tags: []
 | `cs-feat-design` 可写 | design 读已有 req 对齐用户故事和边界；新能力首次设计方案化时触发 `draft` 模式起草愿景 req |
 | `cs-feat-accept` 主路径 | 验收统一处理 req 落档：draft req 对应的能力实现完成触发 `update`（draft → current，保留愿景追加变更日志）；从未写过 req 的能力触发 `backfill`（直接落 current）；已有 current req 的能力改变触发 `update` 刷新 |
 | `cs-roadmap` 配合 | req 记"要什么、为什么"、roadmap 记"怎么分步实现"。roadmap 条目可关联 req slug，但 req 不绑定具体 roadmap。draft req 不给 roadmap 压力——愿景可以先于排期存在 |
-| `cyralis init` 创建器 | 初始化时建立 `requirements/` 空目录 + `VISION.md` 空骨架 |
+| `cyralis init/update` 创建者 | onboard 建 `requirements/` 空目录 + `VISION.md` 空骨架 |
 
 ---
 

@@ -12,7 +12,7 @@ SKILL.md 只保留流程骨架，具体格式在这里。
 ---
 doc_type: roadmap
 slug: permission-system
-status: active          # active | paused | completed
+status: draft           # draft | active | paused | completed
 created: YYYY-MM-DD
 last_reviewed: YYYY-MM-DD
 tags: [permission, auth]
@@ -21,7 +21,7 @@ related_architecture: []    # 相关 architecture doc slug，可空
 ---
 ```
 
-- `status`：`active` 进行中 / `paused` 暂停 / `completed` 所有条目 done 或 dropped
+- `status`：`draft` 待独立 review 和用户确认 / `active` 进行中 / `paused` 暂停 / `completed` 所有条目 done 或 dropped
 - `related_requirements`：本大需求涉及的 req slug，帮助跳转到"为什么要有这个能力"
 - `related_architecture`：会被改到的 architecture doc slug，帮助理解"改了会触碰哪些现状"
 
@@ -210,51 +210,12 @@ python .cyralis/tools/validate-yaml.py --file .cyralis/roadmap/{slug}/{slug}-ite
 - [ ] 依赖关系讲得清具体理由？"B 需要 A 提供的 {具体产物}"
 - [ ] 最小闭环真是"最窄的端到端路径"？还是只是"最容易的一条"？
 - [ ] 有条目其实应该是 requirement 变化而不是 feature？（"把 XX 能力的边界改一下"）那种转 `cs-req`
-- [ ] 模块拆分 / 接口契约 / owner 归属 / 最小闭环是否出现多种可行方案但选择标准不清？命中时读取 `.cyralis/reference/shared.md`，用"方案卫生升级"检查，并把结论落到对应章节
 
 ---
 
-## 4. Roadmap self-review pass
+## 4. review 提示
 
-完整初稿写完、交给用户 review 前必须做。目标不是继续发散，而是确认这份 roadmap 是否已经足够让后续每条 `cs-feat-design` 不再回来重新拆模块、补接口、补依赖。
-
-只报告 blocking issue：会导致后续 feature-design 无法直接消费、接口契约不一致、依赖错误、roadmap / req / architecture 漂移、scope 边界失守的问题。新的想法、可选增强、未来可能要考虑的方向，一律进"观察项"，不阻塞 roadmap。
-
-检查 6 类问题：
-
-1. **Source Trace**：用户素材 / brainstorm / req / architecture / compound 的硬约束是否落到 roadmap；不处理但发现的问题是否进"观察项"
-2. **Module Decomposition**：第 3 节每个模块职责一句话能说清；模块之间没有重叠 owner；每条子 feature 能归属到一个模块或明确跨模块；已有模块扩展 vs 新模块讲清楚
-3. **Contract Readiness**：第 4 节接口契约写到字段 / 签名 / 协议 / 错误码级；共享数据结构只定义一次；没有跨模块接口时明确写"无跨模块接口"；没有"后面商量 / 待定 / 统一事件总线"这种空话
-4. **Feature Slice Readiness**：每条 item 都能独立走 `cs-feat-design → cs-feat-impl → cs-feat-accept`；每条 item 有清晰产物；没有一条装多个独立 feature，也没有一条小到只是内部步骤
-5. **Dependency / Minimal Loop**：depends_on 是 DAG；每条依赖都有具体理由；minimal_loop 只有一条，并且真能形成最窄端到端闭环；技术依赖和产品优先级没有混在一起
-6. **Update Impact**：update 模式改第 4 节接口契约时，列出影响哪些 planned / in-progress / done items；改已启动 item 的边界时提示用户风险；dropped 不删除，保留理由
-
-触发过决策卫生检查时，对应 owner / contract / falsifier / 最小充分路径结论必须已落到主文档相应章节；不能只留在聊天记录里。
-
-输出格式：
-
-```markdown
-## Roadmap Self-Review
-
-**Status:** Approved | Issues Found
-
-**Blocking Issues:**
-- [Section / Source]: {问题}
-  - Why it matters: {为什么会导致 feature-design / 接口契约 / 依赖 / scope 出问题}
-  - Required fix: {必须怎么改}
-  - Also update: {主文档 / items.yaml / 观察项 / 变更日志哪些地方要同步}
-
-**Advisory Notes:**
-- {不阻塞 roadmap，但值得用户知道的方向 / 风险 / 后续事项}
-```
-
-有 Blocking Issues：先修 roadmap 主文档和 items.yaml 草稿，再重新跑 self-review。最多连续自修两轮；两轮后仍有 blocking issue，停下来向用户报告，不继续落盘。
-
-高风险 roadmap（超过 5-7 个子 feature、涉及 public API / schema / permission / persistence、接口契约被多个 feature 共同消费、update 改接口契约、已有 in-progress / done feature 可能受影响，或 self-review 连续发现问题）可以用 `roadmap-document-reviewer-prompt.md` 新开 session / subagent 做 fresh review；这不是默认必做。
-
-## 5. review 提示
-
-> roadmap 已起草完成并通过 self-review，请整体 review。**先看架构方案再看 feature 拆解**——架构方案改了下游全要重排：
+> roadmap 已起草完成请整体 review。**先看架构方案再看 feature 拆解**——架构方案改了下游全要重排：
 >
 > **架构方案层**
 > 1. 模块拆分对吗？边界划得合理？有该合并 / 该拆开的？
@@ -269,4 +230,6 @@ python .cyralis/tools/validate-yaml.py --file .cyralis/roadmap/{slug}/{slug}-ite
 > 8. "明确不做"有遗漏？
 > 9. 排期顺序符合你的产品优先级？
 >
-> 有修改意见直接说，确认后落盘 roadmap 目录和 items.yaml。
+> 有修改意见直接说，确认后把 roadmap 从 `draft` 标为 `active`。
+
+> 人工 review 前必须先有 `{slug}-roadmap-review.md` 且 `status: passed`。用户修改 roadmap/items 后，实质变化要重跑 `cs-roadmap-review`。

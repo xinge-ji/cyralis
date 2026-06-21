@@ -7,6 +7,8 @@ description: 写或更新对外指南文档——开发者指南（dev-guide）�
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 代码解决问题，文档让别人能用它解决问题。spec 记录"做了什么、为什么这么做"，但下游开发者和终端用户不需要、也不应该读 spec——他们需要面向自己角色的、可发布的指南。guidedoc 就是从 spec 和代码出发写成读者真正能用的指南。
 
 ---
@@ -30,7 +32,7 @@ description: 写或更新对外指南文档——开发者指南（dev-guide）�
 |---|---|
 | feature-acceptance 结束 | 主动推：方案第 2 节（接口契约）有变更问"需要更新 dev-guide 吗？"；第 1 节（用户可见行为）有变更问"需要更新 user-guide 吗？" |
 | 用户主动触发 | "写文档"、"guidedoc"、"补一份开发者指南" |
-| 初始化完成后 | 新仓库可触发补全基础文档骨架 |
+| onboard 完成后 | 新仓库可触发补全基础文档骨架 |
 
 主动推送一句话即可，用户说"不用"就别再提——多次推会让用户觉得 AI 在加戏。
 
@@ -140,7 +142,7 @@ A: ...
 |---|---|
 | `cs-feat-accept` | 验收后主动推：接口变更推 dev-guide，用户可见变更推 user-guide |
 | `cs-feat-design` | 方案第 2 节是 dev-guide 主要信息源；第 1 节是 user-guide 主要信息源 |
-| `cyralis init` | 新仓库接入后可补全基础文档骨架 |
+| `cyralis init/update` | 新仓库接入后可补全基础文档骨架 |
 | `cs-arch` (check) | 检测到 design 与代码不一致时对应 guide 应同步标 `outdated` |
 | `cs-decide` | dev-guide 引用的技术选型应来自 decisions，不独立发明 |
 | `cs-trick` | dev-guide 用法示例若与 tricks 重合，交叉引用而不重复写 |

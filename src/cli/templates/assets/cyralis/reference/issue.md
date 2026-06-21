@@ -38,28 +38,7 @@ Must include:
 - impact assessment
 - 2-3 repair options
 
-## 3. Quick lane
-
-Use only when the bug is low risk, single owner, and already obvious from code.
-
-Conditions:
-
-- reproducible signal exists
-- file:line and actual cause are clear
-- change is small and local
-- no shared / core / cross-module / contract / fallback / adapter risk
-
-## 4. Patch-shape triage
-
-Treat these as warning signs, not proof of the fix:
-
-- keyword / regex / sample exception
-- local guard / early return / fallback branch
-- caller-side patch
-- duplicate owner / duplicate parsing
-- normalize late instead of fixing the owner
-
-## 5. Fix gates
+## 3. Fix gates
 
 Before marking done, record:
 
@@ -74,7 +53,7 @@ Before marking done, record:
 
 Confidence must be at least `B` to claim a full fix.
 
-## 6. Debugging principles
+## 4. Debugging principles
 
 Start with evidence, then move up the failure stack:
 
@@ -114,7 +93,7 @@ Layer Stop Card:
 - Next Action:
 ```
 
-## 7. Quick lane
+## 5. Quick lane
 
 Use only when the bug is low risk, single owner, and obvious from code:
 
@@ -123,7 +102,7 @@ Use only when the bug is low risk, single owner, and obvious from code:
 - change is small and local
 - no shared / core / cross-module / contract / fallback / adapter risk
 
-## 8. Patch-shape triage
+## 6. Patch-shape triage
 
 Warning signs, not proof:
 

@@ -1,11 +1,13 @@
 ---
 name: cs-issue
-description: 修 bug 的子流程入口，把"发现问题"走到验证修复闭环。标准路径留下 report / analysis / fix-note，快速通道只留下 fix-note。触发：用户说"修 bug"、"有个问题"、"修复 XX"。只做路由，根据 work.json 走 report / analyze / fix。简单问题走快速通道。
+description: 修 bug 的子流程入口，把"发现问题"走到验证修复闭环，留下 report / analysis / fix-note 三份文件。触发：用户说"修 bug"、"有个问题"、"修复 XX"。只做路由，根据已有产物走 report / analyze / fix。简单问题走快速通道。
 ---
 
 # cs-issue
 
 ## 启动必读
+
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
 
 修 bug 直觉是"找到错的地方改了完事"，但这个直觉路径反复制造同样的麻烦：
 
@@ -28,7 +30,6 @@ issue 工作流在"看到问题"和"动手改代码"之间塞缓冲：
 
 ```
 .cyralis/issues/{YYYY-MM-DD}-{slug}/
-├── work.json                 ← Cyralis workflow 状态源（mode/status/artifacts）
 ├── {slug}-report.md           ← 阶段 1 问题报告
 ├── {slug}-analysis.md         ← 阶段 2 根因分析
 └── {slug}-fix-note.md         ← 阶段 3 修复记录（必出产物）
@@ -50,11 +51,9 @@ issue 工作流在"看到问题"和"动手改代码"之间塞缓冲：
 |---|---|---|---|
 | 1 问题报告 | `cs-issue-report` | 用户描述，AI 引导 | `{slug}-report.md` |
 | 2 根因分析 | `cs-issue-analyze` | AI 读代码分析，用户确认 | `{slug}-analysis.md` |
-| 3 修复验证 | `cs-issue-fix` | AI 按分析定点修复，用户验证 | 代码 + `{slug}-fix-note.md` + 可选 scoped-commit（用户确认后） |
+| 3 修复验证 | `cs-issue-fix` | AI 按分析定点修复，用户验证 | 代码 + `{slug}-fix-note.md` + scoped-commit |
 
 阶段间有人工 checkpoint——让用户在每阶段结束有一次明确把关，防止 AI 一口气从问题跑到代码跑出来才发现走偏。
-
-Cyralis workflow status 映射：标准路径 `design` = report，`implement` = analyze，`verify` = fix，`done` = 闭环完成；快速通道直接使用 `implement` = quick-lane fix，完成后 `implement -> done`。阶段切换必须用 `python .cyralis/tools/work.py transition <issue-dir> <status>`，不手写 `work.json.status`；新建快速通道 work item 时可按模板写初始 `status: "implement"` 后 activate。
 
 ### 快速通道（问题简单、根因一眼确定）
 
@@ -64,11 +63,9 @@ Cyralis workflow status 映射：标准路径 `design` = report，`implement` = 
 2. 修复改动很小（1-2 处）
 3. 无跨模块影响风险
 
-流程压缩成：AI 读代码 → 直接告知根因 + 修复方案 + Fix Boundary → 用户确认 → AI 修复 → 用户验证通过 → AI 写 `{slug}-fix-note.md`。只产出一份 `fix-note.md`，省掉 report 和 analysis，也不进入 verify 阶段。
+流程压缩成：AI 读代码 → 直接告知根因 + 修复方案 → 用户确认 → AI 修复 → 用户验证通过 → AI 写 `{slug}-fix-note.md`。只产出一份 `fix-note.md`，省掉 report 和 analysis。
 
-快速通道仍要写 issue 目录和 `work.json`。创建 / 激活 issue work item 时直接使用 `status: "implement"`，设置 `artifacts.fix.quick_lane=true`，并用 `python .cyralis/tools/work.py activate <issue-dir>` 激活；resolver 会把该 work item 路由到 `cs-issue-fix`。快速通道完成后写 `artifacts.fix.result="passed"` 并执行 `python .cyralis/tools/work.py transition <issue-dir> done`，不走 `design`、`verify`、`analysis`。
-
-**判定口径**：是否进快速通道由入口阶段的启动检查做唯一正式判定；一旦进入标准路径默认不再二次改判——避免三个阶段对路径各说各话。
+**判定口径**：是否进快速通道由 `cs-issue-report` 的启动检查做唯一正式判定。一旦进标准路径默认不再二次改判——避免三个阶段对路径各说各话。
 
 **不能**走快速通道：根因有多个候选 / 修复范围涉及多模块 / 需要先复现才能定位 / 用户希望留完整分析存档。
 
@@ -76,16 +73,15 @@ Cyralis workflow status 映射：标准路径 `design` = report，`implement` = 
 
 ## 路由
 
-进入本技能先 Glob `.cyralis/issues/`，再读取候选目录的 `work.json`。`work.json.status` 和 artifacts 是路由事实源；文件存在只能作为辅助信号，不能绕开 `work.json`。
+进入本技能先 Glob `.cyralis/issues/`，自己读已有文件才有数。
 
 | 当前状态 | 触发哪个子技能 |
 |---|---|
-| 没有相关 issue work item | `cs-issue-report`（标准路径）或快速通道启动检查 |
-| `work.json.status="design"`，`artifacts.report.path="{slug}-report.md"` | `cs-issue-report` |
-| `work.json.status="implement"` 且 `artifacts.fix.quick_lane=true` | `cs-issue-fix`（快速通道） |
-| `work.json.status="implement"`，`{slug}-report.md` 已 confirmed，`{slug}-analysis.md` 未 confirmed | `cs-issue-analyze` |
-| `work.json.status="verify"`，`{slug}-analysis.md` 已 confirmed，代码还没改或还没修复验证记录 | `cs-issue-fix`（标准路径） |
-| 不确定 | 先执行 `python .cyralis/tools/work.py resolve --json`，再按 `host_skill` 路由 |
+| 刚发现问题，没有任何文件 | `cs-issue-report`（那里判断走标准还是快速） |
+| `report.md` 已存在，没 `analysis.md` | `cs-issue-analyze` |
+| `analysis.md` 已存在，代码还没改 | `cs-issue-fix` |
+| 代码已改，还没修复验证记录 | `cs-issue-fix`（走验证） |
+| 不确定 | 自己读已有文件按上表对号 |
 
 用户描述的是**新功能需求而不是 bug** → 告诉用户走 `cs-feat`。
 
@@ -102,7 +98,6 @@ Cyralis workflow status 映射：标准路径 `design` = report，`implement` = 
 
 ## 相关文档
 
-- `.cyralis/reference/core.md` — 目录结构和 work.json 状态协议
-- `.cyralis/reference/issue.md` — report / analysis / fix / quick lane 调试治理
-- 启动注意事项和项目硬约束
+- `.cyralis/reference/shared-conventions.md` — 跨阶段共享口径
+- `.cyralis/attention.md` — Cyralis 启动注意事项和项目硬约束
 - `.cyralis/architecture/ARCHITECTURE.md` — 根因分析时可能要查

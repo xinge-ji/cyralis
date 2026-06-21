@@ -1,13 +1,15 @@
 ---
 name: cs-feat-ff
-description: feature 流程的超轻量通道——不写 design / checklist 直接动手，但先指引 AI 查 cyralis 知识库再开工。触发：用户说"快速模式"、"fastforward"、"别那么多步骤"、"直接开干"，且需求小到不值得走 design 流程。
+description: feature 流程的超轻量通道——不写 design / checklist 直接动手，但先指引 AI 查 Cyralis 知识库再开工。触发：用户说"快速模式"、"fastforward"、"别那么多步骤"、"直接开干"，且需求小到不值得走 design 流程。
 ---
 
 # cs-feat-ff
 
 ## 启动必读
 
-用户让你做小功能时本来 AI 就会直接动手——这个技能**不改变这件事**。它只做一件事：动手前把项目里已沉淀的 cyralis 知识指给你，按需搜一下，写出来的代码就比裸写多一层保护；动手后回写一份**最简的 `{slug}-ff-note.md`** 让这次工作可追溯、可被 cs-arch / cs-req backfill 看到、能纳入 scoped-commit 提交。
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
+用户让你做小功能时本来 AI 就会直接动手——这个技能**不改变这件事**。它只做一件事：动手前把项目里已沉淀的 Cyralis 知识指给你，按需搜一下，写出来的代码就比裸写多一层保护；动手后回写一份**最简的 `{slug}-ff-note.md`** 让这次工作可追溯、可被 cs-arch / cs-req backfill 看到、能纳入 scoped-commit 提交。
 
 很轻：没有 design doc / checklist / 验收清单 / 动手前的用户确认。看完指引，该读代码读、该写代码写、写完回写一段话。
 
@@ -26,7 +28,7 @@ Glob `.cyralis/` 发现可用目录和文档，按需取用：
   ```
 - **`requirements/`** — 有相关 req 时读边界
 - **`features/`** — 有同类 feature 时参考其 design
-- **`reference/`** — `core.md`
+- **`reference/`** — shared-conventions.md / tools.md
 
 ---
 
@@ -93,7 +95,7 @@ design / implement 的硬约束在 fastforward 的精简版。没 design doc 不
 - 往 `utils.ts` / `helpers.ts` 万能 util 堆东西
 - 新起概念名时先 grep 同名 / 近义命名
 
-完整清单看 `.cyralis/reference/shared.md`。
+完整清单看 `.cyralis/reference/shared-conventions.md` 第 7 节。
 
 ---
 
@@ -116,8 +118,7 @@ design / implement 的硬约束在 fastforward 的精简版。没 design doc 不
 ```markdown
 ---
 doc_type: feature-ff-note
-feature: {YYYY-MM-DD}-{slug}
-summary: {一句话说明本次小功能做了什么}
+feature: {slug}
 date: YYYY-MM-DD
 requirement: {req-slug 或留空}
 tags: [...]
@@ -147,7 +148,6 @@ tags: [...]
 
 - **不写 design doc / checklist / acceptance**——这就是 fastforward 的意义。要写就去 `cs-feat-design`
 - **不跟用户确认方案**——用户让你做小功能就是不想等你开会
-- **不创建 / 推进 `work.json` 状态**——fastforward 不进入标准 workflow；闭环事实只写 `{slug}-ff-note.md`
 - **不在 `.cyralis/` 里留 `{slug}-ff-note.md` 之外的新文件**——除非发现值得沉淀的坑 / 技巧，另起对话用 `cs-learn` / `cs-trick` 写
 
 ---
@@ -175,16 +175,17 @@ tags: [...]
 
 ## 收尾提交
 
-按 `.cyralis/reference/shared.md#2-finish-gate` 走。本通道：
+按 `.cyralis/reference/shared-conventions.md` 第 4 节"scoped-commit"规则执行。本通道：
 
 - **提交范围**：本次代码改动 + `{slug}-ff-note.md`
 - ff-note 落盘后告诉用户"已就绪，是否代为 commit？"，用户明确同意才执行
 
-按 `.cyralis/reference/shared.md#2-finish-gate` 的后续顺序逐项一句话提示（用户"不用"立即跳过）：
+按 `shared-conventions.md` 第 3 节"feature-ff"收尾推荐顺序逐项一句话提示（用户"不用"立即跳过）：
 
 1. 暴露的坑 → "沉淀 learning？（`cs-learn`）"
 2. 拍板的长期约束 → "归档决定？（`cs-decide`）"
-3. 最后问是否代为 scoped-commit
+3. 快速改动影响 README/docs、`.cyralis/attention.md` 或 `.cyralis/`，或需要同步兼容入口 → "做一轮文档与知识库整理吗？（`cs-docs-neat`）"
+4. 最后问是否代为 scoped-commit
 
 ---
 

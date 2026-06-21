@@ -13,18 +13,7 @@ brainstorm 是"讨论层"统一入口。
 - **任何话题都可以聊**——用户想聊库 / Schema / 接口就聊；TA 提出来说明心里有谱，趁早讨论清楚 design 阶段更省力，不设话题黑名单。
 - **AI 是思考伙伴不是记录员**——用户来这步是想被挑战、被启发，不是被一条条问题填表。如果只是把用户的话整理一遍写下来这步就白做了
 
-> 共享路径和命名约定看 `.cyralis/reference/core.md`。
-
----
-
-## 证据优先规则
-
-brainstorm 先查证据，再问用户。
-
-- 仓库、`.cyralis/` 文档、历史 brainstorm / feature / roadmap、已有代码和测试能回答的问题，不问用户
-- 问用户前，先在心里分清三类东西：`已确认事实` / `仍需用户决定` / `仍需验证的假设`
-- 不要让用户重复确认仓库里已经明确存在的事实
-- 真正该问用户的，只能是产品意图、范围边界、偏好选择、风险容忍度，或探索后仍然无法确认的决策
+> 共享路径和命名约定看 `.cyralis/reference/shared-conventions.md`。
 
 ---
 
@@ -34,7 +23,7 @@ brainstorm 先查证据，再问用户。
 
 | case | 规模 | 用户状态 | 产物 |
 |---|---|---|---|
-| **case 1：已经够清楚** | 不限 | 一句话能说清做什么 / 为谁 / 怎么算成功 / 不做什么 | 默认不落盘，直接 `cs-feat-design`；仅当已聊出非琐碎技术决策时落 handoff note |
+| **case 1：已经够清楚** | 不限 | 一句话能说清做什么 / 为谁 / 怎么算成功 / 不做什么 | 不落盘，直接 `cs-feat-design` |
 | **case 2：小需求** | 单 feature | 知道要解决什么问题，对解法 / 边界还摇摆 | `.cyralis/features/{feature}/{slug}-brainstorm.md` → `cs-feat-design` |
 | **case 3：大需求，拆解 ready** | 多 feature | 心里已有大致模块划分，想直接做拆解和接口契约 | 不落盘，移交 `cs-roadmap` |
 | **case 4：大需求，想 grill** | 多 feature | 还不想拆——想先 grill、发散、产生想法存着 | `.cyralis/brainstorms/{slug}/brainstorm.md` → 之后 `cs-roadmap` 读到 |
@@ -45,7 +34,7 @@ brainstorm 先查证据，再问用户。
 
 每次都做：
 
-1. **扫一眼仓库**——Glob `.cyralis/` 发现 architecture / features / roadmap / brainstorms / compound / requirements，读架构总入口、看已有 feature 和 roadmap 和 brainstorm、搜 compound 看有没有相关坑（`--filter doc_type=learning`）；Grep 用户描述里的关键词防术语冲突。缺骨架视为不完整，不回退读外部 AI 入口
+1. **扫一眼仓库**——先读 `.cyralis/attention.md`；Glob `.cyralis/` 发现 architecture / features / roadmap / brainstorms / compound / requirements，读架构总入口、看已有 feature 和 roadmap 和 brainstorm、搜 compound 看有没有相关坑（`--filter doc_type=learning`）；Grep 用户描述里的关键词防术语冲突。缺 attention.md 视为骨架不完整，不回退读外部 AI 入口
 2. **是不是接续之前的工作**：
    - `features/` 下有名字相近的 brainstorm？`roadmap/` 下有相近子目录？`brainstorms/` 下有相关创意记录？
    - 没有 → 当新讨论
@@ -93,10 +82,6 @@ brainstorm 先查证据，再问用户。
 
 评估完发现方案确实合理 → "我觉得这个方向 OK 建议直接进 design"，别为凑流程硬发散——当场升级 case 1。
 
-**决策卫生检查（按信号触发）**：如果用户显式要求 first principles / 第一性原理 / Occam / 奥卡姆剃刀，或出现多个方案但选择标准不清、方案继承旧形状、owner / fallback / adapter 风险，读取 `.cyralis/reference/shared.md`，先做"五行检查"。
-
-检查结果进入当前对话，不单独落盘；只有它产出的结论会影响 design / roadmap 的非琐碎设计点时，才写进 feature brainstorm / open brainstorm 的"已敲定的点"。
-
 ### 对话节奏
 
 没有固定步骤。三个动作随时可回到上一步：
@@ -121,16 +106,6 @@ brainstorm 先查证据，再问用户。
 2. **发散**——确认问题后再谈方案。提 2-3 个具体候选方向（用户带的方案算其中一个），每个 1-2 句描述 / 价值 / 代价。**至少有一个反直觉候选**（反转 / 去掉常见约束 / 跨领域类比）。所有候选呈现完再给推荐——先锚定再补别的会污染用户判断
 3. **收敛**——选定方向后轻轻勾勒：核心行为？明显不做？最大未知？给 design 热身不是替 design 决定
 
-### 单问质量下限
-
-关键问题至少要让用户听懂三件事：
-
-- 现在要决定什么
-- 为什么这个决定值得现在讨论
-- 我当前更推荐哪个方向
-
-trade-off 能说清时就说；不必把每个问题都写成模板腔，但不能只丢一个裸问题给用户。
-
 ### 最小 demo / spike
 
 讨论中冒出"这个方向能不能走得通要看 X 实际是不是 Y"——不要靠脑补辩论，**停下来花 5-30 分钟搭个最小 demo 验一下**比再聊三轮更省时。
@@ -147,25 +122,15 @@ trade-off 能说清时就说；不必把每个问题都写成模板腔，但不�
 - case 2：实验代码扔 `.cyralis/features/{feature}/` 下（和 brainstorm note 同目录），文件随便起名（`spike.py` / `try-{topic}.ts`）
 - case 4：spike 放 `.cyralis/brainstorms/{slug}/`，跟 brainstorm.md 挨着
 - 验完不强制清理——留着以后看也行；用户嫌乱说一声再删
-- **结果必须回写 brainstorm note**——成败都要记清四件事：验证了什么 / 结论是什么 / 这会改变哪个后续决策 / 代码见 `{路径}`。避免 design / roadmap 阶段再起疑重做
+- **结果必须回写 brainstorm note**——成败都要在"已敲定"那节记一条："{结论} —— 已用 spike 验证（代码见 `{路径}`）"，避免 design / roadmap 阶段再起疑重做
 
-case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方向 + 成本可控。case 1 的 spike 结论如果会影响 design，按 handoff note 例外落盘；case 3 不写 brainstorm note，把结论放进移交给 roadmap 的摘要。
+case 1 / case 3 也能借这个动作（不强求落 brainstorm note），逻辑一样：事实存疑 + 改变方向 + 成本可控。
 
 ### 对话中的坑
 
 - **一次只问一个问题**——抛三五个用户只回最容易答的
 - **先给选项再提问**——能用 2-4 个具体有区别度的选项让用户挑就别让 TA 自由作文
 - **不要主动把话题拉回"用户感知层面"**——用户想聊库 / Schema / 接口 / 选型就跟着聊；AI 自己别主动开技术细节话题填时间，但用户开了的话题就认真陪聊。某问题的答案得看代码 → 按需读代码再带回对话
-
-## 记录纪律
-
-只要准备落 brainstorm note，就要区分三种状态：
-
-- `已确认`：用户明确同意，或仓库 / spike / 事实证据已支持
-- `倾向`：当前更推荐，但用户还没最终拍板
-- `待验证`：必须到 design / spike / implement 才能确认
-
-不要把口头倾向写成既定结论；后续阶段会把这些 note 当输入材料读。
 
 ---
 
@@ -177,11 +142,10 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 
 **处理**：
 1. 告诉用户"这块你已经想清楚了：{AI 一句话复述}。建议直接 `cs-feat-design`——brainstorm 对你没增量"
-2. **默认不落盘**——纯方向确认 / 需求复述 / 成功标准对齐都裸退，别为了留痕硬写 brainstorm
-3. **唯一例外：handoff note**——如果这次 brainstorm 对话已经讨论出具体库选型 / Schema / 接口形态 / 跨模块约定 / 已验证 spike 结论这类会影响 design 的非琐碎技术决策，落一份精简 feature brainstorm，只保留"已敲定的设计点 / 遗留给 design 的问题"，让 design 直接读到不必重讨。不要为了写 note 追加发散、补"考虑过的方向"或伪造决策
-4. 停下来等用户触发 design
+2. **看聊过程有没有非琐碎技术决策**——讨论了具体库选型 / Schema / 接口形态 / 跨模块约定，落一份精简 brainstorm（只填"已敲定的设计点"那节）让 design 直接读到不必重讨；纯方向确认没聊技术细节就裸退不落盘
+3. 停下来等用户触发 design
 
-**退出**："直接触发 `cs-feat-design` 从零写 design"（不落盘）；写了 handoff note 则"下一步 `cs-feat-design` 会读到 `{路径}` 不必重述"
+**退出**："直接触发 `cs-feat-design` 从零写 design"（不落盘）；轻量落盘则"下一步 `cs-feat-design` 会读到 `{路径}` 不必重述"
 
 ---
 
@@ -195,16 +159,6 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 - 聊着发现规模超出单 feature → "这规模超出单 feature，你想直接拆 roadmap 还是先 grill 存着？"→ case 3 或 case 4
 - 聊着发现已经全清楚 → case 1
 
-**收敛完成判据**：只有下面 5 项都已经有明确答案，才建议进入 `cs-feat-design`：
-
-1. 要解决的问题和用户价值已经能一句话复述
-2. 选定方向已经明确，不是 2-3 个方向并列摇摆
-3. 明显不做什么已经说清
-4. 当前最大未知已经点明
-5. 成功怎么算已经能写成可验证的 1-3 条标准
-
-缺任一项都不算收敛完成；继续聊，或在范围变大时升到 case 4。不要为了推进到 design 伪造清晰度。
-
 **落盘**：收敛完成后写 `.cyralis/features/{feature}/{slug}-brainstorm.md`。
 
 目录约定：
@@ -214,7 +168,7 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 
 只在用户确认进 design 那一刻落盘——对话期间不写文件。`status` 固定 `confirmed`，没有 draft。
 
-文档模板见同目录 `reference.md` 的"feature brainstorm 模板"。frontmatter 字段口径跟 design / acceptance 共用一组，看 `.cyralis/reference/core.md`。
+文档模板见同目录 `reference.md` 的"feature brainstorm 模板"。frontmatter 字段口径跟 design / acceptance 共用一组，看 `shared-conventions.md` 第 1 节。
 
 **退出**：主动问"这块够清楚了可以进 design 吗？"，确认后落盘。如果愿景（用户故事 / 痛点 / 边界）已经聊透了，提示用户可以先 `cs-req draft` 把愿景落成 requirement，design 会读到这份 req 做对齐。告诉用户"下一步 `cs-feat-design` 会读到 `{路径}`"
 
@@ -246,13 +200,6 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 - 聊着发现其实一个 feature 能装下 → case 2
 - 聊着发现已经全清楚 → case 1
 
-**建议转 `cs-roadmap` 的信号**（满足任两条就主动建议）：
-
-- 已经能列出 2 个以上潜在 feature / 子模块
-- 子模块之间的先后依赖或共享约束开始清楚
-- 已经出现需要统一处理的接口 / 协议 / owner 边界
-- 继续发散 1-2 轮后没有新增有效信息
-
 **落盘**：用户说"先这样"/"差不多了"/"存一下"，或 AI 判断 grill 已到 3-5 轮上限，主动说"这块我先帮你落到 brainstorms 里，之后 roadmap 会读到"。
 
 路径：`.cyralis/brainstorms/{slug}/`
@@ -280,11 +227,11 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 
 1. **不跳过分诊**——任何长度的讨论开始前都要先判 case
 2. **不替用户决定规模**——case 2 / 3 / 4 边界模糊就问用户"你脑子里这块是一个 feature 能装下的规模吗，还是需要先 grill 存着"
-3. **不落盘非 case 2 / case 4 产物**——case 3 不写文件；case 1 默认不写，只有已经产生非琐碎技术决策时允许写 handoff note
+3. **不落盘 case 1 产物**——case 1 不写文件
 4. **不处理 bug / 重构**
-5. **不在 case 1 / 3 启动 grill 档**——case 1 已清楚硬 grill 反人性，case 3 用户已 ready 拆解不需要 grill
-6. **别自己顺手开始写 design 或 roadmap**——阶段间的人工 checkpoint 是 cyralis 整套流程的硬约束
-7. **不伪收敛**——核心问题、边界或成功标准仍然摇摆时，不能为了进入 `cs-feat-design` 而把未定事项包装成已定方向；继续 case 2，或升到 case 4
+5. **不在 case 1 启动 grill 档**——case 1 已清楚硬 grill 反人性
+6. **别自己顺手开始写 design 或 roadmap**——阶段间的人工 checkpoint 是 Cyralis 整套流程的硬约束
+7. **简要记录聊天过程**——case 2 / 3 / 4 记录聊天内容帮助后续复盘
 
 ---
 
@@ -292,12 +239,9 @@ case 1 / case 3 也能借这个动作，逻辑一样：事实存疑 + 改变方�
 
 - 跳过分诊默认所有讨论按 case 2 推进——大需求被硬塞进一个 feature
 - 分诊问得像问卷——一两轮该有方向；问到第三轮还在对齐规模说明方法错了
-- case 1 硬凑 brainstorm note——没有非琐碎技术决策还写一份模板，后人误以为这里发生过有价值讨论
+- case 1 硬凑 brainstorm note——用户已清楚还写一份模板，后人误以为这里发生过有价值讨论
 - case 3 自己做拆解——越俎代庖，那是 roadmap 的产物
 - 升降级信号不理——范围扩大还继续 case 2，最后落一份塞不下所有子模块的 note
 - 把 case 4 当 case 3 处理——用户想 grill 存着，却直接移交 roadmap 把未成形的想法硬拆成 feature
-- 把 case 3 当 case 4 处理——用户已经 ready 拆解，却强行 grill 拖延节奏
 - 一次只给一个方案让用户评价——用户被锚定提不出别的方向
 - 复述用户方案就落盘——记录员心态，AI 没提供思考伙伴的价值
-- 仓库已经能回答的问题还拿去问用户——把 evidence-first 退化成礼貌式闲聊
-- 还没说清成功标准就推去 design——下游只能在错误或空白基线上补洞

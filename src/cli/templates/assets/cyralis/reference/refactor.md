@@ -58,16 +58,7 @@ Common scan methods:
 | M-L3-02 | Directory Reorganization | Multiple files belong to one conceptual area |
 | M-L4-01 | Performance Locality | Repeated work or hot path pressure needs structural cleanup |
 
-## 7. Scan refusal routing
-
-Stop and route away when the pre-check fails:
-
-- the request is not behavior-preserving
-- the scope is too large
-- the target is actually bug fix / feature / architecture work
-- there is no meaningful refactor candidate
-
-## 8. Checklist format
+## 7. Checklist format
 
 Each scan item should include:
 

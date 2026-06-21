@@ -11,32 +11,16 @@ feature: 2026-04-12-user-auth
 requirement: user-auth-email
 roadmap: permission-system           # 可选：本 feature 从某 roadmap 条目起头时填
 roadmap_item: permission-rbac-core   # 可选：对应 roadmap items.yaml 里的 slug
+status: draft
 summary: 支持用户通过邮箱验证码登录后台
 tags: [auth, email, login]
 ---
 ```
 
-必填：`doc_type` / `feature` / `summary` / `tags`。
+必填：`doc_type` / `feature` / `status` / `summary` / `tags`。
 
 - `requirement`：填对应 req 的 slug；纯重构 / 技术债允许留空
 - `roadmap` / `roadmap_item`：从 roadmap 条目起头时才填，两个一起填或一起空
-- workflow status 写在同目录 `work.json.status`
-- design 草稿 / 批准状态写在 `work.json.artifacts.design.approval`
-
-对应 `work.json` 初始片段：
-
-```json
-{
-  "mode": "feature",
-  "status": "design",
-  "artifacts": {
-    "design": {
-      "path": "user-auth-design.md",
-      "approval": "draft"
-    }
-  }
-}
-```
 
 ## 2. 顶层节锚点
 
@@ -47,8 +31,9 @@ tags: [auth, email, login]
   - `### 2.2 编排层`
   - `### 2.3 挂载点清单`
   - `### 2.4 推进策略`
-  - `### 2.5 结构健康度与微重构` ← 固定节，结论三选一 + 可选"超出范围的观察"
+  - `### 2.5 结构健康度与微重构` ← 固定节，结论二选一 + 可选"超出范围的观察"
 - `## 3. 验收契约`
+  - `### Behavior Evaluation（按需）`
 - `## 4. 与项目级架构文档的关系`
 
 ## 3. {slug}-checklist.yaml 格式
@@ -64,11 +49,11 @@ steps:
 
 checks:
   - item: "{检查项描述}"
-    source: 名词契约 | 编排骨架 | 流程级约束 | 挂载点 | 范围守护 | 行为评估场景 | 验收场景
+    source: 名词契约 | 编排骨架 | 流程级约束 | 挂载点 | 范围守护 | 验收场景
     status: pending
 ```
 
-`steps`（design 阶段产出）：
+`steps`（design draft 成型后先产出，供 `cs-feat-design-review` 和用户 review；用户确认后随 design 一起进入实现）：
 
 - 粒度是 paradigm 维度，**不写 file:line / 函数级**——具体落点是 implement 的事
 - 切片顺序"最简 Workflow 先行 → 逐个节点填充"：
@@ -77,18 +62,15 @@ checks:
 - 4-8 步；每步必须有可独立验证的退出信号
 - 第 2.5 节结论是"微重构"时，**第 1 步固定是"按第 2.5 节方案做微重构（只搬不改行为）"**，独立退出信号（如"全部测试通过 + 编译绿灯 + 行为相关 diff 为零"），跑通后再进 feature 主体步骤
 
-`checks`（design 阶段产出，提取来源）：
+`checks`（design draft 成型后先产出，提取来源）：
 
 - 名词契约 ← 第 2.1 节关键接口签名
 - 编排骨架 / 流程级约束 ← 第 2.2 节主流程关键步骤、流程级约束
 - 挂载点 ← 第 2.3 节每个挂入点（acceptance 反向核对可卸载性）
 - 范围守护 ← 第 1 节"明确不做"每条
-- 行为评估场景 ← 第 3 节 Behavior Evaluation：抽取时保留场景、证据、failure signal、correction path
 - 验收场景 ← 第 3 节"关键场景清单"每条
 
 不允许编造 design 里不存在的条目。
-
-Behavior Coverage 是 checklist 对 Behavior Evaluation 的映射；没有直接连接场景或不变量的 task 仍然标 `technical-only`。
 
 ## 4. 各节写作要求
 
@@ -100,12 +82,9 @@ Behavior Coverage 是 checklist 对 Behavior Evaluation 的映射；没有直接
 
 design 的"是什么 / 为什么"——不写实现细节，不写挂载点（挂载点归第 2 节）。
 
-- **输入基线对齐**：简要记录 requirement / architecture / roadmap / compound 输入是否一致。结果只允许 `aligned` / `requirement-defect` / `architecture-defect` / `implementation-drift` / `missing-authority` / `needs-clarification`。非 `aligned` 不硬写方案，先处理或写清下一步
 - **需求摘要**：做什么、为谁、成功标准、明确不做什么
-- **复杂度档位**：只记偏离默认组合的维度（默认组合在 `.cyralis/reference/feature.md` 末尾"常用默认组合"表）。格式：`{维度名} = {档位}（偏离默认 {默认档位} 的原因：……）`。全部走默认写一句"走 {场景} 默认档位，无偏离"
+- **复杂度档位**：只记偏离默认组合的维度（默认组合在 `.cyralis/reference/code-dimensions.md` 末尾"常用默认组合"表）。格式：`{维度名} = {档位}（偏离默认 {默认档位} 的原因：……）`。全部走默认写一句"走 {场景} 默认档位，无偏离"
 - **关键决策**：选型 / 取舍 / 硬约束 / 被拒方案。每条决策必须能回答"换另一种做法名词层或编排层会怎么不同"——否则不是设计决策，是实现细节
-- **产品风险检查（可选）**：仅在用户可见行为 / UI workflow / 产品策略 / 多方案价值取舍 / 成功标准仍带判断时写。格式固定四行：`Value` / `Non-goals` / `Trade-offs` / `Decision needed`
-- **架构完整性检查（可选）**：仅在新 owner / 新 contract / 跨模块接口 / adapter / fallback / compatibility path / 责任重叠 / 可能存在更高层承接点时写。覆盖不变量、canonical owner / contract、责任重叠、该丢的假设、更高层承接点、旧路径 / fallback 退休条件、证伪点、结论
 - **前置依赖**：仅在 implement 阶段评估出"目标文件结构性问题需要先解决"、回头改 design 时填
 
 ### `## 2. 名词与编排`
@@ -189,10 +168,6 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound \
 - 文件行数：单文件 > 500 行（TS/JS/Vue 偏严，Python 略松）
 - 文件职责：一个文件混了 2 个以上不相关概念（编排 + 计算混写、UI + 数据请求 + 业务逻辑混写）
 - 文件改动密度：本次要在同一文件改 / 加 3 处以上，且每处之间逻辑独立
-- owner mismatch：当前文件 / 模块不是这项责任的 canonical owner，却要继续承接新职责
-- fallback / adapter 增长：为兼容旧路径新增分支、桥接层、兜底逻辑，且没有退休条件
-- 通用容器膨胀：router / manager / handler / shared util / generic helper 被塞进新的业务责任
-- 块级复杂度：单个逻辑块约 80 行以上、深层嵌套、或多个独立原因混在同一块里
 - **目录摊平**：目标目录已有 ≥ 8 个同层文件且本次还要再加 ≥ 2 个；或目录内文件命名出现明显可分组前缀 / 后缀（如 `XxxModal.vue` / `XxxForm.vue` 一堆混在通用目录），本次新增会延续这种摊平
 
 **结论必须显式写出来**：
@@ -237,20 +212,29 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound \
 
 implement 完成的判据，acceptance 核对的依据。**不写测试代码 / framework / mock 怎么搭**——归 implement 自决。
 
-- **关键场景清单**：每条"输入 / 触发 → 期望可观察结果"——能被一个测试或一次手工操作验证。覆盖正常路径（对应成功标准）+ 关键边界（边界值、空输入、上下限）+ 关键错误路径（流程级约束的可观察行为）
+- **Behavior Evaluation（按需）**：只要 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，就写这里。它不是额外 review gate，只是把第 3 节关键场景为什么足够覆盖行为说清楚。纯内部整理、文档、测试或类型补强可以写 `technical-only`，但必须说明“不改变运行行为”的证据。
+- **关键场景清单**：每条"输入 / 触发 → 期望可观察结果"——能被一个测试或一次手工操作验证。覆盖正常路径（对应成功标准）+ 关键边界（边界值、空输入、上下限）+ 关键错误路径（流程级约束的可观察行为）。如果写了 Behavior Evaluation，场景清单必须覆盖其中的 Behavior Surface、Behavior Coverage 和 Cross-step Invariants。
 - **明确不做的反向核对项**：第 1 节"明确不做"每条 → 写成可被 grep 或测试反向核对的形式（"代码中不应出现对 X API 的调用"、"输出 JSON 不应包含字段 Y"）
 
-#### Behavior Evaluation（按需）
+模板：
 
-只要 feature 会改变用户可见流程、系统可观察结果、错误 / 回退路径、跨步骤不变量，就写这里。纯技术任务不写，直接标 `technical-only`，不要硬造场景。
+```markdown
+### Behavior Evaluation（按需）
 
-| Scenario | Example | Observable evidence | Expected result | Failure signal | Correction path |
-| --- | --- | --- | --- | --- | --- |
-| Scenario 1 | Concrete example from the spec | What a test or human can observe | How to judge alignment | What proves drift | Return to spec, plan, implementation, or human decision |
+#### Behavior Surface
+- {入口 / API / CLI / UI / 后台任务 / 文档结果}：{用户或系统能观察到的变化}
 
-- Scenario 必须是具体用户可观察流，不是 task / module / milestone。
-- 证据优先用真实代码、真实工件或真实命令；人工观察要写清观察对象。
-- 如果证据失败，写明要回到 spec / plan / implementation / human decision 的哪一层。
+#### Behavior Coverage
+- 正常路径：{对应验收场景 ID}
+- 边界路径：{对应验收场景 ID}
+- 错误 / 回退路径：{对应验收场景 ID}
+
+#### Cross-step Invariants
+- {不变量}：{在哪些步骤后仍必须成立；由哪些场景或检查证明}
+
+#### technical-only
+- {仅当不改变运行行为时填写：证据 + 为什么无需功能性核心路径验证}
+```
 
 ### `## 4. 与项目级架构文档的关系`
 
@@ -264,63 +248,11 @@ implement 完成的判据，acceptance 核对的依据。**不写测试代码 / 
 
 纯模块内部不可见的改动，写"本 feature 改动局限在 {模块} 内部，无系统级可见变化"，acceptance 核实后跳过归并。
 
-## 4.5 Design self-review pass
-
-整稿写完、交给用户 review 前必须做。审核时忽略未落到文档里的聊天记忆：如果某个决定只存在于对话里，不存在于 design / requirement / roadmap / architecture / compound / code source 中，就按 design 缺失处理。
-
-只报告会导致 implement 做错、验收对不上、roadmap 漂移、接口不一致、边界失守的问题；不要报告措辞风格、格式洁癖、可有可无的补充说明。
-
-检查 7 类问题：
-
-1. **Source Trace**：requirement / intent / brainstorm / roadmap / architecture / compound 的硬约束是否都在 design 中有落点；roadmap 起头时，第 3 节"模块拆分"和第 4 节"接口契约 / 共享协议"是否逐项落实
-2. **Section Completeness**：frontmatter、0/1/2/3/4 节、输入基线对齐、触发式产品风险 / 架构完整性检查、2.5 结构健康度是否齐全
-3. **Contract Consistency**：同一接口 / 字段 / 类型 / 状态名在第 1 / 2.1 / 2.2 / 3 节叫法一致；示例输入输出和名词层定义一致；编排层不引用名词层不存在的字段或状态
-4. **Roadmap / Architecture Alignment**：roadmap_item 的目标、依赖、共享协议没有被改写；owner / contract / dependency direction 和 architecture 对齐；要改 roadmap 契约就回 roadmap，不在 feature design 偷改
-5. **Boundary Closure**：明确不做没有在第 2 节被隐含实现；每条 non-goal 在第 3 节有反向核对项；open question 没被伪装成已确认决策
-6. **Verification Readiness**：每个成功标准都有可观察验收场景；错误 / 边界路径有可验证结果；第 2.4 每步有独立 exit_signal
-7. **Structure Health**：第 2.5 没漏掉明显 owner mismatch / fallback 增长 / shared util 膨胀 / 大文件继续加职责；微重构只包含"只搬不改行为"
-
-输出格式：
-
-```markdown
-## Design Self-Review
-
-**Status:** Approved | Issues Found
-
-**Blocking Issues:**
-- [Section / Source]: {问题}
-  - Why it matters: {为什么会导致实现 / 验收 / roadmap 出问题}
-  - Required fix: {必须怎么改}
-  - Also update: {受影响的其他节}
-
-**Advisory Notes:**
-- {不阻塞实现，但值得用户知道的取舍或后续事项}
-```
-
-有 Blocking Issues：先修 design，再重新跑 self-review。最多连续自修两轮；两轮后仍有 blocking issue，停下来向用户报告，不继续生成 checklist。Approved 后才进入用户整体 review。
-
-高风险设计（roadmap 起头、跨模块接口 / schema / public API / persistence / permission / fallback / compatibility，或 self-review 连续发现问题）可以用 `design-document-reviewer-prompt.md` 新开 session / subagent 做 fresh review；这不是默认必做。
-
-## 4.6 Checklist 压力检查
-
-用户整体 review 通过后、生成 `{slug}-checklist.yaml` 前必须做。它不是新的设计节，只是确认 design 是否足够支撑 checklist：
-
-```markdown
-#### Checklist 压力检查
-- Owner / contract 是否足够清楚：{是 / 否，缺什么}
-- 验证边界是否清楚：{每个关键场景是否能落成 check}
-- steps 是否能独立退出：{2.4 的每步有没有 exit_signal}
-- 是否需要先回 design 补充：{否 / 补第 X 节}
-- 结论：{生成 checklist / 修 design / 回 brainstorm / 回 roadmap}
-```
-
-只有结论是"生成 checklist"才落 YAML。否则先补 design，让用户确认修改点，再重新检查。
-
 ## 5. review 提示
 
-> 方案 doc 已起草完成并通过 self-review，请整体 review：
+> 方案 doc 已起草完成，请整体 review：
 > 1. 术语有没有和已有概念冲突？
-> 2. 第 1 节决策与约束准不准：输入基线对齐是否成立，"不做什么"有没有遗漏，触发的产品风险 / 架构完整性检查结论是否同意？
+> 2. 第 1 节决策与约束准不准，"不做什么"有没有遗漏？
 > 3. 第 2.1 名词层：现状描述对不对？变化是否覆盖所有数据/接口改动？
 > 4. 第 2.2 编排层：主流程图和现状→变化能不能跑通你脑子里的场景？流程级约束有没有漏？
 > 5. 第 2.3 挂载点：照这份清单能不能完整卸载？有没有项是内部改动被误列进来？
@@ -328,3 +260,5 @@ implement 完成的判据，acceptance 核对的依据。**不写测试代码 / 
 > 7. 第 3 节验收场景：覆盖正常 + 边界 + 错误路径了吗？
 >
 > 有修改意见直接说，确认后进入实现阶段。
+
+> 人工 review 前必须先有 `{slug}-design-review.md` 且 `status: passed`。用户修改 design/checklist 后，实质变化要重跑 `cs-feat-design-review`。

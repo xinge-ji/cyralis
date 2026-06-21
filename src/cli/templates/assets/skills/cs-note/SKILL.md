@@ -1,13 +1,15 @@
 ---
 name: cs-note
-description: 把"短到不值得起一份文件、但 AI 每次启动 cyralis 技能都必须知道"的项目碎片知识追加到 `AGENTS.md` 的固定分节里——比如编译特殊 flag、运行前要先起的服务、路径陷阱、命令别名、环境变量约定。触发：用户说"记一笔"、"加到 AGENTS.md"、"项目要 X 才能编译"、"以后每次都得 Y"，或刚踩到一个一句话能讲清的项目特殊设置。
+description: 把"短到不值得起一份文件、但 AI 每次启动 Cyralis 技能都必须知道"的项目碎片知识追加到 `.cyralis/attention.md` 的固定分节里——比如编译特殊 flag、运行前要先起的服务、路径陷阱、命令别名、环境变量约定。触发：用户说"记一笔"、"加到 attention.md"、"项目要 X 才能编译"、"以后每次都得 Y"，或刚踩到一个一句话能讲清的项目特殊设置。
 ---
 
 # cs-note
 
 ## 启动必读
 
-cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**被读到；`AGENTS.md` 是 cyralis 技能启动时的**强制必读**上下文。这两类信息归宿不同——本技能专管后者：把"短、稳、每次都要知道"的碎片追加到 AGENTS 文件里。
+开始任何判断或动作前，先检查 `.cyralis/attention.md`：存在就读取；缺 `.cyralis/` 就提示先运行 `cyralis init/update`；只有 attention.md 缺失时，本技能可以先创建固定分节骨架再写入。不要回退到外部 AI 入口文件。
+
+cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**被读到；`.cyralis/attention.md` 是 Cyralis 技能启动时的**强制必读**上下文。这两类信息归宿不同——本技能专管后者：把"短、稳、每次都要知道"的碎片追加到 attention 文件里。
 
 不替代沉淀类技能，是补一个之前缺的入口。
 
@@ -33,7 +35,7 @@ cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**�
 - "src/legacy/ 是历史代码，改之前先问"
 - "`OPENAI_KEY` 走 1Password，别从 .env.example 复制"
 
-❌ **典型不该进**（会让 AGENTS.md 膨胀）：
+❌ **典型不该进**（会让 attention.md 膨胀）：
 
 - 某个 bug 的修法（→ cs-learn pitfall）
 - 某个库怎么用（→ cs-trick library）
@@ -47,7 +49,13 @@ cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**�
 
 ## 目标文件
 
-目标文件固定为 `AGENTS.md`。
+目标文件固定为 `.cyralis/attention.md`。不再兼容 `AGENTS.md` / `CLAUDE.md` / `.cursorrules` 等外部 AI 工具入口。
+
+- `.cyralis/` 不存在 → 本仓库还没接入 Cyralis，先提示用户运行 `cyralis init/update`
+- `.cyralis/attention.md` 不存在 → 视为骨架缺失，先创建最小骨架再写入
+- `AGENTS.md` / `CLAUDE.md` 即使存在也不读取、不写入、不询问用户偏好
+
+attention.md 是 Cyralis 自己的启动注意事项入口，价值来自所有 Cyralis 技能都明确要求读取它，而不是依赖外部工具的自动注入。
 
 ---
 
@@ -91,13 +99,13 @@ cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**�
 
 按上面"判据"表对一遍。任一项不过 → 引导到对应别的技能，本轮结束。
 
-### 2. 确认 AGENTS 文件
+### 2. 确认 attention 文件
 
-检查 `AGENTS.md`。缺 `AGENTS.md` 就创建本技能的固定分节骨架。
+检查 `.cyralis/attention.md`。缺 `.cyralis/` 就停止并提示先 `cyralis init/update`；只缺 `attention.md` 就创建本技能的固定分节骨架。
 
 ### 3. 找位置：分节归类 + 查重
 
-- 读 `AGENTS.md`，找 `<!-- cs-note managed -->` 锚定位
+- 读 `.cyralis/attention.md`，找 `<!-- cs-note managed -->` 锚定位
 - 找不到锚 → 在文件末尾追加整块"项目碎片知识"骨架
 - 在"项目碎片知识"段内 grep 关键词查重——已有相似条目时**不另起一条**，问用户"是更新已有那条还是确实是另一条"
 - 选好分节，没有合适分节进"其他"
@@ -144,7 +152,8 @@ cs-learn / cs-trick / cs-decide 产出独立 markdown 文件，**通过检索**�
 
 ## 容易踩的坑
 
-- 把详细背景 / 多步骤指南塞进 AGENTS.md——超过两行就该走 cs-learn
+- 把详细背景 / 多步骤指南塞进 attention.md——超过两行就该走 cs-learn
+- 写到 `AGENTS.md` / `CLAUDE.md`——Cyralis 不再兼容这些外部入口
 - 默默新增分节——分节是写死的，新增要先和用户讨论
 - 看到一条就连带把其他几条也写进去——一次一条
 - 写"短期状态"（本周在做 X / 这个 sprint 的目标）——会过期但没人删，慢慢变误导

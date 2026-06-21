@@ -7,6 +7,8 @@ description: 维护 `.cyralis/architecture/` 这份只记现状的系统地图�
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 `.cyralis/architecture/` 是项目"地图"——design 写方案前读它定位、issue-analyze 做根因时读它理解模块边界、新人读它知道系统大致长什么样。本技能是"起草 / 刷新 / 体检"三件事的统一入口。
 
 **architecture 是累积的、自给自足的系统地图**，不是某次 feature 的详细方案，而是所有已落地 feature 沉淀下来的"系统现在长什么样"总图。读者打开应能看懂整体结构而不需要跳回历史 design。design 是临时增量稿，acceptance 把稳定下来的名词 / 编排 / 约束提炼回这里；design 文件归档，只在追究具体决策细节时翻。
@@ -22,7 +24,7 @@ description: 维护 `.cyralis/architecture/` 这份只记现状的系统地图�
 - **代码复述**——每节都说"这里有什么"，不说"为什么这么分"，信息量等于 `ls -R`
 - **检查时看一眼感觉没问题**——没给具体位置证据
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md`。文档结构模板、check 覆盖项、报告格式看同目录 `reference.md`。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。文档结构模板、check 覆盖项、报告格式看同目录 `reference.md`。
 
 ---
 
@@ -78,7 +80,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 ### Phase 2：读取材料
 
-**共同必读**：`core.md` + `ARCHITECTURE.md` + `architecture/` 下其他文档。
+**共同必读**：`shared-conventions.md` + `ARCHITECTURE.md` + `architecture/` 下其他文档。
 
 **backfill / update 额外**（详见 `reference.md` "读取清单"）：目标模块代码入口和核心文件 + 用户素材 + 相关 compound 沉淀（decision / explore / learning）+ 相关已有 feature 方案。**update 专项**：当前 doc 全文 + `last_reviewed` 之后的代码变更（`git log` 粗扫）。
 
@@ -89,7 +91,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 ### Phase 3：执行
 
-**backfill / update**：按 `reference.md` "文档结构"写**完整初稿**不分批吐半成品——分批 review 用户看不到全局一致性，结构描述和决策记录经常有跨段落矛盾。
+**backfill / update**：按 `reference.md` "文档结构"写**完整初稿**不分批吐半成品——分批 review 用户看不到全局一致性，第 2 节描述的结构和第 4 节决策经常有跨节矛盾。
 
 **check**：按 `reference.md` "检查覆盖项"（三个子目标各 6 类）逐条执行。每条不一致都要记**可定位位置**（`file:line` 或 `design 第X节`）+ 现象 + 影响 + 修复建议。
 
@@ -108,13 +110,11 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 
 **backfill**：
 
-- 写入 `architecture/{type}-{slug}.md`（命名规则见 `core.md`），frontmatter `status: current`、`last_reviewed` 填当天
+- 写入 `architecture/{type}-{slug}.md`（命名规则见 `shared-conventions.md` 第 0 节），frontmatter `status: current`、`last_reviewed` 填当天
 - **同类聚合检查**（落盘前必跑）：按"架构 doc 分组规则"判断本次落盘后某 type 在根目录 ≥6 份——命中就把这类全搬进 `architecture/{type}/`、去掉文件名前缀、同步改 `ARCHITECTURE.md` 链接；搬迁清单在 Phase 5 一并 review
 - **索引更新**：`ARCHITECTURE.md` 加新文档引用——backfill **必定**要加，否则写了没人会读；改动同样 review，不偷偷改
 
 **update**：覆盖已有文件，`last_reviewed` 更新当天；结构性改动大时文末 `变更日志` 节加一条；`ARCHITECTURE.md` 只在 scope/summary 影响索引描述时更新。
-
-**memory projection sync**：backfill / update 实际写入 architecture 后运行 `cyralis memory sync --kind architecture`。如果触发同类聚合搬迁，必须在搬迁和 `ARCHITECTURE.md` 链接更新全部完成后再同步。
 
 **check**：不落盘结束。用户可能基于报告决定触发 backfill/update——那是下一轮的事。
 
@@ -148,7 +148,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 - [ ] 落盘前已按"分组规则"判断同类 ≥6 份，命中则搬迁清单已 review
 - [ ] **backfill**：`ARCHITECTURE.md` 已加链接（或用户明确决定暂不加）
 - [ ] **update**：结构性改动有 `变更日志` 条目
-- [ ] 已运行 `cyralis memory sync --kind architecture`
+- [ ] 已运行 `cyralis memory sync --kind architecture --source <写入或更新的 architecture 文档路径>`，或已说明同步失败原因
 
 **check 额外**：
 - [ ] 已覆盖对应子目标的检查项
@@ -166,7 +166,7 @@ Phase 6：落盘（backfill/update）或 等用户拍板（check）
 | `cs-feat-accept` 下游 | 验收阶段实际去更新本技能产出的 doc（acceptance 自己归并，不回调本技能）；想确认实现 vs design 对得上时触发 check `design-vs-code` |
 | `cs-decide` 配合 | 拍板架构决策后，update 模式把引用补进相关 doc 第 4 节 |
 | `cs-issue-analyze` 读者 | 根因分析读本技能 doc 定位模块边界 |
-| `cyralis init` 创建器 | 初始化时建立 `ARCHITECTURE.md` 占位，之后由本技能填实 |
+| `cyralis init/update` 创建者 | onboard 建 `ARCHITECTURE.md` 占位，之后由本技能填实 |
 | `cs-roadmap` 配合 | architecture 记现状、roadmap 记规划。roadmap 起草读本技能 doc 理解现状但不改它；目标态架构归 roadmap |
 
 ---

@@ -7,9 +7,9 @@ description: 代码优化的子流程入口，处理"行为不变、结构变"�
 
 ## 启动必读
 
-AI 自己重构有两个稳定失败模式：一是不知道模块真实需求和约束，改出来的东西功能不等价；二是一次吞掉的范围超过上下文承载，改到后面忘了前面的约束。这流程在"想优化"和"动手改"之间塞了扫描清单 + 方法库，让 AI 只接自己能稳定做对的活。
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
 
-scan / design / apply 的高层口径看 `.cyralis/reference/refactor.md`；详细 scan 检查、方法库和清单格式仍在本目录 `reference/`。
+AI 自己重构有两个稳定失败模式：一是不知道模块真实需求和约束，改出来的东西功能不等价；二是一次吞掉的范围超过上下文承载，改到后面忘了前面的约束。这流程在"想优化"和"动手改"之间塞了扫描清单 + 方法库，让 AI 只接自己能稳定做对的活。
 
 ```
 scan（扫优化点清单）→ design（和用户定做哪几条 + 顺序）→ apply（逐条执行，每步人工放行）
@@ -33,7 +33,6 @@ scan（扫优化点清单）→ design（和用户定做哪几条 + 顺序）→
 
 ```
 .cyralis/refactors/{YYYY-MM-DD}-{slug}/
-├── work.json                    ← Cyralis workflow 状态源（mode/status/artifacts）
 ├── {slug}-scan.md              ← 阶段 1 优化点清单
 ├── {slug}-refactor-design.md   ← 阶段 2 执行方案
 ├── {slug}-checklist.yaml       ← 阶段 2 生成，阶段 3 推进
@@ -55,8 +54,6 @@ scan（扫优化点清单）→ design（和用户定做哪几条 + 顺序）→
 | 3 apply | 代码改动 + apply-notes.md | AI 执行，每步人工放行 |
 
 阶段间有 checkpoint：scan 不勾选不进 design；design 不放行不动代码；apply 里 HUMAN 验证项不点头不推进下一步。
-
-Cyralis workflow status 映射：`design` = scan + design，`implement` = apply，`verify` = final verification，`done` = 闭环完成。阶段切换必须用 `python .cyralis/tools/work.py transition <refactor-dir> <status>`，不手写 `work.json.status`。
 
 ---
 
@@ -97,7 +94,7 @@ Cyralis workflow status 映射：`design` = scan + design，`implement` = apply�
 1. **顶部总览**（一段）：扫描范围 / 发现条数 / 按分类分布 / 按风险分布 / 建议先做哪几条 / 慎做哪几条
 2. **清单条目**（一条一块）：字段顺序和硬约束见 `reference/scan-checklist-format.md`
 
-目录新建时先按 `.cyralis/templates/refactor/work.json` 写 `mode: "refactor"`、`status: "design"` 并执行 `python .cyralis/tools/work.py activate .cyralis/refactors/{YYYY-MM-DD}-{slug}`。整份 scan 交给用户，**用户勾选 ✓ / ✗**（✗ 写理由）后进阶段 2。**不要替用户勾选**。
+整份交给用户，**用户勾选 ✓ / ✗**（✗ 写理由）后进阶段 2。**不要替用户勾选**。
 
 ---
 
@@ -115,8 +112,6 @@ Cyralis workflow status 映射：`design` = scan + design，`implement` = apply�
 3. **识别前置依赖**——测试覆盖不够的条目前置"补刻画测试"；改公开接口的前置"搜调用方"
 4. **整体 review**：整稿交用户，放行后 `status: approved`
 5. **抽 checklist**：steps 对应执行顺序，checks 对应每步退出信号
-
-用户放行 design 且 checklist 生成后，写 `work.json.artifacts.scan.user_reviewed=true`、`work.json.artifacts.design.approval="approved"`，再执行 `python .cyralis/tools/work.py transition <refactor-dir> implement`。
 
 ### design 文件结构
 
@@ -191,38 +186,7 @@ refactor: {YYYY-MM-DD}-{slug}
 
 - 跑全量测试 + 类型检查 + lint
 - 最后一次请用户整体目视确认（前端：打开主要页面点一圈）
-- 命中独立代码评审 gate 时，先跑 review 再收尾
-- 确认通过后写 `work.json.artifacts.apply.done=true` 并执行 `python .cyralis/tools/work.py transition <refactor-dir> verify`；final verification 通过后写 `work.json.artifacts.verification.result="passed"` 并执行 `python .cyralis/tools/work.py transition <refactor-dir> done`，再收尾 commit，message 引用 refactor 目录
-
----
-
-## 独立代码评审 gate
-
-这是对**已完成 refactor diff** 的独立 review，不替代本技能的行为等价验证、apply-notes、用户目视确认。共享口径看 `.cyralis/reference/shared.md`。
-
-### 什么时候必须跑
-
-命中任一条就跑：
-
-- 改动跨多文件 / 多调用方
-- 行为等价风险高，尤其 public interface、dependency direction、owner 边界有拉扯
-- 测试覆盖不足，只能靠局部验证证明"应该没变"
-- apply 过程中出现方案外偏离，虽已补记但风险上升
-- 准备 merge，且这次不是单函数 / 单组件的轻量整理
-
-### review 前要给出的材料
-
-- `{slug}-refactor-design.md` + `{slug}-apply-notes.md`
-- 本次 refactor diff
-- 全量测试 / 类型检查 / lint / grep 无残留旧引用的证据
-- 行为等价 boundary、调用方边界、旧路径 / compatibility notes（若涉及）
-
-### findings 怎么处理
-
-- **Critical / Important**：先修，再补 apply-notes，并重跑受影响验证
-- **Minor**：可记入 apply-notes 的 follow-up / 后续事项
-
-review 结论只是 advisory；行为等价仍要靠本技能自己的验证链和用户最终确认兜底。
+- 确认通过后收尾 commit，message 引用 refactor 目录
 
 ---
 
@@ -234,19 +198,8 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - [ ] design 用户整体 review 通过 `status: approved`
 - [ ] checklist.yaml 已生成且通过 `validate-yaml.py`
 - [ ] apply 每步都有验证记录（AI 自证贴日志，HUMAN 贴用户确认语录）
-- [ ] 命中独立代码评审 gate 时已完成评审，Critical / Important 已处理完
 - [ ] 全量测试 / 类型检查 / lint 通过
 - [ ] 用户最后一次目视确认通过
-- [ ] `work.json.artifacts.verification.result="passed"`，并且已执行 `python .cyralis/tools/work.py transition <refactor-dir> done`
-
-## 退出后
-
-按 `.cyralis/reference/shared.md#2-finish-gate` 走收尾门禁：
-
-- 先完成本次 apply / verify 的终点文件和 `work.json` transition
-- 再问 `scoped-commit`
-
-`cs-refactor` 本身不额外沉淀 learning / decide，除非用户主动说要记。
 
 ---
 
@@ -259,7 +212,6 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - **扫大模块直接动手**——> 15 文件 / > 3000 行不拆就进 scan，产出没法决策的长清单
 - **HUMAN 验证项自己跳过**——前端效果 AI 看不到，不能用"类型检查过了"替代人工目视
 - **覆盖率不够硬上**——没测试的模块直接改，"行为等价"只是口头承诺
-- **高风险 refactor 不跑独立代码评审**——把行为等价风险全压给最后一次目视确认
 
 ---
 
@@ -279,6 +231,4 @@ review 结论只是 advisory；行为等价仍要靠本技能自己的验证链�
 - `reference/scan-checklist-format.md` — scan 清单条目字段 / 顺序 / 硬约束
 - `reference/refusal-routing.md` — scan 前置检查 7 条 + 路由表
 - `reference/methods.md` — 方法库（L1-L4 四层分类）
-- `.cyralis/reference/core.md` — 目录结构和命名
-- `.cyralis/reference/core.md` — work.json 状态协议
-- `.cyralis/reference/shared.md` — 独立评审和 scoped-commit
+- `.cyralis/reference/shared-conventions.md` — 跨工作流共享口径

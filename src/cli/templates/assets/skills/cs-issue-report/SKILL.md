@@ -1,19 +1,19 @@
 ---
 name: cs-issue-report
-description: issue 标准流程阶段 1——通过对话把问题落成可复现、可追溯的 {slug}-report.md。启动检查可把低风险问题改走快速通道，但快速通道不产出 report。只问现象不猜根因。触发：用户说"提个 issue"、"记录这个 bug"、"我发现一个问题"。issue 标准工作流的起点。
+description: issue 流程阶段 1——通过对话把问题落成可复现、可追溯的 {slug}-report.md，并判定走标准路径还是快速通道。只问现象不猜根因。触发：用户说"提个 issue"、"记录这个 bug"、"我发现一个问题"。issue 工作流的起点。
 ---
 
 # cs-issue-report
 
 ## 启动必读
 
-涉及快速通道判断时，同时读取 `.cyralis/reference/issue.md`。快速通道不是"感觉简单就直接改"，而是低风险、单 owner、证据明确的 compact debugging lane。
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
 
-这一阶段的标准职责是把用户脑子里的问题落成结构化记录。启动检查如果发现完全满足快速通道准入，则转为 quick-lane fix：不写 `{slug}-report.md`，只创建 / 激活快速通道 `work.json` 并交给 `cs-issue-fix`。
+这一阶段做两件事：把用户脑子里的问题落成结构化记录 + 判断走标准路径还是快速通道。
 
 **核心原则：只记现象不记根因**。用户说"我觉得是 XX 组件的问题"——记下"用户怀疑 XX 组件"作为线索，但不顺着聊根因。根因要在阶段 2 通过实际读代码确认，不靠脑子里猜。混进根因猜测的报告会带偏阶段 2，让分析人围着错误线索绕。
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md` 和 `cs-issue` 的"文件放哪儿"。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节和 `cs-issue` 的"文件放哪儿"。
 
 ---
 
@@ -21,11 +21,10 @@ description: issue 标准流程阶段 1——通过对话把问题落成可复�
 
 1. **确认是 bug 不是新功能需求**——描述"想加 X 功能"的告诉他走 `cs-feat`
 2. **看有没有相关 issue 目录**——Glob `.cyralis/issues/`，有同类问题先和用户确认是新建还是更新
-3. **快速通道判断（唯一正式判定点）**——按用户线索**读一下相关代码**（Grep / Read 定位），再对照 `.cyralis/reference/issue.md`：
-   - **能一眼确定根因且满足 quick lane 全部准入**（有复现信号、单一 canonical owner、能给出 `{文件}:{行号}`、修复改动小 1-2 处、无跨模块 / contract / fallback / adapter / duplicate owner 风险）→ 告诉用户"我已看到问题所在，可以走快速通道：直接告知根因、修复方案和 Fix Boundary，你确认后我立刻修，修完你验证，只写一份 `{slug}-fix-note.md`"。同意后创建 / 激活 `status: "implement"`、`artifacts.fix.quick_lane=true` 的 issue work item，并触发 `cs-issue-fix`（快速通道模式）
-   - **不能**（根因有多个候选 / 不确定 / 需要更多复现信息 / 命中 Patch-Shape 或 H-class 风险 / 涉及 shared、core、contract、fallback、adapter、duplicate owner、consumer-side patch）→ 走标准路径做完整问题报告。进入标准路径后默认不再二次改判
+3. **快速通道判断（唯一正式判定点）**——按用户线索**读一下相关代码**（Grep / Read 定位）：
+   - **能一眼确定根因**（能给出 `{文件}:{行号}`、修复改动小 1-2 处、无跨模块影响风险）→ 告诉用户"我已看到问题所在，可以走快速通道：直接告知根因和修复方案，你确认后我立刻修，修完你验证，只写一份 `{slug}-fix-note.md`"。同意后触发 `cs-issue-fix`（快速通道模式）
+   - **不能**（根因有多个候选 / 不确定 / 需要更多复现信息）→ 走标准路径做完整问题报告。进入标准路径后默认不再二次改判
 4. **确定 issue 目录名**——跟用户商定 slug，日期前缀用今天（环境信息 `currentDate`）。目录不存在就创建。快速通道也要建 issue 目录，`{slug}-fix-note.md` 放那
-5. **写入 / 激活 `work.json`**——标准路径目录新建时按 `.cyralis/templates/issue/work.json` 写 `mode: "issue"`、`status: "design"`、report / analysis / fix 路径，然后执行 `python .cyralis/tools/work.py activate .cyralis/issues/{YYYY-MM-DD}-{slug}`。快速通道目录新建时也从同模板起步，但把 `status` 设为 `"implement"`、`artifacts.fix.quick_lane=true`、`artifacts.report.confirmed=false`、`artifacts.analysis.confirmed=false`，然后 activate；已有目录则读取现有 `work.json`，不要覆盖。
 
 ---
 
@@ -135,15 +134,12 @@ tags: []
 - [ ] 复现步骤可执行（"无法稳定复现"也有说明）
 - [ ] 用户明确说"report 可以了，进下一步"
 - [ ] frontmatter `status: confirmed`
-- [ ] 标准路径 / 快速通道二选一完成：标准路径写 `work.json.artifacts.report.confirmed=true` 并 `transition <issue-dir> implement`；快速通道不写 report，直接创建 / 激活 `status="implement"` + `artifacts.fix.quick_lane=true` 的 work item
 
 ---
 
 ## 退出后
 
-标准路径告诉用户："问题报告已就绪，work.json 已通过 transition 进入 implement。下一步阶段 2 根因分析，触发 `cs-issue-analyze`。"
-
-快速通道告诉用户："快速通道已确认，work.json 已激活为 implement quick-lane。下一步直接修复验证，触发 `cs-issue-fix`。"
+告诉用户："问题报告已就绪。下一步阶段 2 根因分析，触发 `cs-issue-analyze`。"
 
 别自己顺手开始分析根因——阶段间的人工 checkpoint 是工作流硬约束。
 

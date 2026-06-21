@@ -7,11 +7,13 @@ description: 把可复用的编程模式 / 库用法 / 技术技巧整理成处�
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 cs-trick 是面向问题的**处方性参考库**，回答：**要做 X，经过验证的正确做法是什么？** 不需要触发事件，任何时候发现值得沉淀的模式或用法都可以直接写。
 
 典型内容：某个设计模式在这个项目的标准写法 / 某个库的核心 API 用法 + 已知坑 / 某类操作的命令配方。
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`。
 
 ---
 
@@ -52,7 +54,7 @@ frontmatter / 正文模板 / 长示例见同目录 `reference.md`。流程约束
 
 ### Phase 1.5：查重叠与意图分流（必做）
 
-按 `.cyralis/reference/shared.md`：
+按 `shared-conventions.md` §6 第 5/6 条：
 
 - 含"改 / 更新 / 修订 / 补充 / 某条 trick"或指向某份旧文档 → 直接走**更新已有**，不进新建流程
 - 否则用搜索工具 `--query` 查一遍 `topic`，命中相近时把候选列给用户
@@ -91,18 +93,27 @@ AI 一次性起草完整文档（YAML frontmatter + 正文）。示例代码优�
 
 - 新建：写入 `compound/YYYY-MM-DD-trick-{slug}.md`，frontmatter 带 `doc_type: trick`
 - 更新：写回 Phase 1.5 定位的原文件 + `updated: YYYY-MM-DD`
-- supersede：按 `.cyralis/reference/shared.md` 处理
-- 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
+- supersede：按 `shared-conventions.md` §6 第 5 条处理
 
 ### Phase 6：可发现性检查
 
-写完若发现一两行"每次 cyralis 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到启动 notes。不要自作主张改这类入口，也不要写外部 AI 入口。
+写完若发现一两行"每次 Cyralis 技能启动都该知道"的项目硬约束，提示用户用 `cs-note` 追加到 `.cyralis/attention.md`。不要自作主张改 attention，也不要写外部 AI 入口。
+
+### Phase 7：同步记忆投影
+
+落盘或更新 trick 文档后，运行：
+
+```bash
+cyralis memory sync --kind compound --source <写入或更新的 trick 文档路径>
+```
+
+命令失败要告诉用户，并保留已写入的 `.cyralis/compound/` 文档；不要因为投影同步失败回滚知识文档。
 
 ---
 
 ## 搜索工具
 
-> 完整语法见 `.cyralis/reference/core.md`。
+> 完整语法见 `.cyralis/reference/tools.md`。
 
 ```bash
 # 按类型 + 框架筛选
@@ -122,7 +133,7 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=t
 
 ## 守护规则
 
-> 归档类共享规则见 `.cyralis/reference/shared.md`。本技能特有：
+> 归档类共享规则见 `shared-conventions.md` 第 6 节。本技能特有：
 
 1. **只归档已验证的做法**——"也许应该这样做"不归档；必须用户或 AI 确认过有效
 2. **必须调查代码仓**——Phase 2 不可跳过。示例代码优先用项目真实代码不凭空编写

@@ -7,6 +7,8 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 `.cyralis/roadmap/` 是项目的"规划层"——每个子目录承载一块大需求，主文档由三块构成：
 
 1. **概设**：这块大需求要怎么搭、拆成哪几个模块 / 组件、各自职责
@@ -21,7 +23,11 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 **为什么文件夹不是单文件**：拆解过程会产生草稿 / 调研 / 方案对比 / 白板转述，塞一份 md 会乱又舍不得删。每个 roadmap 一个子目录，主文档对外口径，旁边 `drafts/` 随便堆。
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md`。主文档和 items 完整模板看同目录 `reference.md`。
+**规划原则**：roadmap 不是"任务列表"，而是一次可执行路线设计。动笔前要先把目标、约束、风险、依赖、可验证完成信号想清楚；拆出来的每条子 feature 都要能独立验证；整份 roadmap 交给用户前必须先做一次自我批判，修掉含糊验收、错误依赖和被打包过大的条目。
+
+**推进原则**：一个长期软件任务能不能稳步推进，取决于有没有把"当前状态 → 下一步 → 验证 → 修复 → 记录"闭环设计清楚。roadmap 阶段要提前识别基线是否可能已坏、哪些条目承担 safety net / polish / harden、哪些产物必须落盘、哪些经验要回写到 Cyralis 知识层。没有这些，后续 feature 只是顺序执行，不是可恢复、可审计的推进。
+
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。主文档和 items 完整模板看同目录 `reference.md`。
 
 ---
 
@@ -59,6 +65,7 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 .cyralis/roadmap/{slug}/
 ├── {slug}-roadmap.md       主文档：背景 / 范围 / 模块拆分（概设）/ 接口契约（架构层详设）/ 子 feature 清单 / 排期
 ├── {slug}-items.yaml       机器可读清单（feature-design 读、feature-acceptance 回写）
+├── {slug}-roadmap-review.md 独立规划审查报告（人审前 gate）
 └── drafts/                 可选，调研 / 讨论 / 草稿
 ```
 
@@ -74,12 +81,12 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 ### Phase 2：读取材料
 
-**共同必读**：用户素材 + `roadmap/` 其他 roadmap（防重复）+ `requirements/` 相关 req + `architecture/` 相关 doc。
+**共同必读**：`.cyralis/attention.md` + 用户素材 + `roadmap/` 其他 roadmap（防重复）+ `requirements/` 相关 req + `architecture/` 相关 doc。
 
 **按情况读**：
-- 相关 brainstorm 记录：优先 `.cyralis/brainstorms/{slug}/brainstorm.md`（case 4）；如有相关 feature brainstorm note 也一起读
 - 相关 compound 沉淀：`python .cyralis/tools/search-yaml.py --dir .cyralis/compound --query "{大需求关键词}"`
 - 已有相关 feature 方案
+- 项目可用验证命令 / 已知基线：从 `.cyralis/attention.md`、架构 doc、历史 acceptance、README / package scripts / CI 配置里找 build / typecheck / lint / test / e2e / 浏览器验证入口。roadmap 不直接跑完整命令，但要知道后续每条 feature 靠什么验证
 
 **update 额外**：当前主文档全文 + items.yaml 当前状态 + 已启动 / 完成的子 feature 的 design / acceptance。
 
@@ -87,74 +94,80 @@ description: 把"大到塞不进单个 feature"的需求做成完整事前规划
 
 按 `reference.md` "主文档结构"和"items.yaml 格式"写**完整初稿**不分批。
 
+**先写深度规划底稿**（可写进主文档第 6 / 7 节，不必单独成文件）：
+
+- **目标完成信号**：这块大需求做到什么可观察状态才算完成，不写"能力完善"这种感受词
+- **Top 3 风险与缓解**：最可能翻车 / 最难回滚 / 最容易漏到上线后才发现的三件事，各自写清本 roadmap 怎么降低风险
+- **非显然依赖**：外部系统、数据迁移、现有模块约束、用户拍板项，哪些会卡住后续 feature
+- **关键假设**：不是用户原话、但本次规划依赖它成立的判断；review 时让用户能精确反驳
+- **基线与验证入口**：后续 feature 应优先使用哪些命令 / 手工验证入口；如果当前仓库很可能缺测试或基线不稳，要在拆解里安排 safety net / characterization 条目
+- **交付物落点**：每条子 feature 完成后应该真实落在哪些代码 / 配置 / 文档 / roadmap 状态里，避免只在汇报里说完成
+- **知识回写点**：哪些约定、环境坑、跨 feature 规则如果被验证成立，应在 acceptance 收尾时沉淀到 attention / learning / decide / guide
+
 **拆解纪律**：
 
 0. **先做架构方案再拆 feature**——顺序：先想模块拆分（概设第 3 节）→ 模块间接口 / 数据结构 / 协议（详设第 4 节）→ 才把方案分解成子 feature（第 5 节）。**架构方案不清楚就硬拆 feature，结果是每个 feature 各自重新发明轮子、接口对不齐**
 1. **接口契约要写到 feature 可拿来当硬约束的程度**——函数签名 / 数据结构 / 协议字段 / 错误码这一级。讲不到这级回去想。无跨模块接口（如纯前端样式调整）就明确写"无跨模块接口"
-2. **每条子 feature 能当独立 feature 流程跑完**——能单独写 design / 实现 / 验收。跑不下来颗粒度不对
+2. **每条子 feature 能当独立 feature 流程跑完并独立验证**——能单独写 design / 实现 / 验收，完成后能拿出明确证据（命令、测试、截图、接口响应、文档归并）。跑不下来颗粒度不对
 3. **依赖图必须是 DAG**——A 依赖 B 写清楚，别循环
 4. **依赖关系要有具体理由**——"B 依赖 A，因为 A 提供 XX 表结构"而不是"A 先做"
 5. **先列一条最小闭环**——做完后能端到端跑通最窄路径的标第一条
 6. **明确不做的边界**——用户脑子里的"权限系统"可能包括审计日志 / 数据脱敏，不打算覆盖就写进"明确不做"
 7. **不替用户决定优先级**——技术依赖之外的排序让用户拍板
+8. **最后要有收口 / 硬化意识**——UI、全栈、权限、安全、迁移类大需求，如果前面条目只覆盖功能上线，要补一条收口型子 feature 或在最后一条里明确覆盖：错误态、空态、边界输入、安全、性能、回归扫尾、文档归并
+9. **条目数量由任务形态决定**——不要为了凑固定数量合并 / 拆散。能独立验证、交付一件 coherent thing 就是一条；名字里需要写"和 / 以及"通常说明塞了两条
+10. **验收词要可证伪**——每条子 feature 的描述和 notes 里不写"完善 / 优化 / 打通"这类空词，改成"输入 A 时得到 B"、"页面 X 展示 Y"、"命令 Z 通过"
+11. **需要安全网时先建安全网**——brownfield 重构、迁移、核心路径改动、历史测试薄弱时，第一条或前几条应先补 characterization / baseline tests / 观测手段，再改行为
+12. **每条都要能断点续跑**——items.yaml 的 `status` / `feature` 是恢复锚点。条目 notes 里写清阻塞项、跳过原因、外部依赖，不靠对话记忆
 
-**决策卫生检查（按信号触发）**：模块拆分、接口契约、owner 归属、最小闭环任一项出现多种可行方案且选择标准不清时，读取 `.cyralis/reference/shared.md`，用"方案卫生升级"检查一次。
+### Phase 4：自查清单
 
-检查结论不单独成文；把结果落到 roadmap 对应章节：
-- owner / 退休判断 → 第 3 节模块拆分
-- contract / falsifier → 第 4 节接口契约
-- 最小充分路径 → 第 5 节子 feature 清单和最小闭环
-- blocking gap → 第 7 节观察项或停止落盘
+独立 review 前自跑一遍汇报处理：
 
-### Phase 4：Roadmap self-review pass
+1. 模块拆分讲清了吗？每个模块职责一句话能说出来？
+2. 接口契约写到可执行程度了吗？feature-design 看完不需要回来问就能直接照着实现？
+3. 每条子 feature 的 slug 规范？（grep `.cyralis/features/` 确认不冲突）
+4. 每条描述一句话讲清楚？讲不清就拆得不够或 scope 太模糊
+5. 依赖关系是 DAG？有没有自指 / A→B→A 回环
+6. 最小闭环真的最小？第一条做完能独立给用户演示点什么？
+7. "明确不做"有没有写？没写就说"没有明确不做"
+8. 和已有 req / arch 有没有矛盾？有就写"和 req-X 冲突待用户决定"，不偷偷选边
+9. **update 专项**：本次新加 / 改条目都有素材依据？凭空"加一条让看起来更完整"是漂移
+10. **update 专项**：改了接口契约的话，已 in-progress / done 的子 feature 受影响吗？影响到的列"观察项"提示用户
+11. **可证伪性自查**：每条完成信号是不是 yes/no？有没有"体验更好 / 更稳定 / 支持完善"这类无法核对的词？
+12. **条目原子性自查**：有没有一条实际包含两个可独立验收的交付？名字或描述里出现"和 / 以及 / 同时"时重点复查
+13. **最弱依赖自查**：哪条失败会拖垮最多后续条目？它的前置验证和风险缓解是否足够早？
+14. **收口覆盖自查**：是否覆盖 polish / harden / regression sweep？如果没有，写清为什么本 roadmap 不需要
+15. **基线自查**：是否知道后续 feature 的验证入口？当前基线不稳 / 测试薄弱时是否安排了 safety net？
+16. **交付物自查**：每条做完后是否能从仓库事实看到产物，而不是只从汇报看到？
+17. **知识回写自查**：哪些规则或坑会影响后续 feature？是否放进观察项，等 acceptance 验证后触发对应沉淀流程？
 
-完整初稿写完、交给用户 review 前，必须切到 reviewer 姿态自审一次。目标不是继续发散，而是确认这份 roadmap 是否已经足够让后续每条 `cs-feat-design` 不再回来重新拆模块、补接口、补依赖。
+### Phase 5：候选落盘 + 独立 review gate
 
-只报告 blocking issue：会导致后续 feature-design 无法直接消费、接口契约不一致、依赖错误、roadmap / req / architecture 漂移、scope 边界失守的问题。新的想法、可选增强、未来可能要考虑的方向，一律进"观察项"，不阻塞 roadmap。
+先把候选稿写到标准 roadmap 目录，给 `cs-roadmap-review` 稳定输入：
 
-按 6 类检查：
+- **new**：建 `.cyralis/roadmap/{slug}/`；写主文档 `status: draft`；写 items.yaml（每条 `status: planned`、`feature: null`）；`validate-yaml.py` 校验。
+- **update**：直接更新主文档 / items.yaml 的候选内容，结构性改动文末加变更日志；重新校验 yaml。
 
-1. **Source Trace**——用户素材 / brainstorm / req / architecture / compound 的硬约束是否落到 roadmap；不处理但发现的问题是否进"观察项"
-2. **Module Decomposition**——第 3 节每个模块职责一句话能说清；模块之间没有重叠 owner；每条子 feature 能归属到一个模块或明确跨模块；已有模块扩展 vs 新模块讲清楚
-3. **Contract Readiness**——第 4 节接口契约写到字段 / 签名 / 协议 / 错误码级；共享数据结构只定义一次；没有跨模块接口时明确写"无跨模块接口"；没有"后面商量 / 待定 / 统一事件总线"这种空话
-4. **Feature Slice Readiness**——每条 item 都能独立走 `cs-feat-design → cs-feat-impl → cs-feat-accept`；每条 item 有清晰产物；没有一条装多个独立 feature，也没有一条小到只是内部步骤
-5. **Dependency / Minimal Loop**——depends_on 是 DAG；每条依赖都有具体理由；minimal_loop 只有一条，并且真能形成最窄端到端闭环；技术依赖和产品优先级没有混在一起
-6. **Update Impact**——update 模式改第 4 节接口契约时，列出影响哪些 planned / in-progress / done items；改已启动 item 的边界时提示用户风险；dropped 不删除，保留理由
+然后运行 `cs-roadmap-review`：
 
-触发过决策卫生检查时，对应 owner / contract / falsifier / 最小充分路径结论必须已落到主文档相应章节；不能只留在聊天记录里。
+- `passed`：才能把 roadmap 交给用户 review。
+- `changes-requested`：按 finding 修 roadmap/items，重新校验并重跑 `cs-roadmap-review`。
+- `blocked`：补齐输入或修正 roadmap/items 状态后重跑。
 
-输出格式固定：
+### Phase 6：用户 review
 
-```markdown
-## Roadmap Self-Review
+主文档 + items.yaml + `{slug}-roadmap-review.md` 完整贴给用户，并附上 Phase 4 自查结论、Top 3 风险与缓解、关键假设、review findings / residual risk。改到用户明确"可以了"。如果用户修改导致 roadmap/items 发生实质变化，回到 Phase 5 重跑 review gate。
 
-**Status:** Approved | Issues Found
+### Phase 7：确认落盘
 
-**Blocking Issues:**
-- [Section / Source]: {问题}
-  - Why it matters: {为什么会导致 feature-design / 接口契约 / 依赖 / scope 出问题}
-  - Required fix: {必须怎么改}
-  - Also update: {主文档 / items.yaml / 观察项 / 变更日志哪些地方要同步}
-
-**Advisory Notes:**
-- {不阻塞 roadmap，但值得用户知道的方向 / 风险 / 后续事项}
-```
-
-有 Blocking Issues：先修 roadmap 主文档和 items.yaml 草稿，再重新跑 self-review。最多连续自修两轮；两轮后仍有 blocking issue，停下来向用户报告，不继续落盘。
-
-高风险 roadmap（超过 5-7 个子 feature、涉及 public API / schema / permission / persistence、接口契约被多个 feature 共同消费、update 改接口契约、已有 in-progress / done feature 可能受影响，或 self-review 连续发现问题）可以用同目录 `roadmap-document-reviewer-prompt.md` 新开 session / subagent 做 fresh review；这不是默认必做。
-
-### Phase 5：用户 review
-
-Roadmap self-review Approved 后，主文档 + items.yaml 完整贴给用户。用户提意见就改；如果修改触及模块拆分、接口契约、子 feature 边界、依赖关系、最小闭环、update 影响，必须针对受影响部分重跑 self-review（改动很大就全量重跑）。改到用户明确"可以了"。
-
-### Phase 6：落盘
-
-**new**：建 `.cyralis/roadmap/{slug}/`；写主文档（`status: active` / `created` / `last_reviewed` 当天）；写 items.yaml（每条 `status: planned`、`feature: null`）；`validate-yaml.py` 校验。
-
-**update**：改主文档（`last_reviewed` 当天，结构性改动文末加变更日志）；改 items.yaml 对应条目（drop 不删，`status: dropped` 留存理由）；重新校验 yaml。
+用户确认后，new 模式把主文档 `status` 改为 `active`、`last_reviewed` 改为当天；update 模式更新 `last_reviewed` 当天。重新校验 yaml。
 
 **不改 requirements / architecture**——roadmap 是规划层，那两层只描述现状。拆解过程发现 req / 架构过时，在主文档"观察项"记一句给用户，不顺手改。
+
+如果用户想把整份 roadmap 自动推进到底，确认落盘后提示下一步可以走 `cs-roadmap-impl-goal`：它会先完成所有子 feature design + design review，再让用户二次确认，最后输出可直接运行的 goal 指令。
+
+确认落盘后再提示一句："这份 roadmap 已经改变了后续工作入口和文档索引，要不要做一轮文档与记忆整理？（`cs-docs-neat`）" 用户说不用就跳过；这是收尾引导，不是 roadmap 通过条件。
 
 ---
 
@@ -208,8 +221,15 @@ feature-design 发现接口契约不合理 / 漏了 / 描述不准 → **回 `cs
 - [ ] items.yaml 每条有 `slug` / `description` / `depends_on` / `status` / `feature`
 - [ ] 依赖图是 DAG 无循环
 - [ ] 最小闭环条目已标
+- [ ] Top 3 风险、非显然依赖、关键假设已写入主文档或 review 摘要
+- [ ] 每条子 feature 都有可独立验证的完成信号 / 证据类型
+- [ ] 已做可证伪性 / 条目原子性 / 最弱依赖 / 收口覆盖自查并汇报
+- [ ] 已识别验证入口 / 基线风险；必要时拆出 safety net 条目
+- [ ] 每条子 feature 的交付物能被后续 acceptance 从仓库事实核验
+- [ ] 需要后续沉淀的 convention / learning / guide / attention 候选已写入观察项
 - [ ] items.yaml 通过 `validate-yaml.py` 校验
-- [ ] Roadmap self-review 已通过；Blocking Issues 已修完，若连续两轮仍未通过已停止并向用户报告
+- [ ] Phase 4 自查清单逐条跑过并汇报
+- [ ] `{slug}-roadmap-review.md` 已通过 `cs-roadmap-review`，没有 unresolved blocking finding
 - [ ] 用户 review 通过
 - [ ] 没有顺手改 req / arch / 代码 / 已有 feature
 
@@ -223,7 +243,8 @@ feature-design 发现接口契约不合理 / 漏了 / 描述不准 → **回 `cs
 | `cs-arch` 配合 | architecture 记现状、roadmap 记若干步。读 arch 理解现状但不改它 |
 | `cs-feat` 下游 | 每条子 feature 是未来一次 feature 流程的种子；起头时 design frontmatter 带 `roadmap` / `roadmap_item` |
 | `cs-feat-accept` 回写方 | acceptance 自动改 items.yaml 为 `done`，本技能只定义格式不负责回写 |
-| `cyralis init` 创建器 | 建 `roadmap/` 空目录 |
+| `cs-roadmap-impl-goal` 下游 | 用户确认 roadmap 后，可把所有子 feature design 和后续 impl / review / QA / accept 编排成可恢复的 goal |
+| `cyralis init/update` 创建者 | 建 `roadmap/` 空目录 |
 | `cs-brainstorm` 上游 | case 3 移交本技能，带"真问题 / 大致范围 / 可能子模块"一句话汇总。本技能不重复分诊直接拆 |
 
 ---
@@ -237,9 +258,9 @@ feature-design 发现接口契约不合理 / 漏了 / 描述不准 → **回 `cs
 - 依赖关系靠脑补——讲不清为什么依赖
 - 替用户排优先级
 - 和已有 req / arch 冲突不停下——自己选一边掩盖真实分歧
-- 完整初稿不跑 self-review 就交给用户——把模块拆分、接口契约、依赖和边界这些机器能先抓的问题推给用户
 - 一次做多份 roadmap
 - 顺手改 req / arch
 - drop 条目直接删——历史丢失
 - roadmap 跑偏成给单条子 feature 写详细方案
 - update 改接口契约不评估存量影响——已 in-progress / done 的 feature 没人看到契约变了
+- 跳过 `cs-roadmap-review` 直接让用户拍板——用户只能看到规划表面，看不到接口、依赖、验收策略的独立审查结论

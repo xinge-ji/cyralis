@@ -57,6 +57,7 @@ Options:
   --cwd <dir>     Target project directory. Defaults to current directory.
   --pi            Install only the Pi projection.
   --codex         Install only the Codex projection.
+  --claude        Install only the Claude Code projection.
   --all           Install all supported projections. Default when no platform flag is passed.
   --force         Overwrite existing managed files.
   --help, -h      Show help.
@@ -66,6 +67,7 @@ Examples:
   cyralis init
   cyralis init --pi
   cyralis init --codex --cwd /path/to/project
+  cyralis init --claude
   cyralis update --cwd /path/to/project
   cyralis memory sync --kind compound
 `);

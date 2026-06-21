@@ -7,6 +7,8 @@ description: 把已拍板的技术选型、架构决定、长期约束、编码�
 
 ## 启动必读
 
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
 项目里"有意做出的选择"——技术选型 / 架构决定 / 长期约束 / 编码规约——特别容易丢失。它不会触发报错、没人会注意到它消失，但消失代价很具体：
 
 - 新人（或六个月后的自己）不知道约束的来龙去脉，在"已经决定过的问题"上重复耗时讨论
@@ -15,7 +17,7 @@ description: 把已拍板的技术选型、架构决定、长期约束、编码�
 
 本工作流让每一条重要的"已经决定了"都有完整存档：**是什么、为什么、考虑过什么替代方案、后果是什么**。
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-decision-{slug}.md`，frontmatter 带 `doc_type: decision`。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。产物写入 `.cyralis/compound/`，命名 `YYYY-MM-DD-decision-{slug}.md`，frontmatter 带 `doc_type: decision`。
 
 ---
 
@@ -56,7 +58,7 @@ frontmatter / 正文模板 / 示例见同目录 `reference.md`。本技能流程
 
 ### Phase 1.5：查重叠与意图分流（必做）
 
-按 `.cyralis/reference/shared.md` 执行：
+按 `shared-conventions.md` §6 第 5/6 条执行：
 
 - 用户话里含"改 / 更新 / 推翻 / 某条决策 / 某个选型"或明确指向某份旧决策 → 直接走**更新或 supersede**。决策文档特性：**结论本身变更几乎总要 supersede**（旧结论留痕不能原地覆盖）；只补背景 / 替代方案 / 影响描述时走"更新已有条目"
 - 否则用下面"搜索工具"按 category + 关键词查一遍，命中相近旧决策时把候选列给用户
@@ -81,21 +83,30 @@ AI 根据对话起草完整文档（YAML frontmatter + 所有正文节）。一�
 
 - 新建：写入 `.cyralis/compound/YYYY-MM-DD-decision-{slug}.md`，frontmatter 顶部带 `doc_type: decision`
 - 更新：写回 Phase 1.5 定位到的原文件，frontmatter 补 `updated: YYYY-MM-DD`
-- supersede：按 `.cyralis/reference/shared.md` 处理；旧文档 `status: superseded` + `superseded-by`
-- 同步 recall projection：归档 / 更新 / supersede 后运行 `cyralis memory sync --kind compound --source {路径}`；旧文档被标 `superseded` 时也对旧路径跑一次
+- supersede：按 `shared-conventions.md` §6 第 5 条处理；旧文档 `status: superseded` + `superseded-by`
 
 ### Phase 5：相关工作流更新提示
 
 写完检查两项有则提示用户（**不自作主张改文件**）：
 
 1. `architecture/ARCHITECTURE.md` 的"关键架构决定"节是否应引用——`architecture` 或 `tech-stack` 通常应该
-2. 是否应追加一句启动必读摘要——`constraint` 或 `convention` 通常应该
+2. `.cyralis/attention.md` 是否应追加一句启动必读摘要——`constraint` 或 `convention` 通常应该
+
+### Phase 6：同步记忆投影
+
+落盘或更新 decision 文档后，运行：
+
+```bash
+cyralis memory sync --kind compound --source <写入或更新的 decision 文档路径>
+```
+
+命令失败要告诉用户，并保留已写入的 `.cyralis/compound/` 文档；不要因为投影同步失败回滚知识文档。
 
 ---
 
 ## 搜索工具
 
-> 完整语法见 `.cyralis/reference/core.md`。
+> 完整语法见 `.cyralis/reference/tools.md`。
 
 ```bash
 # 列出所有当前有效的决策
@@ -115,11 +126,11 @@ python .cyralis/tools/search-yaml.py --dir .cyralis/compound --filter doc_type=d
 
 ## 守护规则
 
-> 归档类工作流共享守护规则（只增不删 / 宁缺毋滥 / 不替用户写 / 可发现性 / 归档后查重叠）见 `.cyralis/reference/shared.md`。本技能特有：
+> 归档类工作流共享守护规则（只增不删 / 宁缺毋滥 / 不替用户写 / 可发现性 / 归档后查重叠）见 `shared-conventions.md` 第 6 节。本技能特有：
 
 1. **只归档已拍板的决定**——讨论中的方案不归档
 2. **status=superseded 不等于删除**——被取代的保留原文 + `superseded-by` + 正文顶部 `**[已取代]** 见 {新文档 slug}`
 3. **不替用户写理由**——用户说不出就写"未做系统评估"，不要编造（编造的理由会变成历史"事实"误导后人）
-4. **不主动修改启动 notes 和 ARCHITECTURE.md**——Phase 5 只提示，由用户决定；启动 notes 追加交给 `cs-note`
-5. **跨技能一致性**——decision 和启动 notes 描述不同时以 decision 为详细版、启动 notes 为摘要版，两者应链接不应矛盾
+4. **不主动修改 attention.md 和 ARCHITECTURE.md**——Phase 5 只提示，由用户决定；attention.md 追加交给 `cs-note`
+5. **跨技能一致性**——decision 和 attention.md 描述不同时以 decision 为详细版、attention.md 为摘要版，两者应链接不应矛盾
 6. **只认自己的 doc_type**——只读写 `doc_type: decision`

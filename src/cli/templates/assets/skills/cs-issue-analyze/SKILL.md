@@ -7,26 +7,24 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 ## 启动必读
 
-同时读取 `.cyralis/reference/issue.md`，不只要找到 file:line，还要说明诊断停在哪一层、canonical owner 是谁、有没有 Patch-Shape 风险、能不能以至少 `B` 置信度进入修复。
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
 
 用户已把问题描述清楚，你的活是**通过实际读代码找根因**——不是脑子里推断、不是在报告基础上猜。读代码是核心动作，跳过它写出来的分析没价值。
 
 分析完不直接动手——给用户看 2-3 种修复方案让 TA 选。原因：根因往往有多种修法，影响面 / 副作用 / 改动范围各不相同，这是用户该拍板的事。
 
-> 共享路径与命名约定看 `.cyralis/reference/core.md` 和 `cs-issue` 的"文件放哪儿"。
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md` 第 0 节和 `cs-issue` 的"文件放哪儿"。
 
 ---
 
 ## 启动检查
 
-1. **确认是标准路径**——先读 issue 目录 `work.json`：必须是 `mode=issue`、`status=implement`，且 `artifacts.fix.quick_lane` 不是 `true`。如果是 quick lane，回 `cs-issue-fix`，不要补 report / analysis
-2. **问题报告存在且已确认**——按 `work.json.artifacts.report.path` 读取 `{slug}-report.md`，确认 `doc_type=issue-report` 且 `status=confirmed`，5 节都有内容。不完整 / 状态不对 → 回 `cs-issue-report`。`cs-issue-report` 已判走标准路径就按标准路径走，不二次改判
-3. **断点恢复**——按 `work.json.artifacts.analysis.path` 读取 `{slug}-analysis.md`；已存在则检查 5 节哪些已填：
+1. **问题报告存在且已确认**——读 `{slug}-report.md`，确认 `doc_type=issue-report` 且 `status=confirmed`，5 节都有内容。不完整 / 状态不对 → 回 `cs-issue-report`。`cs-issue-report` 已判走标准路径就按标准路径走，不二次改判
+2. **断点恢复**——`{slug}-analysis.md` 已存在则检查 5 节哪些已填：
    - 全部填满但 `status=draft` → 跳到 checkpoint
    - 部分填写 → 汇报"上次做到第 X 步，从第 Y 步继续"
-4. **把上下文读全**：
-   - 问题报告全文
-   - `.cyralis/reference/issue.md`
+3. **把上下文读全**：
+   - 问题报告全文 + `.cyralis/attention.md`
    - 报告里提到的相关文件（用 Glob / Grep 找别只凭描述）
    - **扫 .cyralis/ 全局**——Glob `.cyralis/` 发现可用输入，按需取用：`architecture/`（涉及跨模块时读 ARCHITECTURE.md）、`compound/`（用 search-yaml.py 搜相关 trick / explore / learning，命中在分析开头标注引用）、`requirements/`（涉及能力边界时读）
 
@@ -35,8 +33,6 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 ## 分析的五步
 
 每步都要**真正读代码**不要靠推测。
-
-同时维护一份调试治理摘要：复现信号、诊断停止层、canonical owner、Patch-Shape / Minimality 信号、同类模式搜索、confidence。它不是额外仪式，是为了防止"找到了一个能改的地方"被误当成"找到了该改的地方"。
 
 ### 步骤 1：定位问题代码
 
@@ -48,13 +44,9 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 对照复现步骤把代码执行路径走一遍：用户触发什么 → 调哪个函数 → 数据怎么流 → 哪里分叉走错。描述"正常路径"和"失败路径"的分叉点。**分叉点 = 根因候选**。
 
-还原路径时按 `.cyralis/reference/issue.md` 的 L1-L7 诊断层级上钻：症状 → 逻辑 → 系统边界 → 架构 / duplicate owner / fallback → contract → platform → spec gap。停止层会影响修复边界时，在 analysis 里写 `Layer Stop Card`。
-
 ### 步骤 3：确认根因
 
 单一 vs 多个根因；多个根因列出主次。
-
-必须明确 **canonical owner**：哪个模块 / 文件应该拥有这个正确性。多个 owner 或 duplicate parsing 不是正常现象，要作为发现写出来。候选修复命中 local guard、fallback、adapter、consumer-side patch、sample exception 等 Patch-Shape 信号时，按 `.cyralis/reference/issue.md` 写 PatchShape / Minimality Check。若结论是 `needs decision-hygiene review`，读取 `.cyralis/reference/shared.md`，用五行检查或方案卫生升级重新判断 owner / Repair Track，再回到本分析文档。
 
 **根因分类**：
 - 逻辑错误（条件判断 / 边界值缺失）
@@ -79,8 +71,6 @@ description: issue 流程阶段 2——读 report + 读代码定位根因、评�
 
 **推荐方案**：在 2-3 种里挑一种说明理由（通常：改动范围最小 + 根因最直接 + 副作用最少）。
 
-如果修复涉及旧 owner、fallback、adapter、历史补丁或 duplicate owner，每个方案都要说明 Repair Track 和 Retirement Track：本次修什么、旧路径删还是保留、保留理由和 retirement trigger 是什么。
-
 ---
 
 ## 根因分析模板
@@ -96,19 +86,6 @@ tags: []
 ---
 
 # {问题简述} 根因分析
-
-## 0. 调试治理摘要
-
-- **复现信号**：{report 第 2 节步骤 / failing test / 命令 / 日志；不可稳定复现时写已知触发条件和缺口}
-- **诊断停止层**：{L1 Symptom / L2 Logic / L3 System / L4 Architecture / L5 Cross-system Contract / L6 Platform / L7 Spec Gap / T-class}
-- **停止理由**：{为什么证据显示停在这里；还有哪些层已排除}
-- **Canonical Owner**：`{文件或模块}` — {为什么正确性应该由这里拥有}
-- **Patch-Shape / Minimality 信号**：{无 / local guard / fallback / adapter / consumer patch / duplicate owner / sample exception；命中则写 PatchShape 和 Minimality Check}
-- **同类模式搜索**：{grep / rg 结果；是否还有同类 bug pattern 未处理}
-- **Repair / Retirement 风险**：{是否涉及旧 owner / fallback / adapter / historical patch；如何处理}
-- **Confidence**：{A / B / C。C 只能作为 mitigation，不进入"已确认根因并修复"口径}
-
-{必要时填写 Layer Stop Card}
 
 ## 1. 问题定位
 
@@ -153,12 +130,6 @@ tags: []
 ### 推荐方案
 
 **推荐方案 {A / B}**，理由：{改动范围最小 / 根因最直接 / 副作用最少 + 具体说明}
-
-**Fix Boundary**：{允许修改的文件 / 明确不改的文件 / 需要用户确认的越界条件}
-
-**Repair Track**：{root cause、canonical owner、最小必要改动、兼容边界、验证方法}
-
-**Retirement Track**：{旧 owner / fallback / patch 是否存在；删除 / 保留理由 / retirement trigger}
 ```
 
 ---
@@ -168,9 +139,8 @@ tags: []
 写完后**别直接开始修**：
 
 1. 把"根因"和"推荐方案"口头总结给用户（不让用户读整份文件——TA 在等结论）
-2. 同时说明 canonical owner、confidence、是否有 Patch-Shape / Retirement 风险
-3. 问"根因判断是否准确？推荐方案你认可，还是想选别的？"
-4. 用户明确确认方案后才触发阶段 3
+2. 问"根因判断是否准确？推荐方案你认可，还是想选别的？"
+3. 用户明确确认方案后才触发阶段 3
 
 ---
 
@@ -178,23 +148,18 @@ tags: []
 
 - [ ] frontmatter 存在（`doc_type=issue-analysis` / `issue` 一致）
 - [ ] 5 节都填完
-- [ ] 调试治理摘要已填完（复现信号 / 诊断停止层 / canonical owner / confidence）
 - [ ] 定位到具体代码位置（`{文件}:{行号}`）
 - [ ] 失败路径还原清晰
-- [ ] Patch-Shape / Minimality 信号已检查；命中时已有处理决定
-- [ ] 同类模式搜索已做，未处理同类项已列为风险或后续 issue
 - [ ] 影响面评估完成
 - [ ] 至少 2 种修复方案 + 推荐
-- [ ] confidence 至少为 `B`；若只有 `C`，明确标记为 mitigation，不进入常规 fix
 - [ ] 用户明确确认"分析准确，用方案 X 修"
 - [ ] frontmatter `status: confirmed`
-- [ ] 已写 `work.json.artifacts.analysis.confirmed=true`，并执行 `python .cyralis/tools/work.py transition <issue-dir> verify`
 
 ---
 
 ## 退出后
 
-告诉用户："根因分析已就绪，方案已确认，work.json 已通过 transition 进入 verify。下一步阶段 3 修复验证，触发 `cs-issue-fix`。"
+告诉用户："根因分析已就绪，方案已确认。下一步阶段 3 修复验证，触发 `cs-issue-fix`。"
 
 别自己顺手改代码——跨阶段无停顿往下跑会让用户来不及把关。
 

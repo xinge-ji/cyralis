@@ -21,7 +21,8 @@ interface MarkdownHeading {
   index: number;
 }
 
-const agentsTemplatePath = "AGENTS.md";
+const claudeTemplatePath = "CLAUDE.md";
+const attentionTemplatePath = ".cyralis/attention.md";
 const projectKnowledgeHeading = "项目碎片知识";
 const csNoteAnchor = "<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->";
 
@@ -69,8 +70,8 @@ function installTemplates(options: InitOptions): void {
 }
 
 function writeTemplateFile(cwd: string, relativePath: string, content: string, force: boolean): WriteResult {
-  if (relativePath === agentsTemplatePath) {
-    return writeAgentsFile(cwd, content);
+  if (relativePath === claudeTemplatePath || relativePath === attentionTemplatePath) {
+    return writeProjectNoteFile(cwd, relativePath, content);
   }
   return writeManagedFile(cwd, relativePath, content, force);
 }
@@ -80,11 +81,12 @@ function parseInstallArgs(command: "init" | "update", argv: string[], forceDefau
   let force = forceDefault;
   let pi = false;
   let codex = false;
+  let claude = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage: cyralis ${command} [--cwd <dir>] [--pi] [--codex] [--all] [--force]`);
+      console.log(`Usage: cyralis ${command} [--cwd <dir>] [--pi] [--codex] [--claude] [--all] [--force]`);
       process.exit(0);
     }
     if (arg === "--cwd") {
@@ -105,18 +107,24 @@ function parseInstallArgs(command: "init" | "update", argv: string[], forceDefau
       codex = true;
       continue;
     }
+    if (arg === "--claude") {
+      claude = true;
+      continue;
+    }
     if (arg === "--all") {
       pi = true;
       codex = true;
+      claude = true;
       continue;
     }
     throw new Error(`Unknown ${command} option: ${arg}`);
   }
 
   const platforms: Platform[] = [];
-  if (!pi && !codex) {
-    platforms.push("pi", "codex");
+  if (!pi && !codex && !claude) {
+    platforms.push("claude", "pi", "codex");
   } else {
+    if (claude) platforms.push("claude");
     if (pi) platforms.push("pi");
     if (codex) platforms.push("codex");
   }
@@ -124,20 +132,20 @@ function parseInstallArgs(command: "init" | "update", argv: string[], forceDefau
   return { cwd: resolve(cwd), platforms, force, command };
 }
 
-function writeAgentsFile(cwd: string, content: string): WriteResult {
-  const absolutePath = join(cwd, agentsTemplatePath);
+function writeProjectNoteFile(cwd: string, relativePath: string, content: string): WriteResult {
+  const absolutePath = join(cwd, relativePath);
   mkdirSync(dirname(absolutePath), { recursive: true });
   const normalized = content.endsWith("\n") ? content : `${content}\n`;
   try {
     const current = readFileSync(absolutePath, "utf8");
     const merged = mergeAgentsContent(current, normalized);
-    if (current === merged) return { path: agentsTemplatePath, status: "unchanged" };
+    if (current === merged) return { path: relativePath, status: "unchanged" };
     writeFileSync(absolutePath, merged, "utf8");
-    return { path: agentsTemplatePath, status: "updated" };
+    return { path: relativePath, status: "updated" };
   } catch (err) {
     if (!isNotFound(err)) throw err;
     writeFileSync(absolutePath, normalized, "utf8");
-    return { path: agentsTemplatePath, status: "created" };
+    return { path: relativePath, status: "created" };
   }
 }
 
@@ -315,7 +323,9 @@ function removeObsoleteManagedFiles(
 }
 
 function isManagedScopeActive(relativePath: string, platforms: Platform[]): boolean {
-  if (relativePath === agentsTemplatePath || relativePath.startsWith(".cyralis/")) return true;
+  if (relativePath.startsWith(".cyralis/")) return true;
+  if (relativePath === claudeTemplatePath) return platforms.includes("claude");
+  if (relativePath.startsWith(".claude/")) return platforms.includes("claude");
   if (relativePath.startsWith(".codex/")) return platforms.includes("codex");
   if (relativePath.startsWith(".pi/")) return platforms.includes("pi");
   return false;

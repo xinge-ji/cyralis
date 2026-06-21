@@ -872,7 +872,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_summary = sub.add_parser("summary")
     p_summary.add_argument("--json", action="store_true")
     p_summary.add_argument("--text", action="store_true", help="Print the human-readable summary; this is the default.")
-    p_summary.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_summary.add_argument("--host", choices=["claude", "codex", "pi"], default="codex")
     p_summary.set_defaults(func=cmd_summary)
 
     p_current = sub.add_parser("current")
@@ -888,7 +888,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_resolve = sub.add_parser("resolve")
     p_resolve.add_argument("--json", action="store_true")
-    p_resolve.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_resolve.add_argument("--host", choices=["claude", "codex", "pi"], default="codex")
     p_resolve.set_defaults(func=cmd_resolve)
 
     p_transition = sub.add_parser("transition")
@@ -897,7 +897,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_transition.set_defaults(func=cmd_transition)
 
     p_breadcrumb = sub.add_parser("breadcrumb")
-    p_breadcrumb.add_argument("--host", choices=["codex", "pi"], default="codex")
+    p_breadcrumb.add_argument("--host", choices=["claude", "codex", "pi"], default="codex")
     p_breadcrumb.set_defaults(func=cmd_breadcrumb)
     return parser
 

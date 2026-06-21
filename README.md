@@ -5,7 +5,7 @@ Cyralis is a host-neutral context and memory layer for coding agents.
 Cyralis uses a Trellis-like install model: a global CLI writes project-local
 host projections. The CLI does not own UI, TUI, model provider, shell runtime,
 notification, or LSP behavior. It only installs `.cyralis/`, `.codex/`, `.pi/`,
-and related project files.
+`.claude/`, and related project files.
 
 ```text
 host agent
@@ -33,13 +33,16 @@ context through the Pi extension. Codex project hooks are additive user context,
 so the Codex hook emits only dynamic facts such as session identity, project
 context, workflow state, and recall hints; stable rules live in the generated
 Codex agent/skill projection.
+Claude Code loads project instructions from `CLAUDE.md`, so Cyralis projects
+the same durable note surface there and uses `.claude/settings.json` hooks for
+dynamic session context and recall hints.
 
 ## Install Model
 
 ```text
 npm install -g --install-links=true github:xinge-ji/cyralis
-  -> cyralis init --pi --codex --force
-  -> writes project-local .cyralis/.pi/.codex files
+  -> cyralis init --pi --codex --claude --force
+  -> writes project-local .cyralis/.pi/.codex/.claude files
 ```
 
 For local development:
@@ -89,6 +92,7 @@ the provider request.
 
 ```text
 .cyralis/          host-neutral state, config, and memory root
+.claude/           Claude Code project binding
 .codex/            Codex project binding
 .pi/               Pi project binding
 bin/               global CLI entrypoint

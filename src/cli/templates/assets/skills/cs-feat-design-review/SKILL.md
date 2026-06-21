@@ -1,0 +1,226 @@
+---
+name: cs-feat-design-review
+description: feature design 人工确认前的方案审查 gate。对照 {slug}-design.md、{slug}-checklist.yaml、相关 roadmap / requirement / architecture / compound / 代码事实做本地只读 review，产出 {slug}-design-review.md；默认不检测、不启动、不路由任何外部 agent/provider。触发：用户说"review 这个 design"、"feature design 人审前先审查"、"跑 cs-feat-design-review"、"方案审查"。
+---
+
+# cs-feat-design-review
+
+## 启动必读
+
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
+
+本阶段是 feature design 交给用户人工确认前的方案审查 gate。它只读 design、checklist、相关文档和必要代码事实，只写 `{slug}-design-review.md`，不直接改 design/checklist、不替用户批准 design、不进入实现。
+
+目标不是替用户做产品判断，而是确认这份 design 已经具备让用户有效 review 和让下游稳定执行的条件：需求边界可核对、名词层和编排层有代码事实支撑、steps 可独立验证、checks 能回到 design 证据、风险 / 基线 / 交付物 / 清洁度可被后续 implement、code review、QA 和 acceptance 消费。
+
+> 共享路径与命名约定看 `.cyralis/reference/shared-conventions.md`。feature design 的具体结构以目标 `{slug}-design.md` / `{slug}-checklist.yaml` 和项目内共享口径为准。
+
+---
+
+## 输入
+
+进入 review 前必须读取：
+
+- `.cyralis/attention.md`
+- `.cyralis/features/{feature}/{slug}-design.md`
+- `.cyralis/features/{feature}/{slug}-checklist.yaml`
+- 同目录的 `{slug}-intent.md` / `{slug}-brainstorm.md`（如果存在）
+- design frontmatter 指向的 requirement 文档
+- design frontmatter 指向的 roadmap 主文档和 items.yaml（如果有 `roadmap` / `roadmap_item`）
+- design 第 4 节指向的 architecture 文档
+- 相关 compound 沉淀：用项目搜索工具按 feature 关键词检索 decision / learning / explore / trick
+- design 中引用到的关键代码位置、接口、类型、组件、命令、配置
+- 用户显式提供的外部审查材料（如果有；只作为附加输入）
+
+没有代码引用时不强行扫全仓库；但 design 声称复用、修改、挂载或约束某个现有模块时，必须读对应代码或文档事实核验。
+
+---
+
+## 启动检查
+
+1. design 存在，frontmatter `doc_type=feature-design`，`feature` 与目录一致，`status` 通常是 `draft`；复审已 approved 设计时要确认用户确实要求重新审查。
+2. checklist 存在，`feature` 与目录一致，`steps` 非空，`checks` 非空；缺 checklist 时报告 `blocked`，回 `cs-feat-design` 生成 review candidate checklist。
+3. checklist 的 `steps.status` 和 `checks.status` 在人审前都应是 `pending`；已有 `done/passed` 说明阶段混乱，报告 `blocked`。
+4. 从 roadmap 起头时，roadmap item 必须能在 items.yaml 中找到，design 的 `roadmap_item` 与 feature slug 对齐。
+5. 如果已有 `{slug}-design-review.md`：
+   - `status: passed` 且 design/checklist 未变化：提示可进入用户整体 review。
+   - `status: changes-requested` / `blocked`：读取旧 findings，确认是否复审。
+   - design/checklist 已变化：重新 review，并在报告里记录轮次。
+
+---
+
+## 本地审查边界
+
+本阶段默认且完整地由当前 agent 做本地只读 design review。不要检测、启动或路由 Paseo、Claude、Codex、OpenCode、Gemini、Aider 或任何其他外部 agent / provider；这属于 Cyralis 产品边界之外。
+
+如果用户显式提供外部审查材料，把它当作附加输入，而不是权威结论。必须逐条用本地 design、checklist、相关文档和代码事实核验后才能合并进 `{slug}-design-review.md`；证据不足的内容只能写为 `residual-risk` 或忽略。
+
+如果用户要求你主动调用某个外部 reviewer，先说明本技能模板默认 `local-only`，请用户单独运行外部审查并把结果带回，或明确改变产品边界后再继续。
+
+---
+
+## 审查流程
+
+### 1. 范围与事实
+
+- 用 design 第 0/1 节确认术语、需求摘要、明确不做、复杂度档位、关键决策。
+- 用第 2.1 / 2.2 节确认名词层和编排层是否都有"现状 → 变化"，且现状指向真实代码 / 文档。
+- 用第 2.3 节确认挂载点是否按"删掉 feature 是否消失"收紧。
+- 用第 2.4 节和 checklist steps 对齐推进策略、退出信号和验证动作。
+- 用第 2.5 节确认结构健康度评估覆盖文件级 + 目录级，微重构只做"只搬不改行为"。
+- 用第 3/4 节确认验收契约、架构回写预判、证据类型。
+- 从 roadmap 起头时，额外核对 roadmap 第 4 节接口契约是硬约束，design 没有私自绕开。
+
+### 2. 外部材料核验（可选）
+
+- 默认记录 `External review material: none`，本地 review 可以定稿。
+- 用户提供外部审查材料时，记录来源和摘要。
+- 对外部材料里的每条 finding 做本地事实核验；能用 design / checklist / 文档 / 代码证据支撑才合并。
+- 证据不足的外部结论只写 `residual-risk` 或不采纳。
+- 报告里保留来源：哪些 finding 来自外部材料，哪些是本地 review 发现。
+
+### 3. 方案审查
+
+至少覆盖：
+
+- 需求边界：用户目标、核心行为、成功标准、明确不做是否可核对。
+- 术语与现状：关键术语是否与代码 / 架构 / 历史 feature 冲突；现状描述是否真实。
+- 名词层：值对象、实体、接口、类型、组件 props/events 是否讲清变化。
+- 编排层：主流程图、分支、错误语义、幂等、并发、可观测点是否能跑通。
+- 挂载点：是否列了真实对外注册点，而不是内部改动文件清单。
+- 结构健康度：微重构是否必要且边界安全；目录 convention 候选是否合理。
+- 验收契约：正常 / 边界 / 错误路径是否覆盖，是否有证据类型。
+- checklist：steps 是否独立可验证，exit_signal 是否 yes/no，checks 是否都能追溯到 design。
+- 基线与验证：必跑命令、预检策略、基线红灯归因是否写清。
+- 交付物与清洁度：acceptance 是否能从仓库事实核验；调试输出、TODO、死 import 等规则是否明确。
+
+---
+
+## 严重度
+
+- `blocking`：必须先修。会导致 design 不能被用户有效 review、实现无稳定契约、roadmap 契约被绕开、steps/checks 无法执行、验收不可证伪、关键风险没有验证路径。
+- `important`：应该修；若用户决定延后，必须在 design review 和用户 review 摘要中明确记录。
+- `nit`：小的清晰度或一致性建议，不阻塞。
+- `suggestion`：替代设计思路或补强建议，不要求本次采用。
+- `learning`：知识性说明，不要求动作。
+- `praise`：记录值得保留的设计做法；少量即可。
+- `residual-risk`：review 无法完全消除的不确定性，需要用户 review、implementation、code review、QA 或 acceptance 重点复核。
+
+不要把个人偏好的实现写法升级成 blocking。blocking 必须能用 design 契约、checklist、roadmap/req/arch、代码事实或可靠工程原则支撑。
+
+---
+
+## 报告模板
+
+报告路径：`.cyralis/features/{feature}/{slug}-design-review.md`。
+
+```markdown
+---
+doc_type: feature-design-review
+feature: {feature}
+status: passed|changes-requested|blocked
+reviewed: YYYY-MM-DD
+round: 1
+---
+
+# {slug} feature design 审查报告
+
+## 1. Scope And Inputs
+
+- Design: {path}
+- Checklist: {path}
+- Intent / brainstorm: {path / none}
+- Roadmap: {path / none}
+- Related docs: {requirements / architecture / compound}
+- Code facts checked: {paths / none}
+
+### External Review Material
+
+- Status: none|provided-by-user
+- Source: {路径 / 对话摘要 / none}
+- Merge policy: {local-only / 已逐条本地核验}
+- Gate effect: none
+
+## 2. Design Summary
+
+- Goal: {摘要}
+- Key contracts: {名词层 / 编排层摘要}
+- Steps: {数量 + 风险热点}
+- Checks: {数量 + 来源完整性}
+- Baseline / validation: {摘要}
+
+## 3. Findings
+
+### blocking
+
+- [ ] FDR-001 `{path#section|checklist.step|file:line}` {问题}
+  - Evidence: {事实}
+  - Impact: {为什么阻塞用户 review / implement}
+  - Expected fix scope: {修复边界}
+
+### important
+
+- [ ] FDR-00N `{证据位置}` {问题}
+  - Evidence: {事实}
+  - Impact: {影响}
+
+### nit
+
+- [ ] FDR-00N `{证据位置}` {建议}
+
+### suggestion
+
+- [ ] FDR-00N {建议}
+
+### learning
+
+- {可复用设计经验或注意点}
+
+### praise
+
+- {值得保留的做法}
+
+## 4. User Review Focus
+
+- 用户需要重点拍板：{决策 / 假设 / 不做范围}
+- implement 需要重点遵守：{契约 / steps / 验证}
+- code review / QA / acceptance 需要重点复核：{风险 / 证据}
+
+## 5. Residual Risk
+
+- {风险 + 下游如何处理；没有写 none}
+
+## 6. Verdict
+
+- Status: passed|changes-requested|blocked
+- Next: 交给用户整体 review | 回 `cs-feat-design` 修订后重跑 `cs-feat-design-review` | 补齐输入后重跑
+```
+
+没有某类 finding 时写 `none`，不要删除章节；下一轮复审要能对比。
+
+---
+
+## 退出条件
+
+- [ ] 已读取 attention、design、checklist、相关 intent / brainstorm / roadmap / req / arch / compound。
+- [ ] 已按 design 声明核验必要代码、接口、类型、组件或命令事实。
+- [ ] 已确认 checklist 可解析，steps/checks 都可追溯。
+- [ ] 未检测、启动或路由外部 agent/provider。
+- [ ] 用户提供外部审查材料时，已逐条本地核验后再合并 / 驳回 findings。
+- [ ] 已审查需求边界、术语、名词层、编排层、挂载点、结构健康度、验收契约、steps/checks、基线、交付物、清洁度。
+- [ ] 已写 `.cyralis/features/{feature}/{slug}-design-review.md`。
+- [ ] 有 blocking / 未处理 important 时指向 `cs-feat-design` 修订并重跑 review。
+- [ ] 无 blocking 且 important 已处理或明确接受时，明确告诉用户下一步是 feature design 人工 review。
+
+---
+
+## 容易踩的坑
+
+- 把 design review 做成文案润色，没审 steps/checks 是否能执行。
+- 只读 design，不核对 checklist 来源。
+- roadmap 起头时不检查接口契约，导致 feature 偷偷绕开 roadmap。
+- 现状段没读代码就放过，implement 阶段才发现设计站不住。
+- steps 出现"和 / 以及 / 同时"却不复查是否该拆。
+- 自动检测或启动外部 agent/provider，把本地 review gate 变成模型路由。
+- 外部审查材料没经本地事实核验就照抄。
+- review 报告没有落盘，导致用户 review 和后续实现没有可追溯输入。

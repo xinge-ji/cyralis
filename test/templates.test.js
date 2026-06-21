@@ -45,6 +45,64 @@ test("pi template injects Cyralis context as a hidden system prompt", () => {
   );
 });
 
+test("claude template projects project notes, hooks, commands, and skills", () => {
+  const templates = collectTemplates(["claude"]);
+
+  assert.ok(templates.get("CLAUDE.md"), "expected Claude project note");
+  assert.match(templates.get("CLAUDE.md"), /## 项目碎片知识/);
+  assert.match(templates.get("CLAUDE.md"), /### 测试/);
+  assert.ok(
+    templates.get(".claude/settings.json"),
+    "expected Claude settings projection",
+  );
+  assert.match(templates.get(".claude/settings.json"), /SessionStart/);
+  assert.match(templates.get(".claude/settings.json"), /UserPromptSubmit/);
+  assert.match(
+    templates.get(".claude/settings.json"),
+    /\.claude\/hooks\/inject-context-memory\.py/,
+  );
+  assert.ok(
+    templates.get(".claude/hooks/inject-context-memory.py"),
+    "expected Claude hook projection",
+  );
+  assert.match(
+    templates.get(".claude/hooks/inject-context-memory.py"),
+    /should_emit_session_context/,
+  );
+  assert.match(
+    templates.get(".claude/hooks/inject-context-memory.py"),
+    /print_recall_hints/,
+  );
+  assert.match(
+    templates.get(".claude/hooks/inject-context-memory.py"),
+    /breadcrumb", "--host", "claude"/,
+  );
+  assert.match(
+    templates.get(".claude/hooks/inject-context-memory.py"),
+    /recall_projection_hints/,
+  );
+  assert.ok(
+    templates.get(".claude/agents/cyralis-memory.md"),
+    "expected Claude subagent projection",
+  );
+  assert.ok(
+    templates.get(".claude/commands/cyralis-work.md"),
+    "expected Claude command projection",
+  );
+  assert.match(
+    templates.get(".claude/commands/cyralis-work.md"),
+    /summary --host claude/,
+  );
+  assert.ok(
+    templates.get(".claude/skills/cs-feat-design/SKILL.md"),
+    "expected Claude skill projection",
+  );
+  assert.ok(
+    templates.get(".claude/skills/cs-arch-review/SKILL.md"),
+    "expected Claude arch review skill projection",
+  );
+});
+
 test("core templates install host-neutral workflow assets", () => {
   const templates = collectTemplates([]);
 
@@ -69,12 +127,16 @@ test("core templates install host-neutral workflow assets", () => {
     "core install should not duplicate host skill projections",
   );
   assert.ok(
-    templates.get("AGENTS.md"),
-    "expected AGENTS template",
+    !templates.get("AGENTS.md"),
+    "core install should not install AGENTS.md by default",
   );
   assert.ok(
     templates.get(".cyralis/architecture/ARCHITECTURE.md"),
     "expected architecture template",
+  );
+  assert.ok(
+    !templates.get("CLAUDE.md"),
+    "Claude project note should not be installed without the Claude projection",
   );
   assert.ok(
     templates.has(".cyralis/memory/projections/.gitkeep"),
@@ -106,8 +168,16 @@ test("core templates install host-neutral workflow assets", () => {
     /helper: \.cyralis\/tools\/work\.py/,
   );
   assert.ok(
-    !templates.get(".cyralis/reference/shared-conventions.md"),
-    "shared conventions should be split and no longer installed",
+    templates.get(".cyralis/reference/shared-conventions.md"),
+    "expected shared conventions reference",
+  );
+  assert.ok(
+    !templates.get(".cyralis/reference/system-overview.md"),
+    "system overview reference should not be installed",
+  );
+  assert.ok(
+    templates.get(".cyralis/attention.md"),
+    "expected Cyralis attention template",
   );
   assert.ok(
     !templates.get(".cyralis/reference/feature-workflow.md"),
@@ -131,15 +201,19 @@ test("core templates install host-neutral workflow assets", () => {
   );
   assert.match(
     templates.get(".cyralis/reference/core.md"),
-    /Requirement sample/,
-  );
-  assert.match(
-    templates.get(".cyralis/reference/core.md"),
     /Memory projection/,
   );
-  assert.match(
+  assert.doesNotMatch(
     templates.get(".cyralis/reference/core.md"),
-    /Project notes/,
+    /\.claude\//,
+  );
+  assert.doesNotMatch(
+    templates.get(".cyralis/reference/core.md"),
+    /Requirement sample/,
+  );
+  assert.ok(
+    !templates.get(".cyralis/reference/maintainer-notes.md"),
+    "maintainer-only reference should not be installed into user projects",
   );
   assert.ok(
     templates.get(".cyralis/reference/shared.md"),
@@ -306,12 +380,19 @@ test("init removes obsolete managed reference files", () => {
   });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /removed: 6/);
+  assert.match(result.stdout, /removed: 4/);
   const manifest = JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8"));
-  for (const relativePath of Object.keys(obsolete)) {
+  for (const relativePath of [
+    ".cyralis/reference/work-json.md",
+    ".cyralis/reference/feature-workflow.md",
+    ".cyralis/reference/debugging-governance.md",
+    ".cyralis/reference/old-generated-guide.md",
+  ]) {
     assert.equal(existsSync(join(dir, relativePath)), false, `${relativePath} should be removed`);
     assert.ok(!manifest.files[relativePath], `${relativePath} should not remain in the managed template manifest`);
   }
+  assert.equal(existsSync(join(dir, ".cyralis/reference/shared-conventions.md")), true);
+  assert.equal(existsSync(join(dir, legacyProjectGuidancePath)), true);
 });
 
 test("init keeps obsolete managed files that were edited locally", () => {
@@ -376,16 +457,17 @@ test("update force-updates templates and prunes obsolete managed files", () => {
   assert.equal(existsSync(join(dir, obsoletePath)), false);
 });
 
-test("init appends Cyralis AGENTS sections without overwriting an existing project guide", () => {
-  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-agents-"));
-  const agentsPath = join(dir, "AGENTS.md");
+test("init appends Cyralis attention sections without overwriting an existing project note", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-attention-"));
+  const attentionPath = join(dir, ".cyralis", "attention.md");
   const existing = [
-    "# Existing Agents",
+    "# Existing attention",
     "",
     "Keep this repository-specific guidance.",
     "",
   ].join("\n");
-  writeFileSync(agentsPath, existing, "utf8");
+  mkdirSync(dirname(attentionPath), { recursive: true });
+  writeFileSync(attentionPath, existing, "utf8");
 
   const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex"], {
     cwd: process.cwd(),
@@ -396,8 +478,8 @@ test("init appends Cyralis AGENTS sections without overwriting an existing proje
   assert.match(result.stdout, /updated: /);
   assert.doesNotMatch(result.stdout, /conflicts: [1-9]/);
 
-  const updated = readFileSync(agentsPath, "utf8");
-  assert.ok(updated.startsWith(existing), "existing AGENTS content should stay at the top");
+  const updated = readFileSync(attentionPath, "utf8");
+  assert.ok(updated.startsWith(existing), "existing attention content should stay at the top");
   assert.match(updated, /## 项目碎片知识/);
   assert.match(updated, /<!-- cs-note managed: 用 cs-note 维护，新条目按下面分节追加 -->/);
   assert.match(updated, /### 编译与构建/);
@@ -406,12 +488,12 @@ test("init appends Cyralis AGENTS sections without overwriting an existing proje
   assert.doesNotMatch(
     updated,
     /开发遵循SOLID和KISS软件工程原则/,
-    "existing AGENTS files should receive only the Cyralis note skeleton",
+    "existing attention files should receive only the Cyralis note skeleton",
   );
 });
 
-test("init ignores lower-case agents files and manages only AGENTS.md", () => {
-  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-lower-agents-"));
+test("init ignores lower-case agents files and manages only .cyralis/attention.md", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-lower-attention-"));
   const lowerAgentsPath = join(dir, "agents.md");
   const lowerAgentsContent = "# Existing Agents\n\nKeep this file name.\n";
   writeFileSync(lowerAgentsPath, lowerAgentsContent, "utf8");
@@ -423,18 +505,18 @@ test("init ignores lower-case agents files and manages only AGENTS.md", () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.equal(readFileSync(lowerAgentsPath, "utf8"), lowerAgentsContent);
-  assert.match(readFileSync(join(dir, "AGENTS.md"), "utf8"), /## 项目碎片知识/);
+  assert.match(readFileSync(join(dir, ".cyralis", "attention.md"), "utf8"), /## 项目碎片知识/);
   assert.ok(
-    JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files["AGENTS.md"],
-    "manifest should track only AGENTS.md",
+    JSON.parse(readFileSync(join(dir, ".cyralis", ".template-hashes.json"), "utf8")).files[".cyralis/attention.md"],
+    "manifest should track attention.md",
   );
 });
 
-test("init leaves existing AGENTS note sections unchanged even with force", () => {
-  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-agents-sections-"));
-  const agentsPath = join(dir, "AGENTS.md");
+test("init leaves existing attention note sections unchanged even with force", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-existing-attention-sections-"));
+  const agentsPath = join(dir, ".cyralis", "attention.md");
   const existing = [
-    "# Existing Agents",
+    "# Existing attention",
     "",
     "Project-specific guidance.",
     "",
@@ -459,6 +541,7 @@ test("init leaves existing AGENTS note sections unchanged even with force", () =
     "### 其他",
     "",
   ].join("\n");
+  mkdirSync(dirname(agentsPath), { recursive: true });
   writeFileSync(agentsPath, existing, "utf8");
 
   const result = spawnSync(process.execPath, ["bin/cyralis.mjs", "init", "--cwd", dir, "--codex", "--force"], {
@@ -471,13 +554,14 @@ test("init leaves existing AGENTS note sections unchanged even with force", () =
   assert.doesNotMatch(result.stdout, /conflicts: [1-9]/);
 });
 
-test("init adds missing AGENTS note subsections without duplicating existing ones", () => {
-  const dir = mkdtempSync(join(tmpdir(), "cyralis-partial-agents-sections-"));
-  const agentsPath = join(dir, "AGENTS.md");
+test("init adds missing attention note subsections without duplicating existing ones", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cyralis-partial-attention-sections-"));
+  const agentsPath = join(dir, ".cyralis", "attention.md");
+  mkdirSync(dirname(agentsPath), { recursive: true });
   writeFileSync(
     agentsPath,
     [
-      "# Existing Agents",
+      "# Existing attention",
       "",
       "## 项目碎片知识",
       "",
@@ -529,20 +613,19 @@ test("feature skills preserve cyralis-style phase boundaries", () => {
   assert.match(implement, /写代码时的三条姿态/);
   assert.match(accept, /验收闭环/);
   assert.match(accept, /跟 design 的章节强依赖/);
-  assert.match(design, /work\.json\.artifacts\.design\.approval/);
+  assert.match(design, /cs-feat-design-review/);
+  assert.match(design, /Top 3 风险/);
+  assert.match(design, /必跑验证命令/);
   assert.doesNotMatch(design, /Cyralis 投影说明/);
   assert.doesNotMatch(design, /Cyralis 状态写入点/);
-  assert.doesNotMatch(design, /status=approved/);
-  assert.match(design, /Cross-layer thinking/);
-  assert.match(design, /Code reuse thinking/);
-  assert.match(implement, /Cross-layer thinking/);
-  assert.match(implement, /Code reuse thinking/);
+  assert.match(implement, /代码质量反射检查/);
+  assert.match(implement, /只搬不改行为/);
 });
 
 test("backend and ui skills are projected and reference shared thinking guides", () => {
-  const templates = collectTemplates(["codex", "pi"]);
+  const templates = collectTemplates(["claude", "codex", "pi"]);
 
-  for (const host of ["codex", "pi"]) {
+  for (const host of ["claude", "codex", "pi"]) {
     const backend = templates.get(`.${host}/skills/cs-backend/SKILL.md`);
     const backendReference = templates.get(
       `.${host}/skills/cs-backend/reference.md`,
@@ -564,14 +647,24 @@ test("backend and ui skills are projected and reference shared thinking guides",
 });
 
 test("feature design prompts project behavior evaluation rules into both hosts", () => {
-  const templates = collectTemplates(["codex", "pi"]);
+  const templates = collectTemplates(["claude", "codex", "pi"]);
   const paths = [
+    ".claude/skills/cs-feat-design/SKILL.md",
     ".codex/skills/cs-feat-design/SKILL.md",
     ".pi/skills/cs-feat-design/SKILL.md",
+    ".claude/skills/cs-feat-design/reference.md",
     ".codex/skills/cs-feat-design/reference.md",
     ".pi/skills/cs-feat-design/reference.md",
-    ".codex/skills/cs-feat-design/design-document-reviewer-prompt.md",
-    ".pi/skills/cs-feat-design/design-document-reviewer-prompt.md",
+    ".claude/skills/cs-feat-design-review/SKILL.md",
+    ".codex/skills/cs-feat-design-review/SKILL.md",
+    ".pi/skills/cs-feat-design-review/SKILL.md",
+    ".claude/skills/cs-feat-review/SKILL.md",
+    ".codex/skills/cs-feat-review/SKILL.md",
+    ".pi/skills/cs-feat-review/SKILL.md",
+    ".claude/skills/cs-feat-qa/SKILL.md",
+    ".codex/skills/cs-feat-qa/SKILL.md",
+    ".pi/skills/cs-feat-qa/SKILL.md",
+    ".claude/skills/cs-feat-accept/SKILL.md",
     ".codex/skills/cs-feat-accept/SKILL.md",
     ".pi/skills/cs-feat-accept/SKILL.md",
   ];
@@ -580,51 +673,64 @@ test("feature design prompts project behavior evaluation rules into both hosts",
     assert.ok(templates.get(path), `expected ${path}`);
   }
 
-  for (const host of ["codex", "pi"]) {
+  for (const host of ["claude", "codex", "pi"]) {
     const designSkill = templates.get(`.${host}/skills/cs-feat-design/SKILL.md`);
     const designReference = templates.get(
       `.${host}/skills/cs-feat-design/reference.md`,
     );
-    const reviewerPrompt = templates.get(
-      `.${host}/skills/cs-feat-design/design-document-reviewer-prompt.md`,
+    const designReviewSkill = templates.get(
+      `.${host}/skills/cs-feat-design-review/SKILL.md`,
+    );
+    const featureReviewSkill = templates.get(
+      `.${host}/skills/cs-feat-review/SKILL.md`,
+    );
+    const qaSkill = templates.get(
+      `.${host}/skills/cs-feat-qa/SKILL.md`,
     );
     const acceptSkill = templates.get(`.${host}/skills/cs-feat-accept/SKILL.md`);
 
+    assert.match(designSkill, /cs-feat-design-review/);
     assert.match(designSkill, /Behavior Evaluation（按需）/);
     assert.match(
       designSkill,
-      /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就先写这个小节/,
+      /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就先写/,
     );
     assert.match(designSkill, /Behavior Coverage/);
     assert.match(designSkill, /technical-only/);
+    assert.match(designSkill, /Top 3 风险/);
+    assert.match(designSkill, /必跑验证命令/);
+    assert.match(designReference, /cs-feat-design-review/);
     assert.match(designReference, /Behavior Evaluation（按需）/);
-    assert.match(
-      designReference,
-      /只要 feature 会改变用户可见流程、系统可观察结果、错误 \/ 回退路径、跨步骤不变量，就写这里/,
-    );
-    assert.match(designReference, /Behavior Coverage/);
+    assert.match(designReference, /Cross-step Invariants/);
     assert.match(designReference, /technical-only/);
-    assert.match(reviewerPrompt, /Behavior Evaluation/);
-    assert.match(reviewerPrompt, /failure signal/);
-    assert.match(reviewerPrompt, /correction path/);
-    assert.match(reviewerPrompt, /fake coverage/);
-    assert.match(acceptSkill, /关键场景清单/);
-    assert.match(acceptSkill, /Behavior Evaluation 逐项核对/);
-    assert.match(acceptSkill, /Failure signal/);
-    assert.match(acceptSkill, /Correction path/);
-    assert.match(acceptSkill, /technical-only/);
+    assert.match(designReference, /人工 review 前必须先有/);
+    assert.match(designReviewSkill, /本地只读 design review/);
+    assert.match(designReviewSkill, /不要检测、启动或路由/);
+    assert.match(featureReviewSkill, /Test And QA Focus/);
+    assert.match(featureReviewSkill, /local-only/);
+    assert.match(qaSkill, /Verification Matrix/);
+    assert.match(qaSkill, /功能性核心路径/);
+    assert.match(acceptSkill, /Inline Verification Matrix/);
+    assert.match(acceptSkill, /cs-feat-review/);
+    assert.match(acceptSkill, /cs-feat-qa/);
   }
 });
 
 test("arch review skill is cyralis-native", () => {
-  const templates = collectTemplates(["codex", "pi"]);
+  const templates = collectTemplates(["claude", "codex", "pi"]);
+  const claudeSkill = templates.get(".claude/skills/cs-arch-review/SKILL.md");
   const codexSkill = templates.get(".codex/skills/cs-arch-review/SKILL.md");
   const piSkill = templates.get(".pi/skills/cs-arch-review/SKILL.md");
+  const claudeReference = templates.get(".claude/skills/cs-arch-review/reference.md");
   const reference = templates.get(".codex/skills/cs-arch-review/reference.md");
 
+  assert.ok(claudeSkill, "expected claude arch review skill");
   assert.ok(codexSkill, "expected codex arch review skill");
   assert.ok(piSkill, "expected pi arch review skill");
+  assert.ok(claudeReference, "expected claude arch review reference");
   assert.ok(reference, "expected arch review reference");
+  assert.match(claudeSkill, /name: cs-arch-review/);
+  assert.match(claudeSkill, /\.cyralis\/audits/);
   assert.match(codexSkill, /name: cs-arch-review/);
   assert.match(codexSkill, /\.cyralis\/audits/);
   assert.match(codexSkill, /cs-refactor/);
@@ -1287,11 +1393,11 @@ test("host feature skills are full prompt projections", () => {
 });
 
 test("host skill projections do not repeat the AGENTS preload instruction", () => {
-  const templates = collectTemplates(["codex", "pi"]);
-  const repeatedPrelude = "开始任何判断或动作前，先检查 `AGENTS.md`。";
+  const templates = collectTemplates(["claude", "codex", "pi"]);
+  const repeatedPrelude = "开始任何判断或动作前，先读取 `.cyralis/attention.md`；";
 
   for (const [path, body] of templates) {
-    if (!/^\.(codex|pi)\/skills\/.+\/SKILL\.md$/.test(path)) continue;
+    if (!/^\.(claude|codex|pi)\/skills\/.+\/SKILL\.md$/.test(path)) continue;
     if (path.endsWith("/cs-note/SKILL.md")) continue;
     assert.ok(
       !body.includes(repeatedPrelude),
@@ -1301,7 +1407,7 @@ test("host skill projections do not repeat the AGENTS preload instruction", () =
 });
 
 test("referenced cyralis skills are projected for hosts", () => {
-  const templates = collectTemplates(["codex", "pi"]);
+  const templates = collectTemplates(["claude", "codex", "pi"]);
   const featureSkills = [
     templates.get(".codex/skills/cs-feat/SKILL.md"),
     templates.get(".codex/skills/cs-feat-design/SKILL.md"),
@@ -1311,6 +1417,10 @@ test("referenced cyralis skills are projected for hosts", () => {
 
   const referencedSkills = new Set(featureSkills.match(/cs-[a-z0-9-]+/g));
   for (const skill of referencedSkills) {
+    assert.ok(
+      templates.get(`.claude/skills/${skill}/SKILL.md`),
+      `expected claude projection for ${skill}`,
+    );
     assert.ok(
       templates.get(`.codex/skills/${skill}/SKILL.md`),
       `expected codex projection for ${skill}`,
@@ -1323,11 +1433,15 @@ test("referenced cyralis skills are projected for hosts", () => {
 });
 
 test("all skill-like references have host skill projections", () => {
-  const templates = collectTemplates(["codex", "pi"]);
+  const templates = collectTemplates(["claude", "codex", "pi"]);
   const allText = [...templates.values()].join("\n");
   const referencedSkills = new Set(allText.match(/cs-[a-z0-9-]+/g) ?? []);
 
   for (const skill of referencedSkills) {
+    assert.ok(
+      templates.get(`.claude/skills/${skill}/SKILL.md`),
+      `expected claude projection for ${skill}`,
+    );
     assert.ok(
       templates.get(`.codex/skills/${skill}/SKILL.md`),
       `expected codex projection for ${skill}`,

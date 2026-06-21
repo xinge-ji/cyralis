@@ -6,6 +6,7 @@ max_recent_turns: 10
 workflow:
   helper: .cyralis/tools/work.py
   host_skill_roots:
+    claude: .claude/skills
     codex: .codex/skills
     pi: .pi/skills
   reference_root: .cyralis/reference
@@ -23,6 +24,8 @@ workflow:
     - done
 
 hosts:
+  claude:
+    enabled: true
   codex:
     enabled: true
   pi:

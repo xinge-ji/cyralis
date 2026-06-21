@@ -7,9 +7,9 @@ description: 系统审计——从代码中主动发现 bug 隐患、安全漏�
 
 ## 启动必读
 
-`cs-issue` 等你报 bug，`cs-refactor` 等你指优化点，`cs-explore` 等你提问题——但"我也不知道哪有问题，你先扫一遍看看"这个诉求没人接。`cs-audit` 补上这块：**在用户限定的范围内主动扫描，产出一份按严重度 × 性质交叉分类的发现清单**。
+开始任何判断或动作前，先读取 `.cyralis/attention.md`。
 
-审计和架构专项的共通总纲看 `.cyralis/reference/arch-audit.md`；本技能主抓 bug / security / performance / maintainability / arch-drift 扫描。
+`cs-issue` 等你报 bug，`cs-refactor` 等你指优化点，`cs-explore` 等你提问题——但"我也不知道哪有问题，你先扫一遍看看"这个诉求没人接。`cs-audit` 补上这块：**在用户限定的范围内主动扫描，产出一份按严重度 × 性质交叉分类的发现清单**。
 
 本技能只发现、不定修。修是 `cs-issue` / `cs-refactor` 的事。
 
@@ -113,8 +113,7 @@ index.md 末尾给优先级建议：
 | `cs-refactor` | 用户指已知优化点 | audit 发现可优化点后建议开 `cs-refactor` |
 | `cs-explore` | 围绕一个问题查代码 | audit 是批量扫多个维度，不等同于 explore |
 | `cs-arch` | 维护架构文档 | cs-arch 维护文档，cs-audit 检查代码是否偏离文档 |
-| `cs-arch-review` | 找 shallow module / seam / test surface 的 deepening 候选 | 这类架构深化专项不在普通 audit 里展开，转 `cs-arch-review` |
-| 专项安全审查 | 安全审查 | audit 的安全维度是轻量扫描，深度安全审查不在当前 Cyralis 模板内 |
+| 安全专项审查 | 安全审查 | audit 的安全维度是轻量扫描，深度安全审查走项目自定义专项 |
 
 ---
 
@@ -144,5 +143,5 @@ index.md 末尾给优先级建议：
 ## 相关文档
 
 - `reference.md` — index.md / finding-NN.md 模板
-- `.cyralis/reference/core.md` — 目录结构和命名
+- `.cyralis/reference/shared-conventions.md` — 跨工作流共享口径
 - `.cyralis/architecture/` — 架构偏离类发现对照源
